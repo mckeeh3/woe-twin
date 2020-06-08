@@ -2,9 +2,12 @@ package oti.twin;
 
 import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static oti.twin.WorldMap.*;
 
-public class MapRegionTest {
+public class WorldMapTest {
+
   /*  4 + lat
    *    |
    *  3 +
@@ -18,7 +21,7 @@ public class MapRegionTest {
    */
   @Test
   public void overlapRegionSelf() {
-    Map.Region region = Map.region(Map.topLeft(2, 1), Map.botRight(1, 2));
+    WorldMap.Region region = region(1, topLeft(2, 1), botRight(1, 2));
 
     assertTrue(region.overlaps(region));
   }
@@ -36,8 +39,8 @@ public class MapRegionTest {
    */
   @Test
   public void nonOverlappingRegionsSideBySide() {
-    Map.Region regionLeft = Map.region(Map.topLeft(2, 1), Map.botRight(1, 2));
-    Map.Region regionRight = Map.region(Map.topLeft(2, 3), Map.botRight(1, 4));
+    WorldMap.Region regionLeft = region(1, topLeft(2, 1), botRight(1, 2));
+    WorldMap.Region regionRight = region(1, topLeft(2, 3), botRight(1, 4));
 
     assertFalse(regionRight.overlaps(regionLeft));
     assertFalse(regionLeft.overlaps(regionRight));
@@ -60,8 +63,8 @@ public class MapRegionTest {
    */
   @Test
   public void noOverlappingRegionsAboveAndBelow() {
-    Map.Region regionAbove = Map.region(Map.topLeft(5, 3), Map.botRight(4, 4));
-    Map.Region regionBelow = Map.region(Map.topLeft(2, 3), Map.botRight(1, 4));
+    WorldMap.Region regionAbove = region(1, topLeft(5, 3), botRight(4, 4));
+    WorldMap.Region regionBelow = region(1, topLeft(2, 3), botRight(1, 4));
 
     assertFalse(regionBelow.overlaps(regionAbove));
     assertFalse(regionAbove.overlaps(regionBelow));
@@ -81,8 +84,8 @@ public class MapRegionTest {
    */
   @Test
   public void nonOverlappingRegionsLowerLeftAndUpperRight() {
-    Map.Region regionLowerLeft = Map.region(Map.topLeft(2, 1), Map.botRight(1, 2));
-    Map.Region regionUpperRight = Map.region(Map.topLeft(4, 3), Map.botRight(3, 4));
+    WorldMap.Region regionLowerLeft = region(1, topLeft(2, 1), botRight(1, 2));
+    WorldMap.Region regionUpperRight = region(1, topLeft(4, 3), botRight(3, 4));
 
     assertFalse(regionUpperRight.overlaps(regionLowerLeft));
     assertFalse(regionLowerLeft.overlaps(regionUpperRight));
@@ -103,8 +106,8 @@ public class MapRegionTest {
    */
   @Test
   public void overlappingRegions() {
-    Map.Region regionOutside = Map.region(Map.topLeft(4, 1), Map.botRight(1, 4));
-    Map.Region regionInside = Map.region(Map.topLeft(3, 2), Map.botRight(2, 3));
+    WorldMap.Region regionOutside = region(1, topLeft(4, 1), botRight(1, 4));
+    WorldMap.Region regionInside = region(1, topLeft(3, 2), botRight(2, 3));
 
     assertTrue(regionOutside.overlaps(regionInside));
     assertTrue(regionInside.overlaps(regionOutside));
@@ -125,11 +128,11 @@ public class MapRegionTest {
    */
   @Test
   public void nonOverlappingAdjoiningLeftRightAboveBelow() {
-    Map.Region regionCenter = Map.region(Map.topLeft(3, 2), Map.botRight(2, 3));
-    Map.Region regionUpperAdjoining = Map.region(Map.topLeft(4, 2), Map.botRight(3, 3));
-    Map.Region regionLowerAdjoining = Map.region(Map.topLeft(2, 2), Map.botRight(1, 3));
-    Map.Region regionLeftAdjoining = Map.region(Map.topLeft(3, 1), Map.botRight(2, 2));
-    Map.Region regionRightAdjoining = Map.region(Map.topLeft(3, 3), Map.botRight(2, 4));
+    WorldMap.Region regionCenter = region(1, topLeft(3, 2), botRight(2, 3));
+    WorldMap.Region regionUpperAdjoining = region(1, topLeft(4, 2), botRight(3, 3));
+    WorldMap.Region regionLowerAdjoining = region(1, topLeft(2, 2), botRight(1, 3));
+    WorldMap.Region regionLeftAdjoining = region(1, topLeft(3, 1), botRight(2, 2));
+    WorldMap.Region regionRightAdjoining = region(1, topLeft(3, 3), botRight(2, 4));
 
     assertFalse(regionCenter.overlaps(regionUpperAdjoining));
     assertFalse(regionCenter.overlaps(regionLowerAdjoining));
@@ -157,10 +160,11 @@ public class MapRegionTest {
    */
   @Test
   public void partiallyOverlappingRegions() {
-    Map.Region regionLowerLeft = Map.region(Map.topLeft(3, 1), Map.botRight(1, 3));
-    Map.Region regionUpperRight = Map.region(Map.topLeft(4, 2), Map.botRight(2, 4));
+    WorldMap.Region regionLowerLeft = region(1, topLeft(3, 1), botRight(1, 3));
+    WorldMap.Region regionUpperRight = region(1, topLeft(4, 2), botRight(2, 4));
 
     assertTrue(regionLowerLeft.overlaps(regionUpperRight));
     assertTrue(regionUpperRight.overlaps(regionLowerLeft));
   }
 }
+
