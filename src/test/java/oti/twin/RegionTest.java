@@ -51,7 +51,7 @@ public class RegionTest {
   @Test
   public void createZoom18Selection() {
     testKit.system().log().debug("enter createZoom18Selection");
-    TestProbe<Region.Command> probe = testKit.createTestProbe();
+    TestProbe<Region.Event> probe = testKit.createTestProbe();
 
     int zoom = 18;
     String entityId = entityIdOf(regionForZoom0());

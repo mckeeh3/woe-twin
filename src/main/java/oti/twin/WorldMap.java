@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 interface WorldMap {
@@ -81,6 +82,19 @@ interface WorldMap {
       regions.add(region(region.zoom + 1, topLeft, botRight));
     }));
     return regions;
+  }
+
+  static Region regionAtLatLng(int zoom, LatLng latLng) {
+    return regionAtLatLng(zoom, latLng, regionForZoom0());
+  }
+
+  private static Region regionAtLatLng(int zoom, LatLng latLng, Region region) {
+    if (zoom == region.zoom) {
+      return region;
+    }
+    List<Region> subRegions = subRegionsFor(region);
+    Optional<Region> subRegionOpt = subRegions.stream().filter(r -> r.isInside(latLng)).findFirst();
+    return subRegionOpt.map(subRegion -> regionAtLatLng(zoom, latLng, subRegion)).orElse(null);
   }
 
   class LatLng implements CborSerializable {

@@ -11,11 +11,12 @@ import akka.persistence.typed.javadsl.CommandHandler;
 import akka.persistence.typed.javadsl.Effect;
 import akka.persistence.typed.javadsl.EventHandler;
 import akka.persistence.typed.javadsl.EventSourcedBehavior;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.State> {
   final String entityId;
@@ -65,33 +66,32 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   private Effect<Event, State> onAddSelection(State state, SelectionCommand selectionCommand) {
     if (state.isNewSelection(selectionCommand)) {
       log().debug("{} accepted {}", region, selectionCommand);
-      SelectionAccepted selectionAccepted = new SelectionAccepted(selectionCommand.action, selectionCommand.region);
+      SelectionAccepted selectionAccepted = new SelectionAccepted(selectionCommand);
       return Effect().persist(selectionAccepted)
-          .thenRun(newState -> eventPersisted(newState, selectionCommand));
+          .thenRun(newState -> eventReply(newState, selectionAccepted));
     } else {
+      eventReply(state, new SelectionNoOverlap(selectionCommand));
       return Effect().none();
     }
   }
 
-  private void eventPersisted(State state, SelectionCommand selectionCommand) {
-    if (selectionCommand.replyTo != null) {
-      selectionCommand.replyTo.tell(selectionCommand);
-    }
+  private void eventReply(State state, SelectionEvent selectionEvent) {
+    selectionEvent.replyTo.tell(selectionEvent);
   }
 
   interface Command extends CborSerializable {
   }
 
-  public abstract static class SelectionCommand implements Command {
+  abstract static class SelectionCommand implements Command {
+    final Action action;
+    final WorldMap.Region region;
+    final ActorRef<Event> replyTo;
+
     enum Action {
       create, delete, happy, sad
     }
 
-    public final Action action;
-    public final WorldMap.Region region;
-    public final ActorRef<Command> replyTo;
-
-    public SelectionCommand(Action action, WorldMap.Region region, ActorRef<Command> replyTo) {
+    SelectionCommand(Action action, WorldMap.Region region, ActorRef<Event> replyTo) {
       this.action = action;
       this.region = region;
       this.replyTo = replyTo;
@@ -103,26 +103,26 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
   }
 
-  public static final class SelectionCreate extends SelectionCommand {
-    public SelectionCreate(WorldMap.Region region, ActorRef<Command> replyTo) {
+  static final class SelectionCreate extends SelectionCommand {
+    SelectionCreate(WorldMap.Region region, ActorRef<Event> replyTo) {
       super(Action.create, region, replyTo);
     }
   }
 
   static final class SelectionDelete extends SelectionCommand {
-    SelectionDelete(WorldMap.Region region, ActorRef<Command> replyTo) {
+    SelectionDelete(WorldMap.Region region, ActorRef<Event> replyTo) {
       super(Action.delete, region, replyTo);
     }
   }
 
   static final class SelectionHappy extends SelectionCommand {
-    SelectionHappy(WorldMap.Region region, ActorRef<Command> replyTo) {
+    SelectionHappy(WorldMap.Region region, ActorRef<Event> replyTo) {
       super(Action.happy, region, replyTo);
     }
   }
 
   static final class SelectionSad extends SelectionCommand {
-    SelectionSad(WorldMap.Region region, ActorRef<Command> replyTo) {
+    SelectionSad(WorldMap.Region region, ActorRef<Event> replyTo) {
       super(Action.sad, region, replyTo);
     }
   }
@@ -130,19 +130,44 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   interface Event extends CborSerializable {
   }
 
-  public static final class SelectionAccepted implements Event {
-    public final SelectionCommand.Action action;
-    public final WorldMap.Region region;
+  abstract static class SelectionEvent implements Event {
+    final SelectionCommand.Action action;
+    final WorldMap.Region region;
+    final ActorRef<Event> replyTo;
+    final Status status;
 
-    @JsonCreator
-    SelectionAccepted(@JsonProperty("action") SelectionCommand.Action action, @JsonProperty("region") WorldMap.Region region) {
+    enum Status {
+      accepted, noOverlap, failed
+    }
+
+    SelectionEvent(SelectionCommand.Action action, WorldMap.Region region, ActorRef<Event> replyTo, Status status) {
       this.action = action;
       this.region = region;
+      this.replyTo = replyTo;
+      this.status = status;
     }
 
     @Override
     public String toString() {
-      return String.format("%s[%s, %s]", getClass().getSimpleName(), action, region);
+      return String.format("%s[%s, %s, %s, %s]", getClass().getSimpleName(), action, region, replyTo, status);
+    }
+  }
+
+  static final class SelectionAccepted extends SelectionEvent {
+    SelectionAccepted(SelectionCommand selectionCommand) {
+      super(selectionCommand.action, selectionCommand.region, selectionCommand.replyTo, Status.accepted);
+    }
+  }
+
+  static final class SelectionNoOverlap extends SelectionEvent {
+    SelectionNoOverlap(SelectionCommand selectionCommand) {
+      super(selectionCommand.action, selectionCommand.region, selectionCommand.replyTo, Status.noOverlap);
+    }
+  }
+
+  static final class SelectionFailed extends SelectionEvent {
+    SelectionFailed(SelectionCommand selectionCommand) {
+      super(selectionCommand.action, selectionCommand.region, selectionCommand.replyTo, Status.failed);
     }
   }
 
