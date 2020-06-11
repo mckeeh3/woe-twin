@@ -15,6 +15,9 @@
         <aka.management.version>1.0.8</aka.management.version>
         <akka.http.version>10.1.12</akka.http.version>
         <akka.management.version>1.0.7</akka.management.version>
+        <akka.projection.version>0.2</akka.projection.version>
+        <akka.persistence.cassandra.version>1.0.0</akka.persistence.cassandra.version>
+        <yugabyte.version>42.2.7-yb-3</yugabyte.version>
         <jackson.version>2.10.3</jackson.version>
         <logback.version>1.2.3</logback.version>
         <junit.jupiter.version>5.5.2</junit.jupiter.version>
@@ -44,6 +47,11 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-persistence-query_${scala.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-serialization-jackson_${scala.version}</artifactId>
             <version>${akka.version}</version>
         </dependency>
@@ -68,6 +76,25 @@
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-discovery_${scala.version}</artifactId>
             <version>${akka.version}</version>
+        </dependency>
+
+        <!-- Akka Projection -->
+        <dependency>
+            <groupId>com.lightbend.akka</groupId>
+            <artifactId>akka-projection-eventsourced_${scala.version}</artifactId>
+            <version>${akka.projection.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-persistence-cassandra_${scala.version}</artifactId>
+            <version>${akka.persistence.cassandra.version}</version>
+        </dependency>
+
+        <!-- Yugabyte -->
+        <dependency>
+            <groupId>com.yugabyte</groupId>
+            <artifactId>jdbc-yugabytedb</artifactId>
+            <version>${yugabyte.version}</version>
         </dependency>
 
         <!-- Akka Http -->

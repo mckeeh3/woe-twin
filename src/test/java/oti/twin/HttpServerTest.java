@@ -16,6 +16,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.Duration;
@@ -80,6 +81,18 @@ public class HttpServerTest {
     String response = entityAsString(httpResponse, materializer());
     assertNotNull(response);
     assertTrue(response.contains("\"message\":\"Accepted\""));
+  }
+
+  @Ignore
+  @Test // Not a test. Shows Json of a selection request expected in HTTP post.
+  public void toJsonSelectionActionRequest() {
+    // Submit request to create a selected region in London across Westminster Bridge at Park Plaza Hotel
+    WorldMap.Region region = WorldMap.regionAtLatLng(16, new WorldMap.LatLng(51.50079211, -0.11682093));
+    HttpServer.SelectionActionRequest selectionActionRequest = new HttpServer.SelectionActionRequest("create", region);
+
+    System.out.println(toJson(selectionActionRequest));
+
+    // { "action" : "create", "zoom" : 16, "topLeftLat" : 51.50146484375, "topLeftLng" : -0.1171875, "botRightLat" : 51.4990234375, "botRightLng" : -0.11474609375 }
   }
 
   private static HttpEntity.Strict toHttpEntity(Object pojo) {

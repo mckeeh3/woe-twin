@@ -25,7 +25,7 @@ public class Main {
   }
 
   public static void main(String[] args) {
-    ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "OTI Twin");
+    ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "OTI-Twin");
     ClusterSharding clusterSharding = ClusterSharding.get(actorSystem);
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);

@@ -42,6 +42,8 @@ public class HttpServer {
     Http.get(actorSystem.classicSystem())
         .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer),
             ConnectHttp.toHost(host, port), materializer);
+
+    log().info("HTTP Server started on {}:{}", host, "" + port);
   }
 
   private Route route() {
