@@ -93,8 +93,17 @@ interface WorldMap {
       return region;
     }
     List<Region> subRegions = subRegionsFor(region);
-    Optional<Region> subRegionOpt = subRegions.stream().filter(r -> r.isInside(latLng)).findFirst();
+    Optional<Region> subRegionOpt = subRegions.stream().filter(r -> r.contains(latLng)).findFirst();
     return subRegionOpt.map(subRegion -> regionAtLatLng(zoom, latLng, subRegion)).orElse(null);
+  }
+
+  static LatLng latLng(double lat, double lng) {
+    return new LatLng(lat, lng);
+  }
+
+  static LatLng atCenter(Region region) {
+    return latLng(region.topLeft.lat - (region.topLeft.lat - region.botRight.lat) / 2,
+        region.topLeft.lng + (region.botRight.lng - region.topLeft.lng) / 2);
   }
 
   class LatLng implements CborSerializable {
@@ -169,10 +178,10 @@ interface WorldMap {
     }
 
     boolean contains(Region region) {
-      return isInside(region.topLeft) && isInside(region.botRight);
+      return contains(region.topLeft) && contains(region.botRight);
     }
 
-    boolean isInside(LatLng latLng) {
+    boolean contains(LatLng latLng) {
       return topLeft.lat >= latLng.lat && botRight.lat <= latLng.lat
           && topLeft.lng <= latLng.lng && botRight.lng >= latLng.lng;
     }

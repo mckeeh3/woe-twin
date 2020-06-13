@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static oti.twin.WorldMap.*;
 
 public class WorldMapTest {
@@ -165,6 +166,30 @@ public class WorldMapTest {
 
     assertTrue(regionLowerLeft.overlaps(regionUpperRight));
     assertTrue(regionUpperRight.overlaps(regionLowerLeft));
+  }
+
+  @Test
+  public void regionAtLatLngContainsLatLng() {
+    final LatLng latLng = latLng(51.5007541, -0.11688530);
+    final WorldMap.Region region = regionAtLatLng(18, latLng);
+
+    assertTrue(region.topLeft.lat >= latLng.lng);
+    assertTrue(region.botRight.lat <= latLng.lat);
+    assertTrue(region.topLeft.lng <= latLng.lng);
+    assertTrue(region.botRight.lng >= latLng.lng);
+  }
+
+  @Test
+  public void atCenterIsCenterOfRegion() {
+    final LatLng latLngStart = latLng(51.5007541, -0.11688530);
+    final WorldMap.Region regionStart = regionAtLatLng(18, latLngStart);
+    final LatLng latLngCenter = atCenter(regionStart);
+    final WorldMap.Region regionCenter = regionAtLatLng(regionStart.zoom, latLngCenter);
+
+    assertTrue(regionStart.contains(latLngStart));
+    assertTrue(regionCenter.contains(latLngCenter));
+
+    assertEquals(regionStart, regionCenter);
   }
 }
 

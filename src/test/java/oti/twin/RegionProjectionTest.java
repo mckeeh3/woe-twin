@@ -21,42 +21,76 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
+import static oti.twin.WorldMap.*;
+
 public class RegionProjectionTest {
-  @ClassRule
-  public static final TestKitJunitResource testKit = new TestKitJunitResource(config());
+    @ClassRule
+    public static final TestKitJunitResource testKit = new TestKitJunitResource(config());
 
-  private static Config config() {
-    return ConfigFactory.parseString(
-        String.format("akka.cluster.seed-nodes = [ \"akka://%s@127.0.0.1:25520\" ] %n", HttpServerTest.class.getSimpleName())
-            + String.format("akka.persistence.snapshot-store.local.dir = \"%s-%s\" %n", "target/snapshot", UUID.randomUUID().toString())
-    ).withFallback(ConfigFactory.load("application-test.conf"));
-  }
-
-  @Ignore
-  @Test
-  public void t() {
-    SourceProvider<Offset, EventEnvelope<Object>> sourceProvider =
-        EventSourcedProvider.eventsByTag(testKit.system(), CassandraReadJournal.Identifier(), "TODO");
-    sourceProvider.source(this::offset);
-  }
-
-  private CompletionStage<Optional<Offset>> offset() {
-    return null;
-  }
-
-  @Ignore
-  @Test
-  public void y() throws SQLException {
-    String jdbcUrl = "";
-    YBClusterAwareDataSource ds = new YBClusterAwareDataSource(jdbcUrl);
-    try (Connection connection = ds.getConnection();
-         Statement statement = connection.createStatement();
-    ) {
-      try (final ResultSet resultSet = statement.executeQuery("SELECT * FROM mytable WHERE key = 1");) {
-        while (resultSet.next()) {
-          System.out.println(resultSet.getString(1));
-        }
-      }
+    private static Config config() {
+        return ConfigFactory.parseString(
+                String.format("akka.cluster.seed-nodes = [ \"akka://%s@127.0.0.1:25520\" ] %n", HttpServerTest.class.getSimpleName())
+                        + String.format("akka.persistence.snapshot-store.local.dir = \"%s-%s\" %n", "target/snapshot", UUID.randomUUID().toString())
+        ).withFallback(ConfigFactory.load("application-test.conf"));
     }
-  }
+
+    @Ignore
+    @Test
+    public void t() {
+        SourceProvider<Offset, EventEnvelope<Object>> sourceProvider =
+                EventSourcedProvider.eventsByTag(testKit.system(), CassandraReadJournal.Identifier(), "TODO");
+        sourceProvider.source(this::offset);
+    }
+
+    private CompletionStage<Optional<Offset>> offset() {
+        return null;
+    }
+
+    @Test
+    public void regionInsert() {
+        String jdbcUrl = "jdbc:postgresql://192.168.7.98:5433/";
+        YBClusterAwareDataSource ds = new YBClusterAwareDataSource(jdbcUrl);
+        try (Connection connection = ds.getConnection();
+             Statement statement = connection.createStatement();
+        ) {
+            insert(statement, regionForZoom0());
+            insert(statement, regionAtLatLng(18, latLng( 51.50083552, -0.11656344)));
+            insert(statement, regionAtLatLng(18, latLng( 51.50036467, -0.11946023)));
+            insert(statement, regionAtLatLng(18, latLng( 51.49881516, -0.11891842)));
+            insert(statement, regionAtLatLng(18, latLng( 52.50083552, -0.11656344)));
+            insert(statement, regionAtLatLng(18, latLng( 52.50036467, -0.11946023)));
+            insert(statement, regionAtLatLng(18, latLng( 52.49881516, -0.11891842)));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void insert(Statement statement, WorldMap.Region region) throws SQLException {
+        String sql = String.format("insert into region"
+                        + " (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng, device_count, happy_count, sad_count)"
+                        + " values (%d, %1.9f, %1.9f, %1.9f, %1.9f, %d, %d, %d)"
+                        //+ " on conflict (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)"
+                        + " on conflict on constraint region_pkey"
+                        + " do update set"
+                        + " device_count = %d,"
+                        + " happy_count = %d,"
+                        + " sad_count = %d",
+                region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng, 0, 0, 0, 2, 1, 1);
+        statement.executeUpdate(sql);
+    }
+
+    @Test
+    public void regionSelect() throws SQLException {
+        String jdbcUrl = "jdbc:postgresql://192.168.7.98:5433/";
+        YBClusterAwareDataSource ds = new YBClusterAwareDataSource(jdbcUrl);
+        try (Connection connection = ds.getConnection();
+             Statement statement = connection.createStatement();
+        ) {
+            try (final ResultSet resultSet = statement.executeQuery("SELECT * FROM region");) {
+                while (resultSet.next()) {
+                    System.out.println(resultSet.getString(1));
+                }
+            }
+        }
+    }
 }
