@@ -16,7 +16,6 @@ public class Main {
   static Behavior<Void> create() {
     return Behaviors.setup(
         context -> {
-
           return Behaviors.receive(Void.class)
               .onSignal(Terminated.class, signal -> Behaviors.stopped())
               .build();
@@ -32,9 +31,9 @@ public class Main {
 
     clusterSharding.init(
         Entity.of(
-            Region.entityTypeKey,
+            Device.entityTypeKey,
             entityContext ->
-                Region.create(entityContext.getEntityId(), clusterSharding)
+                Device.create(entityContext.getEntityId(), clusterSharding)
         )
     );
   }

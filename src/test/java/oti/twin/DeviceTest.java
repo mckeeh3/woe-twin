@@ -46,7 +46,7 @@ public class DeviceTest {
   }
 
   @Test
-  public void t() {
+  public void createDevice() {
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(18, new LatLng(51.50079211, -0.11682093));
 
