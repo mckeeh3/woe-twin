@@ -18,6 +18,7 @@
         <akka.projection.version>0.2</akka.projection.version>
         <akka.persistence.cassandra.version>1.0.0</akka.persistence.cassandra.version>
         <yugabyte.version>42.2.7-yb-3</yugabyte.version>
+        <postgresql.version>42.2.14</postgresql.version>
         <jackson.version>2.10.3</jackson.version>
         <logback.version>1.2.3</logback.version>
         <junit.jupiter.version>5.5.2</junit.jupiter.version>
@@ -92,9 +93,9 @@
 
         <!-- Yugabyte -->
         <dependency>
-            <groupId>com.yugabyte</groupId>
-            <artifactId>jdbc-yugabytedb</artifactId>
-            <version>${yugabyte.version}</version>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
         </dependency>
 
         <!-- Akka Http -->
@@ -163,6 +164,12 @@
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor-testkit-typed_${scala.version}</artifactId>
             <version>${akka.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lightbend.akka</groupId>
+            <artifactId>akka-projection-testkit_${scala.version}</artifactId>
+            <version>${akka.projection.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

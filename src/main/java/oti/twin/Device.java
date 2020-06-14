@@ -10,6 +10,7 @@ import akka.persistence.typed.javadsl.CommandHandler;
 import akka.persistence.typed.javadsl.Effect;
 import akka.persistence.typed.javadsl.EventHandler;
 import akka.persistence.typed.javadsl.EventSourcedBehavior;
+import org.slf4j.Logger;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -24,7 +25,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   final Set<String> tags;
   final ClusterSharding clusterSharding;
   final ActorContext<Device.Command> actorContext;
-  static final EntityTypeKey<Region.Command> entityTypeKey = EntityTypeKey.create(Region.Command.class, Region.class.getSimpleName());
+  static final EntityTypeKey<Device.Command> entityTypeKey = EntityTypeKey.create(Device.Command.class, Device.class.getSimpleName());
 
   static Behavior<Device.Command> create(String entityId, ClusterSharding clusterSharding) {
     return Behaviors.setup(actorContext -> new Device(entityId, clusterSharding, actorContext));
@@ -57,6 +58,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
 
   private Effect<Event, State> onCreateCommand(State state, TelemetryCreateCommand telemetryCreateCommand) {
     if (state.isInactive()) {
+      log().debug("{} {}", telemetryCreateCommand.action, telemetryCreateCommand.region);
       return Effect().persist(new DeviceActivated(telemetryCreateCommand.region));
     }
     return Effect().none();
@@ -64,7 +66,11 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
 
   private Effect<Event, State> onDeleteCommand(State state, TelemetryDeleteCommand telemetryDeleteCommand) {
     if (state.isActive()) {
-      return Effect().persist(new DeviceDeactivated(telemetryDeleteCommand.region));
+      if (state.isHappy()) {
+        return Effect().persist(new DeviceDeactivatedHappy(telemetryDeleteCommand.region));
+      } else {
+        return Effect().persist(new DeviceDeactivatedSad(telemetryDeleteCommand.region));
+      }
     }
     return Effect().none();
   }
@@ -91,7 +97,8 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   public EventHandler<State, Event> eventHandler() {
     return newEventHandlerBuilder().forAnyState()
         .onEvent(DeviceActivated.class, State::deviceActivated)
-        .onEvent(DeviceDeactivated.class, State::deviceDeactivated)
+        .onEvent(DeviceDeactivatedHappy.class, State::deviceDeactivated)
+        .onEvent(DeviceDeactivatedSad.class, State::deviceDeactivated)
         .onEvent(DeviceMadeHappy.class, State::deviceMadeHappy)
         .onEvent(DeviceMadeSad.class, State::deviceMadeSad)
         .onEvent(DevicePinged.class, State::devicePinged)
@@ -191,8 +198,14 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     }
   }
 
-  static class DeviceDeactivated extends DeviceEvent {
-    DeviceDeactivated(WorldMap.Region region) {
+  static class DeviceDeactivatedHappy extends DeviceEvent {
+    DeviceDeactivatedHappy(WorldMap.Region region) {
+      super(region);
+    }
+  }
+
+  static class DeviceDeactivatedSad extends DeviceEvent {
+    DeviceDeactivatedSad(WorldMap.Region region) {
       super(region);
     }
   }
@@ -262,7 +275,12 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
       return this;
     }
 
-    public State deviceDeactivated(DeviceDeactivated deviceDeactivated) {
+    public State deviceDeactivated(DeviceDeactivatedHappy deviceDeactivated) {
+      deactivate();
+      return this;
+    }
+
+    public State deviceDeactivated(DeviceDeactivatedSad deviceDeactivated) {
       deactivate();
       return this;
     }
@@ -295,5 +313,9 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
       tags.add(String.format("zoom-%d-entity-%d", zoom, entityId.hashCode() % numberOfShards));
     });
     return tags;
+  }
+
+  private Logger log() {
+    return actorContext.getSystem().log();
   }
 }
