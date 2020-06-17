@@ -1,5 +1,6 @@
 package oti.twin;
 
+import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
@@ -10,11 +11,11 @@ import akka.persistence.typed.javadsl.CommandHandler;
 import akka.persistence.typed.javadsl.Effect;
 import akka.persistence.typed.javadsl.EventHandler;
 import akka.persistence.typed.javadsl.EventSourcedBehavior;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static oti.twin.WorldMap.*;
@@ -179,10 +180,10 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   interface Event extends CborSerializable {
   }
 
-  abstract static class DeviceEvent implements Event {
+  public abstract static class DeviceEvent implements Event {
     final WorldMap.Region region;
 
-    DeviceEvent(WorldMap.Region region) {
+    public DeviceEvent(WorldMap.Region region) {
       this.region = region;
     }
 
@@ -192,38 +193,44 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     }
   }
 
-  static class DeviceActivated extends DeviceEvent {
-    DeviceActivated(WorldMap.Region region) {
+  public static class DeviceActivated extends DeviceEvent {
+    @JsonCreator
+    public DeviceActivated(@JsonProperty("region") WorldMap.Region region) {
       super(region);
     }
   }
 
-  static class DeviceDeactivatedHappy extends DeviceEvent {
-    DeviceDeactivatedHappy(WorldMap.Region region) {
+  public static class DeviceDeactivatedHappy extends DeviceEvent {
+    @JsonCreator
+    public DeviceDeactivatedHappy(@JsonProperty("region") WorldMap.Region region) {
       super(region);
     }
   }
 
-  static class DeviceDeactivatedSad extends DeviceEvent {
-    DeviceDeactivatedSad(WorldMap.Region region) {
+  public static class DeviceDeactivatedSad extends DeviceEvent {
+    @JsonCreator
+    public DeviceDeactivatedSad(@JsonProperty("region") WorldMap.Region region) {
       super(region);
     }
   }
 
-  static class DeviceMadeHappy extends DeviceEvent {
-    DeviceMadeHappy(WorldMap.Region region) {
+  public static class DeviceMadeHappy extends DeviceEvent {
+    @JsonCreator
+    public DeviceMadeHappy(@JsonProperty("region") WorldMap.Region region) {
       super(region);
     }
   }
 
-  static class DeviceMadeSad extends DeviceEvent {
-    DeviceMadeSad(WorldMap.Region region) {
+  public static class DeviceMadeSad extends DeviceEvent {
+    @JsonCreator
+    public DeviceMadeSad(@JsonProperty("region") WorldMap.Region region) {
       super(region);
     }
   }
 
-  static class DevicePinged extends DeviceEvent {
-    DevicePinged(WorldMap.Region region) {
+  public static class DevicePinged extends DeviceEvent {
+    @JsonCreator
+    public DevicePinged(@JsonProperty("region") WorldMap.Region region) {
       super(region);
     }
   }
@@ -301,8 +308,11 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     }
   }
 
+  static final String projectionShardsPerZoom = "oti.twin.projection-shards-per-zoom";
+  private static final String tagFormat = "zoom-%d-tag-%d";
+
   private Set<String> tagsForEntity() {
-    int numberOfShards = actorContext.getSystem().settings().config().getInt("akka.cluster.sharding.number-of-shards");
+    int numberOfShards = actorContext.getSystem().settings().config().getInt(projectionShardsPerZoom);
     return tagsFor(region, numberOfShards);
   }
 
@@ -310,8 +320,17 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     final HashSet<String> tags = new HashSet<>();
     IntStream.rangeClosed(3, region.zoom).forEach(zoom -> {
       final String entityId = entityIdOf(regionAtLatLng(zoom, atCenter(region)));
-      tags.add(String.format("zoom-%d-entity-%d", zoom, entityId.hashCode() % numberOfShards));
+      tags.add(String.format(tagFormat, zoom, Math.abs(entityId.hashCode()) % numberOfShards));
     });
+    return tags;
+  }
+
+  static List<String> tagsAll(ActorSystem<?> actorSystem) {
+    final List<String> tags = new ArrayList<>();
+    final int numberOfShards = actorSystem.settings().config().getInt(projectionShardsPerZoom);
+    IntStream.rangeClosed(3, 18).forEach(zoom ->
+        IntStream.range(0, numberOfShards).forEach(tagId ->
+            tags.add(String.format(tagFormat, zoom, tagId))));
     return tags;
   }
 

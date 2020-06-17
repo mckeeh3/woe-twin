@@ -12,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -68,7 +69,17 @@ public class DeviceTest {
     final Set<String> tags = Device.tagsFor(region, 100);
 
     assertEquals(16, tags.size());
-    assertNotNull(tags.stream().filter(t -> t.startsWith("zoom-3-entity-")).findFirst());
-    assertNotNull(tags.stream().filter(t -> t.startsWith("zoom-18-entity-")).findFirst());
+    assertTrue(tags.stream().anyMatch(t -> t.startsWith("zoom-3-tag-")));
+    assertTrue(tags.stream().anyMatch(t -> t.startsWith("zoom-18-tag-")));
+  }
+
+  @Test
+  public void tagsAllBasedOnConfigSettings() {
+    final int numberOfShards = testKit.system().settings().config().getInt(Device.projectionShardsPerZoom);
+    final List<String> tags = Device.tagsAll(testKit.system());
+
+    assertEquals(numberOfShards * 16, tags.size());
+    assertTrue(tags.stream().anyMatch(t -> t.equals("zoom-3-tag-0")));
+    assertTrue(tags.stream().anyMatch(t -> t.startsWith("zoom-18-tag-" + (numberOfShards - 1))));
   }
 }

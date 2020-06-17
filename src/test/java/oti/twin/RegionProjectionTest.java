@@ -44,6 +44,7 @@ public class RegionProjectionTest {
     return null;
   }
 
+  @Ignore
   @Test
   public void regionInsert() throws SQLException {
     String jdbcUrl = "jdbc:postgresql://192.168.7.98:5433/";
@@ -76,6 +77,7 @@ public class RegionProjectionTest {
     statement.executeUpdate(sql);
   }
 
+  @Ignore
   @Test
   public void regionSelect() throws SQLException {
     String jdbcUrl = "jdbc:postgresql://192.168.7.98:5433/";

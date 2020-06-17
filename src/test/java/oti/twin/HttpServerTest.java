@@ -17,8 +17,11 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Test;
 
 import java.util.UUID;
+
+import static oti.twin.WorldMap.regionAtLatLng;
 
 public class HttpServerTest {
   private static HttpServer httpServer;
@@ -50,9 +53,18 @@ public class HttpServerTest {
     );
     testKit.system().log().info("Test cluster node {}", Cluster.get(testKit.system()).selfMember());
 
-    String host = testKit.system().settings().config().getString("oti.http.host");
-    int port = testKit.system().settings().config().getInt("oti.http.port");
+    String host = testKit.system().settings().config().getString("oti.twin.http.server.host");
+    int port = testKit.system().settings().config().getInt("oti.twin.http.server.port");
     httpServer = HttpServer.start(host, port, testKit.system());
+  }
+
+  @Test
+  public void t() {
+    // London across Westminster Bridge at Park Plaza Hotel
+    WorldMap.Region region = regionAtLatLng(18, new WorldMap.LatLng(51.50079211, -0.11682093));
+    final HttpServer.TelemetryRequest create =
+        new HttpServer.TelemetryRequest("create", region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
+    testKit.system().log().info("{}", toJson(create));
   }
 
   private static HttpEntity.Strict toHttpEntity(Object pojo) {

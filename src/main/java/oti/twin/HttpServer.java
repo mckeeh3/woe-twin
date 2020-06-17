@@ -15,8 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
 import static akka.http.javadsl.server.Directives.*;
-import static oti.twin.WorldMap.entityIdOf;
-import static oti.twin.WorldMap.regionForZoom0;
+import static oti.twin.WorldMap.*;
 
 public class HttpServer {
   private final ActorSystem<?> actorSystem;
@@ -72,7 +71,7 @@ public class HttpServer {
 
   private void submitTelemetryToDevice(TelemetryRequest telemetryRequest) {
     Device.TelemetryCommand telemetryCommand = telemetryRequest.asTelemetryCommand();
-    String entityId = entityIdOf(regionForZoom0());
+    String entityId = entityIdOf(telemetryCommand.region);
     EntityRef<Device.Command> entityRef = clusterSharding.entityRefFor(Device.entityTypeKey, entityId);
     entityRef.tell(telemetryCommand);
   }
