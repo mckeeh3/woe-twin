@@ -281,7 +281,7 @@
                                     <tag>${git.commit.version}</tag>
                                 </tags>
                                 <entryPoint>
-                                    java $JAVA_OPTS -cp '/maven/*' $main.class$
+                                    java $JAVA_OPTS -cp '/maven/*' oti.twin.Main
                                 </entryPoint>
                                 <assembly>
                                     <descriptorRef>artifact-with-dependencies</descriptorRef>

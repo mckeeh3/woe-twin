@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: oti-twin
-          image: akka-sample-cluster-kubernetes:latest
+          image: oti-twin:latest
           # remove for real clusters, useful for minikube
           imagePullPolicy: Never
           readinessProbe:
@@ -49,11 +49,10 @@ spec:
               protocol: TCP
           resources:
             limits:
-              memory: 4Gi
-              request: 4Gi
+              memory: 8Gi
             requests:
-              cpu: 4
-              memory: 4Gi
+              memory: 1Gi
+              cpu: 1
           env:
             - name: NAMESPACE
               valueFrom:
@@ -61,6 +60,20 @@ spec:
                   fieldPath: metadata.namespace
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
+            - name: cassandra_host_port_1
+              value: "yb-db-service:9042"
+            - name: X2
+              value: "V"
+            - name: X3
+              value: "V"
+            - name: X4
+              value: "V"
+            - name: X5
+              value: "V"
+            - name: X6
+              value: "V"
+            - name: X7
+              value: "V"
 
 ---
 kind: Role
