@@ -1,4 +1,7 @@
 # OTI Twin Microservice
+# Of Things Internet Twin - OTI Twin Microservice
+
+TODO
 
 ### Design notes
 
@@ -41,7 +44,7 @@ to zoom level 18.
 
 #### Yugabyte on Kubernetes or MiniKube
 
-Follow the documentation for installing Kubernetes, 
+Follow the documentation for installing Kubernetes,
 [MiniKube](https://kubernetes.io/docs/tasks/tools/install-minikube/)
 and
 [Yugabyte](https://download.yugabyte.com/#kubernetes).
@@ -157,9 +160,93 @@ CREATE INDEX
 yugabyte=# \q
 ~~~
 
-### Build and Deploy
+### Build and Deploy to MiniKube
 
-TODO
+From the oti-twin project directory.
+
+Before the build, set up the Docker environment variables using the following commands.
+~~~bash
+$ minikube docker-env
+~~~
+~~~
+export DOCKER_TLS_VERIFY="1"
+export DOCKER_HOST="tcp://192.168.99.102:2376"
+export DOCKER_CERT_PATH="/home/hxmc/.minikube/certs"
+export MINIKUBE_ACTIVE_DOCKERD="minikube"
+
+# To point your shell to minikube's docker-daemon, run:
+# eval $(minikube -p minikube docker-env)
+~~~
+Copy and paster the above `eval` command.
+~~~bash
+$ eval $(minikube -p minikube docker-env)
+~~~
+
+Build the project, which will create a new Docker image.
+~~~bash
+$ mvn clean package docker:build
+~~~
+~~~
+...
+[INFO]
+[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ oti-twin ---
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/oti-twin/target/docker/oti-twin/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/oti-twin/target/docker/oti-twin/tmp/docker-build.tar
+[INFO] DOCKER> [oti-twin:latest]: Created docker-build.tar in 377 milliseconds
+[INFO] DOCKER> [oti-twin:latest]: Built image sha256:e8192
+[INFO] DOCKER> [oti-twin:latest]: Tag with latest,20200619-124148.ef13797
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  22.986 s
+[INFO] Finished at: 2020-06-19T12:48:55-04:00
+[INFO] ------------------------------------------------------------------------
+~~~
+
+Add the local docker image into MiniKube.
+~~~bash
+$ minikube cache add oti-twin:latest
+$ minikube cache list
+~~~
+~~~              
+oti-twin:latest
+~~~
+
+Create the Kubernetes namespace. The namespace only needs to be created once.
+~~~bash
+$ kubectl apply -f kubernetes/namespace.json     
+~~~
+~~~
+namespace/oti-twin-1 created
+~~~
+
+Set this namespace as the default for subsequent `kubectl` commands.
+~~~bash
+$ kubectl config set-context --current --namespace=oti-twin-1
+~~~
+~~~
+Context "minikube" modified.
+~~~
+
+Deploy the Docker images to the Kubernetes cluster.
+~~~bash
+$ kubectl apply -f kubernetes/akka-cluster.yml
+~~~
+~~~
+deployment.apps/oti-twin created
+role.rbac.authorization.k8s.io/pod-reader created
+rolebinding.rbac.authorization.k8s.io/read-pods created
+~~~
+Check if the pods are running. This may take a few moments.
+~~~bash
+$ kubectl get pods                                          
+~~~
+~~~
+NAME                      READY   STATUS    RESTARTS   AGE
+oti-twin-746587fbf4-2zth5   1/1     Running   0          33s
+oti-twin-746587fbf4-trkdt   1/1     Running   0          33s
+oti-twin-746587fbf4-zzk7f   1/1     Running   0          33s
+~~~
 
 ### Enable External Access
 
@@ -167,6 +254,9 @@ Create a load balancer to enable access to the OTI Twin microservice HTTP endpoi
 
 ~~~bash
 $ kubectl expose deployment oti-twin --type=LoadBalancer --name=oti-twin-service
+~~~
+~~~
+service/oti-twin-service exposed
 ~~~
 
 Next, view to external port assignments.
@@ -230,6 +320,7 @@ $ curl -v http://$(minikube ip):32171
 
 * Connection #0 to host 192.168.99.102 left intact
 ~~~
+
 ### Verify Internal HTTP access
 The OTI Twin and OTI Sim microservices communicate with each other via HTTP. Each
 microservie needs to know the host name of the other service. Use the following to
@@ -258,7 +349,7 @@ Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
 Name:      10.106.25.172
 Address 1: 10.106.25.172 oti-twin-service.oti-twin-1.svc.cluster.local
 ~~~
-Note that the load balancer host name is oti-twin-service.oti-twin-1.svc.cluster.local.
+Note that the load balancer host name is `oti-twin-service.oti-twin-1.svc.cluster.local`.
 
 Verify that the OTI Twin HTTP server is accessible via the host name.
 ~~~
