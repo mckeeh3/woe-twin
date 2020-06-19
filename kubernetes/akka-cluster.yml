@@ -69,11 +69,11 @@ spec:
             - name: postgresql_password
               value: "yugabyte"
             - name: oti_simulator_http_server_host
-              value: "0.0.0.0"
+              value: "oti-sim.oti-sim-1.svc.cluster.local"
             - name: oti_simulator_http_server_port
               value: "8080"
             - name: oti_twin_http_server_host
-              value: "0.0.0.0"
+              value: "oti-twin.oti-twin-1.svc.cluster.local"
             - name: oti_twin_http_server_port
               value: "8080"
 

@@ -1,3 +1,4 @@
+# OTI Twin Microservice
 
 ### Design notes
 
@@ -36,11 +37,17 @@ the map selection on to map sub regions. Typically, each map region
 contains 4 sub regions. This recursion starts at zoom level 0 and continues
 to zoom level 18.
 
-### Deploy
+### Deploy the OTI Twin Microservice
 
 #### Yugabyte on Kubernetes or MiniKube
 
-Follow the documentation for installing MiniKube and Yugabyte.
+Follow the documentation for installing Kubernetes, 
+[MiniKube](https://kubernetes.io/docs/tasks/tools/install-minikube/)
+and
+[Yugabyte](https://download.yugabyte.com/#kubernetes).
+
+The `kubectl` CLI provides a nice Kubectl Autocomplete feature for `bash` and `zsh`.
+See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-autocomplete) for instructions.
 
 #### Create Cassandra and PostgreSQL Tables
 
@@ -150,6 +157,10 @@ CREATE INDEX
 yugabyte=# \q
 ~~~
 
+### Build and Deploy
+
+TODO
+
 ### Enable External Access
 
 Create a load balancer to enable access to the OTI Twin microservice HTTP endpoint.
@@ -175,9 +186,11 @@ For MiniKube deployments, the full URL to access the HTTP endpoint is constructe
 ~~~bash
 $ minikube ip       
 ~~~
+In this example the MiniKube IP is:
 ~~~
 192.168.99.102
 ~~~
+Try accessing this endpoint using the curl command or from a browser.
 ~~~bash
 $ curl -v http://$(minikube ip):32171
 ~~~
@@ -216,4 +229,58 @@ $ curl -v http://$(minikube ip):32171
 </html>
 
 * Connection #0 to host 192.168.99.102 left intact
+~~~
+### Verify Internal HTTP access
+The OTI Twin and OTI Sim microservices communicate with each other via HTTP. Each
+microservie needs to know the host name of the other service. Use the following to
+verify the hostname of this service.
+
+First, get the IP assigned to the load balancer.
+~~~bash
+$ kubectl get service oti-twin-service
+~~~
+~~~
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
+oti-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   16h~~~
+~~~
+In this example, the internal load balancer IP is 10.106.225.172.
+
+Next, run a shell that can be used to look around the Kubernetes network.
+~~~bash
+$ kubectl run -i --tty --image busybox:1.28 dns-test --restart=Never --rm
+~~~
+Use the nslookup command to see the DNS names assigned to the load balancer IP.
+~~~
+/ # nslookup 10.106.25.172
+Server:    10.96.0.10
+Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      10.106.25.172
+Address 1: 10.106.25.172 oti-twin-service.oti-twin-1.svc.cluster.local
+~~~
+Note that the load balancer host name is oti-twin-service.oti-twin-1.svc.cluster.local.
+
+Verify that the OTI Twin HTTP server is accessible via the host name.
+~~~
+/ # wget -qO- http://oti-twin-service.oti-twin-1.svc.cluster.local:8080
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Of Things Internet</title>
+  <script src="p5.js" type="text/javascript"></script>
+  <script src="mappa.js" type="text/javascript"></script>
+  <script src="oti.js" type="text/javascript"></script>
+  <style> body { padding: 0; margin: 0; }</style>
+</head>
+
+<body>
+</body>
+
+</html>
+~~~
+Leave the shell using the `exit` command.
+~~~
+/ # exit
+pod "dns-test" deleted
 ~~~
