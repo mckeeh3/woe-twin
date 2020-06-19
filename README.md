@@ -149,3 +149,71 @@ create index region_bot_right_lng on region (bot_right_lng);
 CREATE INDEX
 yugabyte=# \q
 ~~~
+
+### Enable External Access
+
+Create a load balancer to enable access to the OTI Twin microservice HTTP endpoint.
+
+~~~bash
+$ kubectl expose deployment oti-twin --type=LoadBalancer --name=oti-twin-service
+~~~
+
+Next, view to external port assignments.
+
+~~~bash
+$ kubectl get services oti-twin-service
+~~~
+~~~
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
+oti-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   5h4m
+~~~
+
+Note that in this example, the Kubernetes internal port 8080 external port assignment of 32171.
+
+For MiniKube deployments, the full URL to access the HTTP endpoint is constructed using the MiniKube IP and the external port.
+
+~~~bash
+$ minikube ip       
+~~~
+~~~
+192.168.99.102
+~~~
+~~~bash
+$ curl -v http://$(minikube ip):32171
+~~~
+~~~
+*   Trying 192.168.99.102:32171...
+* Connected to 192.168.99.102 (192.168.99.102) port 32171 (#0)
+> GET / HTTP/1.1
+> Host: 192.168.99.102:32171
+> User-Agent: curl/7.70.0
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< Last-Modified: Thu, 18 Jun 2020 14:31:18 GMT
+< ETag: "52800172c7d756f0"
+< Accept-Ranges: bytes
+< Server: akka-http/10.1.12
+< Date: Fri, 19 Jun 2020 00:26:36 GMT
+< Content-Type: text/html; charset=UTF-8
+< Content-Length: 330
+<
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Of Things Internet</title>
+  <script src="p5.js" type="text/javascript"></script>
+  <script src="mappa.js" type="text/javascript"></script>
+  <script src="oti.js" type="text/javascript"></script>
+  <style> body { padding: 0; margin: 0; }</style>
+</head>
+
+<body>
+</body>
+
+</html>
+
+* Connection #0 to host 192.168.99.102 left intact
+~~~

@@ -61,19 +61,21 @@ spec:
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
             - name: cassandra_host_port_1
-              value: "yb-db-service:9042"
-            - name: X2
-              value: "V"
-            - name: X3
-              value: "V"
-            - name: X4
-              value: "V"
-            - name: X5
-              value: "V"
-            - name: X6
-              value: "V"
-            - name: X7
-              value: "V"
+              value: "yb-tservers.yb-demo.svc.cluster.local:9042"
+            - name: postgresql_url
+              value: "yb-tservers.yb-demo.svc.cluster.local:5433"
+            - name: postgresql_username
+              value: "yugabyte"
+            - name: postgresql_password
+              value: "yugabyte"
+            - name: oti_simulator_http_server_host
+              value: "0.0.0.0"
+            - name: oti_simulator_http_server_port
+              value: "8080"
+            - name: oti_twin_http_server_host
+              value: "0.0.0.0"
+            - name: oti_twin_http_server_port
+              value: "8080"
 
 ---
 kind: Role

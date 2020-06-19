@@ -280,6 +280,10 @@
                                     <tag>latest</tag>
                                     <tag>${git.commit.version}</tag>
                                 </tags>
+                                <ports>
+                                    <port>8080</port>
+                                    <port>8558</port>
+                                </ports>
                                 <entryPoint>
                                     java $JAVA_OPTS -cp '/maven/*' oti.twin.Main
                                 </entryPoint>
