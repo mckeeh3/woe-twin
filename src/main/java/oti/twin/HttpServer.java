@@ -60,9 +60,9 @@ public class HttpServer {
             telemetryRequest -> {
               try {
                 submitTelemetryToDevice(telemetryRequest);
-                return complete(StatusCodes.OK, TelemetryResponse.ok(telemetryRequest), Jackson.marshaller());
+                return complete(StatusCodes.OK, TelemetryResponse.ok(StatusCodes.OK.intValue(), telemetryRequest), Jackson.marshaller());
               } catch (IllegalArgumentException e) {
-                return complete(StatusCodes.BAD_REQUEST, TelemetryResponse.failed(telemetryRequest), Jackson.marshaller());
+                return complete(StatusCodes.BAD_REQUEST, TelemetryResponse.failed(e.getMessage(), StatusCodes.BAD_REQUEST.intValue(), telemetryRequest), Jackson.marshaller());
               }
             }
         )
@@ -119,22 +119,25 @@ public class HttpServer {
 
   public static class TelemetryResponse {
     public final String message;
+    public final int httpStatusCode;
     public final TelemetryRequest telemetryRequest;
 
     @JsonCreator
     public TelemetryResponse(
         @JsonProperty("message") String message,
+        @JsonProperty("httpStatusCode") int httpStatusCode,
         @JsonProperty("deviceTelemetryRequest") TelemetryRequest telemetryRequest) {
       this.message = message;
+      this.httpStatusCode = httpStatusCode;
       this.telemetryRequest = telemetryRequest;
     }
 
-    static TelemetryResponse ok(TelemetryRequest telemetryRequest) {
-      return new TelemetryResponse("Accepted", telemetryRequest);
+    static TelemetryResponse ok(int httpStatusCode, TelemetryRequest telemetryRequest) {
+      return new TelemetryResponse("Accepted", httpStatusCode, telemetryRequest);
     }
 
-    static TelemetryResponse failed(TelemetryRequest telemetryRequest) {
-      return new TelemetryResponse("Invalid action", telemetryRequest);
+    static TelemetryResponse failed(String message, int httpStatusCode, TelemetryRequest telemetryRequest) {
+      return new TelemetryResponse(message, httpStatusCode, telemetryRequest);
     }
   }
 
