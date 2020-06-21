@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
 import static akka.http.javadsl.server.Directives.*;
-import static oti.twin.WorldMap.*;
+import static oti.twin.WorldMap.entityIdOf;
 
 public class HttpServer {
   private final ActorSystem<?> actorSystem;
@@ -49,7 +49,8 @@ public class HttpServer {
         path("oti.js", () -> getFromResource("oti.js", ContentTypes.APPLICATION_JSON)),
         path("p5.js", () -> getFromResource("p5.js", ContentTypes.APPLICATION_JSON)),
         path("mappa.js", () -> getFromResource("mappa.js", ContentTypes.APPLICATION_JSON)),
-        path("telemetry", this::handleTelemetryActionPost)
+        path("telemetry", this::handleTelemetryActionPost),
+        path("selection", this::handleSelectionRequest)
     );
   }
 
@@ -74,6 +75,24 @@ public class HttpServer {
     String entityId = entityIdOf(telemetryCommand.region);
     EntityRef<Device.Command> entityRef = clusterSharding.entityRefFor(Device.entityTypeKey, entityId);
     entityRef.tell(telemetryCommand);
+  }
+
+  private Route handleSelectionRequest() {
+    final HttpClient httpClient = new HttpClient(actorSystem);
+    return post(
+        () -> entity(
+            Jackson.unmarshaller(HttpClient.SelectionActionRequest.class),
+            selectionActionRequest -> {
+              httpClient.post(selectionActionRequest)
+                  .thenAccept(selectionActionResponse -> {
+                    if (StatusCodes.get(selectionActionResponse.httpStatusCode).isFailure()) {
+                      log().warn("{}", selectionActionResponse);
+                    }
+                  });
+              return complete(StatusCodes.OK, new HttpClient.SelectionActionResponse("Accepted", StatusCodes.OK.intValue(), selectionActionRequest), Jackson.marshaller());
+            }
+        )
+    );
   }
 
   public static class TelemetryRequest {

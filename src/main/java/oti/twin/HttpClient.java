@@ -1,6 +1,5 @@
 package oti.twin;
 
-import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.marshallers.jackson.Jackson;
@@ -39,7 +38,7 @@ class HttpClient {
     return String.format("http://%s:%d/telemetry", host, port);
   }
 
-  private CompletionStage<SelectionActionResponse> post(SelectionActionRequest selectionActionRequest) {
+  CompletionStage<SelectionActionResponse> post(SelectionActionRequest selectionActionRequest) {
     return Http.get(actorSystem.classicSystem())
         .singleRequest(HttpRequest.POST(url)
             .withEntity(toHttpEntity(selectionActionRequest)))
@@ -75,10 +74,6 @@ class HttpClient {
       this.botRightLat = botRightLat;
       this.botRightLng = botRightLng;
     }
-
-    SelectionActionRequest(String action, WorldMap.Region region) {
-      this(action, region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
-    }
   }
 
   public static class SelectionActionResponse {
@@ -94,14 +89,6 @@ class HttpClient {
       this.message = message;
       this.httpStatusCode = httpStatusCode;
       this.selectionActionRequest = selectionActionRequest;
-    }
-
-    static SelectionActionResponse ok(SelectionActionRequest selectionActionRequest) {
-      return new SelectionActionResponse("Accepted", -1, selectionActionRequest);
-    }
-
-    static SelectionActionResponse failed(SelectionActionRequest selectionActionRequest) {
-      return new SelectionActionResponse("Invalid action", -1, selectionActionRequest);
     }
   }
 
