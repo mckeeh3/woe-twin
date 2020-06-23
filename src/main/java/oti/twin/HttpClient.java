@@ -33,9 +33,9 @@ class HttpClient {
   }
 
   private static String url(ActorSystem<?> actorSystem) {
-    final String host = actorSystem.settings().config().getString("oti_twin_http_server_host");
-    final int port = actorSystem.settings().config().getInt("oti_twin_http_server_port");
-    return String.format("http://%s:%d/telemetry", host, port);
+    final String host = actorSystem.settings().config().getString("oti.simulator.http.server.host");
+    final int port = actorSystem.settings().config().getInt("oti.simulator.http.server.port");
+    return String.format("http://%s:%d/selection", host, port);
   }
 
   CompletionStage<SelectionActionResponse> post(SelectionActionRequest selectionActionRequest) {
@@ -74,6 +74,11 @@ class HttpClient {
       this.botRightLat = botRightLat;
       this.botRightLng = botRightLng;
     }
+
+    @Override
+    public String toString() {
+      return String.format("%s[%s, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
+    }
   }
 
   public static class SelectionActionResponse {
@@ -89,6 +94,11 @@ class HttpClient {
       this.message = message;
       this.httpStatusCode = httpStatusCode;
       this.selectionActionRequest = selectionActionRequest;
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s[%d, %s, %s]", getClass().getSimpleName(), httpStatusCode, message, selectionActionRequest);
     }
   }
 

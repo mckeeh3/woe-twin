@@ -6,12 +6,16 @@ import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
+import akka.serialization.jackson.JacksonCborSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -53,7 +57,7 @@ public class DeviceTest {
 
     final EntityRef<Device.Command> entityRef = clusterSharding.entityRefFor(Device.entityTypeKey, entityIdOf(region));
 
-    LoggingTestKit.debug("create " + region)
+    LoggingTestKit.debug("[create, " + region)
         .expect(
             testKit.system(),
             () -> {
@@ -81,5 +85,36 @@ public class DeviceTest {
     assertEquals(numberOfShards * 16, tags.size());
     assertTrue(tags.stream().anyMatch(t -> t.equals("zoom-3-tag-0")));
     assertTrue(tags.stream().anyMatch(t -> t.startsWith("zoom-18-tag-" + (numberOfShards - 1))));
+  }
+
+  @Test
+  public void serializerDeserializeTelemetryCommands() throws IOException {
+    CBORFactory cborFactory = new CBORFactory();
+    ObjectMapper objectMapper = new ObjectMapper(cborFactory);
+
+    final Device.TelemetryCommand telemetryCreateCommand = new Device.TelemetryCreateCommand(regionForZoom0());
+    final byte[] cborTelemetryCreate = objectMapper.writeValueAsBytes(telemetryCreateCommand);
+    final Device.TelemetryCommand telemetryCreateCommand1 = objectMapper.readValue(cborTelemetryCreate, Device.TelemetryCreateCommand.class);
+    assertEquals(telemetryCreateCommand, telemetryCreateCommand1);
+
+    final Device.TelemetryCommand telemetryDeleteCommand = new Device.TelemetryDeleteCommand(regionForZoom0());
+    final byte[] cborTelemetryDelete = objectMapper.writeValueAsBytes(telemetryDeleteCommand);
+    final Device.TelemetryCommand telemetryDeleteCommand1 = objectMapper.readValue(cborTelemetryDelete, Device.TelemetryDeleteCommand.class);
+    assertEquals(telemetryDeleteCommand, telemetryDeleteCommand1);
+
+    final Device.TelemetryCommand telemetryHappyCommand = new Device.TelemetryHappyCommand(regionForZoom0());
+    final byte[] cborTelemetryHappy = objectMapper.writeValueAsBytes(telemetryHappyCommand);
+    final Device.TelemetryCommand telemetryHappyCommand1 = objectMapper.readValue(cborTelemetryHappy, Device.TelemetryHappyCommand.class);
+    assertEquals(telemetryHappyCommand, telemetryHappyCommand1);
+
+    final Device.TelemetryCommand telemetrySadCommand = new Device.TelemetrySadCommand(regionForZoom0());
+    final byte[] cborTelemetrySad = objectMapper.writeValueAsBytes(telemetrySadCommand);
+    final Device.TelemetryCommand telemetrySadCommand1 = objectMapper.readValue(cborTelemetrySad, Device.TelemetrySadCommand.class);
+    assertEquals(telemetrySadCommand, telemetrySadCommand1);
+
+    final Device.TelemetryCommand telemetryPingCommand = new Device.TelemetryPingCommand(regionForZoom0());
+    final byte[] cborTelemetryPing = objectMapper.writeValueAsBytes(telemetryPingCommand);
+    final Device.TelemetryCommand telemetryPingCommand1 = objectMapper.readValue(cborTelemetryPing, Device.TelemetryPingCommand.class);
+    assertEquals(telemetryPingCommand, telemetryPingCommand1);
   }
 }

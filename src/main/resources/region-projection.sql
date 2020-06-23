@@ -1,5 +1,5 @@
 
-create schema if not exists iot_twin;
+create schema if not exists oti_twin;
 
 create table if not exists region (
     zoom            integer,

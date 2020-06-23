@@ -3,11 +3,18 @@ let worldMap;
 let canvas;
 let mouseSelectionWidth;
 let areaSelectionOn = false;
+let areaSelectionAction = "";
+let areaSelectionColor = [0, 0, 0, 0];
+
 const drawFPS = 30;
 const gridLatLines = [];
 const gridLngLines = [];
 const locations = [];
 const selectedRegionColor = [212, 0, 255, 48];
+const areaSelectionColorCreate = [212, 0, 255, 50];
+const areaSelectionColorDelete = [64, 64, 64, 50];
+const areaSelectionColorHappy = [0, 255, 0, 50];
+const areaSelectionColorSad = [255, 0, 0, 50];
 const selectedMarkerColor = [33, 183, 0];
 const mappa = new Mappa('Leaflet');
 const mapOptions = {
@@ -52,7 +59,7 @@ function drawMouseLocation() {
 function drawMouseSectors() {
   const loc = mouseGridLocation();
   if (loc.inGrid) {
-    fill(color(selectedRegionColor));
+    fill(color(areaSelectionColor));
     strokeWeight(0);
     rect(loc.rect.x, loc.rect.y, loc.rect.w, loc.rect.h);
   }
@@ -130,6 +137,25 @@ function mouseClicked(event) {
       locations.push({
         map: loc.map
       });
+      const selection = {
+        action: areaSelectionAction,
+        zoom: worldMap.zoom(),
+        topLeftLat: loc.map.topLeft.lat,
+        topLeftLng: loc.map.topLeft.lng,
+        botRightLat: loc.map.botRight.lat,
+        botRightLng: loc.map.botRight.lng
+      };
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", location + "selection");
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          const json = JSON.parse(xhr.responseText);
+          console.log(json);
+        }
+      };
+      const entity = JSON.stringify(selection);
+      xhr.send(entity);
     }
     areaSelectionOn = false;
   }
@@ -200,15 +226,23 @@ function keyPressed() {
   switch (key) {
     case "C":
       areaSelectionOn = !areaSelectionOn;
+      areaSelectionAction = "create";
+      areaSelectionColor = areaSelectionColorCreate;
       break;
     case "D":
-      console.log("D key, delete region, TODO");
+      areaSelectionOn = !areaSelectionOn;
+      areaSelectionAction = "delete";
+      areaSelectionColor = areaSelectionColorDelete;
       break;
     case "H":
-      console.log("H key, make region happy, TODO");
+      areaSelectionOn = !areaSelectionOn;
+      areaSelectionAction = "happy";
+      areaSelectionColor = areaSelectionColorHappy;
       break;
     case "S":
-      console.log("S key, make region sad, TODO");
+      areaSelectionOn = !areaSelectionOn;
+      areaSelectionAction = "sad";
+      areaSelectionColor = areaSelectionColorSad;
       break;
   }
 }

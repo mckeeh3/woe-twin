@@ -59,6 +59,7 @@ public class HttpServer {
         () -> entity(
             Jackson.unmarshaller(TelemetryRequest.class),
             telemetryRequest -> {
+              log().debug("{}", telemetryRequest);
               try {
                 submitTelemetryToDevice(telemetryRequest);
                 return complete(StatusCodes.OK, TelemetryResponse.ok(StatusCodes.OK.intValue(), telemetryRequest), Jackson.marshaller());
@@ -83,10 +84,11 @@ public class HttpServer {
         () -> entity(
             Jackson.unmarshaller(HttpClient.SelectionActionRequest.class),
             selectionActionRequest -> {
+              log().debug("POST {}", selectionActionRequest);
               httpClient.post(selectionActionRequest)
                   .thenAccept(selectionActionResponse -> {
                     if (StatusCodes.get(selectionActionResponse.httpStatusCode).isFailure()) {
-                      log().warn("{}", selectionActionResponse);
+                      log().warn("POST failed {}", selectionActionResponse);
                     }
                   });
               return complete(StatusCodes.OK, new HttpClient.SelectionActionResponse("Accepted", StatusCodes.OK.intValue(), selectionActionRequest), Jackson.marshaller());
@@ -134,6 +136,11 @@ public class HttpServer {
           throw new IllegalArgumentException(String.format("Action '%s' illegal, must be one of: 'create', 'delete', 'happy', or 'sad'.", action));
       }
     }
+
+    @Override
+    public String toString() {
+      return String.format("%s[%s, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
+    }
   }
 
   public static class TelemetryResponse {
@@ -157,6 +164,11 @@ public class HttpServer {
 
     static TelemetryResponse failed(String message, int httpStatusCode, TelemetryRequest telemetryRequest) {
       return new TelemetryResponse(message, httpStatusCode, telemetryRequest);
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s[%d, %s, %s]", getClass().getSimpleName(), httpStatusCode, message, telemetryRequest);
     }
   }
 
