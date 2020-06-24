@@ -12,7 +12,14 @@ import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static akka.http.javadsl.server.Directives.*;
 import static oti.twin.WorldMap.entityIdOf;
@@ -20,6 +27,9 @@ import static oti.twin.WorldMap.entityIdOf;
 public class HttpServer {
   private final ActorSystem<?> actorSystem;
   private final ClusterSharding clusterSharding;
+  private final String dbUrl;
+  private final String username;
+  private final String password;
 
   static HttpServer start(String host, int port, ActorSystem<?> actorSystem) {
     return new HttpServer(host, port, actorSystem);
@@ -28,6 +38,9 @@ public class HttpServer {
   private HttpServer(String host, int port, ActorSystem<?> actorSystem) {
     this.actorSystem = actorSystem;
     clusterSharding = ClusterSharding.get(actorSystem);
+    dbUrl = actorSystem.settings().config().getString("oti.twin.sql.url");
+    username = actorSystem.settings().config().getString("oti.twin.sql.username");
+    password = actorSystem.settings().config().getString("oti.twin.sql.password");
 
     start(host, port);
   }
@@ -50,7 +63,8 @@ public class HttpServer {
         path("p5.js", () -> getFromResource("p5.js", ContentTypes.APPLICATION_JSON)),
         path("mappa.js", () -> getFromResource("mappa.js", ContentTypes.APPLICATION_JSON)),
         path("telemetry", this::handleTelemetryActionPost),
-        path("selection", this::handleSelectionRequest)
+        path("selection", this::handleSelectionRequest),
+        path("selections", this::querySelections)
     );
   }
 
@@ -59,7 +73,7 @@ public class HttpServer {
         () -> entity(
             Jackson.unmarshaller(TelemetryRequest.class),
             telemetryRequest -> {
-              log().debug("{}", telemetryRequest);
+              log().debug("POST {}", telemetryRequest);
               try {
                 submitTelemetryToDevice(telemetryRequest);
                 return complete(StatusCodes.OK, TelemetryResponse.ok(StatusCodes.OK.intValue(), telemetryRequest), Jackson.marshaller());
@@ -92,6 +106,23 @@ public class HttpServer {
                     }
                   });
               return complete(StatusCodes.OK, new HttpClient.SelectionActionResponse("Accepted", StatusCodes.OK.intValue(), selectionActionRequest), Jackson.marshaller());
+            }
+        )
+    );
+  }
+
+  private Route querySelections() {
+    return post(
+        () -> entity(
+            Jackson.unmarshaller(WorldMap.Region.class),
+            queryRegion -> {
+              log().debug("POST {}", queryRegion);
+              try {
+                return complete(StatusCodes.OK, read(queryRegion), Jackson.marshaller());
+              } catch (SQLException e) {
+                log().warn("Read selections query failed.", e);
+                return complete(StatusCodes.INTERNAL_SERVER_ERROR, e.getMessage());
+              }
             }
         )
     );
@@ -169,6 +200,44 @@ public class HttpServer {
     @Override
     public String toString() {
       return String.format("%s[%d, %s, %s]", getClass().getSimpleName(), httpStatusCode, message, telemetryRequest);
+    }
+  }
+
+  private String querySelections(WorldMap.Region region) throws SQLException {
+    return toJson(read(region));
+  }
+
+  private List<DeviceProjector.RegionSummary> read(WorldMap.Region region) throws SQLException {
+    try (final Connection connection = DriverManager.getConnection(dbUrl, username, password)) {
+      return read(connection, region);
+    }
+  }
+
+  private List<DeviceProjector.RegionSummary> read(Connection connection, WorldMap.Region region) throws SQLException {
+    try (Statement statement = connection.createStatement()) {
+      String sql = String.format("select * from region"
+              + " where zoom = %d"
+              + " and top_left_lat <= %1.9f"
+              + " and top_left_lng >= %1.9f"
+              + " and bot_right_lat >= %1.9f"
+              + " and bot_right_lng <= %1.9f"
+              + " and device_count > 0",
+          region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
+      final ResultSet resultSet = statement.executeQuery(sql);
+      List<DeviceProjector.RegionSummary> regionSummaries = new ArrayList<>();
+      while (resultSet.next()) {
+        regionSummaries.add(new DeviceProjector.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count")));
+      }
+      return regionSummaries;
+    }
+  }
+
+  private static String toJson(Object pojo) {
+    final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    try {
+      return ow.writeValueAsString(pojo);
+    } catch (JsonProcessingException e) {
+      return String.format("{ \"error\" : \"%s\" }", e.getMessage());
     }
   }
 

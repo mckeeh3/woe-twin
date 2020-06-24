@@ -59,12 +59,19 @@ public class HttpServerTest {
   }
 
   @Test
-  public void t() {
+  public void telemetryRequestToJson() {
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(18, new WorldMap.LatLng(51.50079211, -0.11682093));
     final HttpServer.TelemetryRequest create =
         new HttpServer.TelemetryRequest("create", region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
     testKit.system().log().info("{}", toJson(create));
+  }
+
+  @Test
+  public void regionToJson() {
+    // London across Westminster Bridge at Park Plaza Hotel
+    WorldMap.Region region = regionAtLatLng(18, new WorldMap.LatLng(51.50079211, -0.11682093));
+    testKit.system().log().info("{}", toJson(region));
   }
 
   private static HttpEntity.Strict toHttpEntity(Object pojo) {

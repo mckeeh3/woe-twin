@@ -115,16 +115,9 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   }
 
   public abstract static class TelemetryCommand implements Command {
-    public final Action action;
     public final WorldMap.Region region;
 
-    public enum Action {
-      create, delete, happy, sad, ping
-    }
-
-    @JsonCreator
-    public TelemetryCommand(@JsonProperty("action") Action action, @JsonProperty("region") WorldMap.Region region) {
-      this.action = action;
+    public TelemetryCommand(WorldMap.Region region) {
       this.region = region;
     }
 
@@ -133,53 +126,52 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       TelemetryCommand that = (TelemetryCommand) o;
-      return action == that.action &&
-          region.equals(that.region);
+      return region.equals(that.region);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(action, region);
+      return Objects.hash(region);
     }
 
     @Override
     public String toString() {
-      return String.format("%s[%s, %s]", getClass().getSimpleName(), action, region);
+      return String.format("%s[%s]", getClass().getSimpleName(), region);
     }
   }
 
   public static class TelemetryCreateCommand extends TelemetryCommand {
     @JsonCreator
     public TelemetryCreateCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(Action.create, region);
+      super(region);
     }
   }
 
   public static class TelemetryDeleteCommand extends TelemetryCommand {
     @JsonCreator
     public TelemetryDeleteCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(Action.delete, region);
+      super(region);
     }
   }
 
   public static class TelemetryHappyCommand extends TelemetryCommand {
     @JsonCreator
     public TelemetryHappyCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(Action.happy, region);
+      super(region);
     }
   }
 
   public static class TelemetrySadCommand extends TelemetryCommand {
     @JsonCreator
     public TelemetrySadCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(Action.sad, region);
+      super(region);
     }
   }
 
   public static class TelemetryPingCommand extends TelemetryCommand {
     @JsonCreator
     public TelemetryPingCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(Action.ping, region);
+      super(region);
     }
   }
 
@@ -200,36 +192,42 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   }
 
   public static class DeviceActivated extends DeviceEvent {
+    @JsonCreator
     public DeviceActivated(WorldMap.Region region) {
       super(region);
     }
   }
 
   public static class DeviceDeactivatedHappy extends DeviceEvent {
+    @JsonCreator
     public DeviceDeactivatedHappy(WorldMap.Region region) {
       super(region);
     }
   }
 
   public static class DeviceDeactivatedSad extends DeviceEvent {
+    @JsonCreator
     public DeviceDeactivatedSad(WorldMap.Region region) {
       super(region);
     }
   }
 
   public static class DeviceMadeHappy extends DeviceEvent {
+    @JsonCreator
     public DeviceMadeHappy(WorldMap.Region region) {
       super(region);
     }
   }
 
   public static class DeviceMadeSad extends DeviceEvent {
+    @JsonCreator
     public DeviceMadeSad(WorldMap.Region region) {
       super(region);
     }
   }
 
   public static class DevicePinged extends DeviceEvent {
+    @JsonCreator
     public DevicePinged(WorldMap.Region region) {
       super(region);
     }

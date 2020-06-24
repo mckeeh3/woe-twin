@@ -1,4 +1,6 @@
 
+const mapDataMsInterval = 1000;
+
 let worldMap;
 let canvas;
 let mouseSelectionWidth;
@@ -32,6 +34,8 @@ function setup() {
   worldMap = mappa.tileMap(mapOptions);
   worldMap.overlay(canvas, mapReady);
   worldMap.onChange(mapChanged);
+
+  requestMapData();
 }
 
 function draw() {
@@ -284,3 +288,33 @@ function recalculateLatLngGrid() {
   }
 }
 
+function requestMapData() {
+  setInterval(requestMapDataInterval, mapDataMsInterval);
+}
+
+function requestMapDataInterval() {
+  const topLeft = worldMap.pixelToLatLng(0, 0);
+  const botRight = worldMap.pixelToLatLng(windowWidth - 1, windowHeight - 1);
+
+  httpPost(
+    location + "selections",
+    "json",
+    {
+      zoom: worldMap.getZoom(),
+      topLeft: {
+        lat: topLeft.lat,
+        lng: topLeft.lng
+      },
+      botRight: {
+        lat: botRight.lat,
+        lng: botRight.lng
+      }
+    },
+    function (result) {
+      console.log(result);
+    },
+    function (error) {
+      console.log(error);
+    }
+  );
+}

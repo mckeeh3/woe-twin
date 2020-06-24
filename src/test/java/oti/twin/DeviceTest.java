@@ -57,7 +57,7 @@ public class DeviceTest {
 
     final EntityRef<Device.Command> entityRef = clusterSharding.entityRefFor(Device.entityTypeKey, entityIdOf(region));
 
-    LoggingTestKit.debug("[create, " + region)
+    LoggingTestKit.debug("TelemetryCreateCommand[" + region)
         .expect(
             testKit.system(),
             () -> {

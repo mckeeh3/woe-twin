@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class DeviceProjector {
-  static class RegionSummary {
-    final WorldMap.Region region;
-    final int deviceCount;
-    final int happyCount;
-    final int sadCount;
+class DeviceProjector {
+  public static class RegionSummary {
+    public final WorldMap.Region region;
+    public final int deviceCount;
+    public final int happyCount;
+    public final int sadCount;
 
-    RegionSummary(WorldMap.Region region, int deviceCount, int happyCount, int sadCount) {
+    public RegionSummary(WorldMap.Region region, int deviceCount, int happyCount, int sadCount) {
       this.region = region;
       this.deviceCount = deviceCount;
       this.happyCount = happyCount;
