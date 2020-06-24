@@ -1,5 +1,5 @@
 
-const mapDataMsInterval = 1000;
+const deviceDataMsInterval = 500;
 
 let worldMap;
 let canvas;
@@ -7,11 +7,11 @@ let mouseSelectionWidth;
 let areaSelectionOn = false;
 let areaSelectionAction = "";
 let areaSelectionColor = [0, 0, 0, 0];
+let deviceSelections = [];
 
 const drawFPS = 30;
 const gridLatLines = [];
 const gridLngLines = [];
-const locations = [];
 const selectedRegionColor = [212, 0, 255, 48];
 const areaSelectionColorCreate = [212, 0, 255, 50];
 const areaSelectionColorDelete = [64, 64, 64, 50];
@@ -35,7 +35,7 @@ function setup() {
   worldMap.overlay(canvas, mapReady);
   worldMap.onChange(mapChanged);
 
-  requestMapData();
+  deviceQuery();
 }
 
 function draw() {
@@ -43,7 +43,7 @@ function draw() {
   drawLatLngGrid();
   drawDashboard();
   drawMouseLocation();
-  drawSelectedLocations();
+  drawDeviceSelections();
 }
 
 function drawLatLngGrid() {
@@ -138,9 +138,6 @@ function mouseClicked(event) {
   if (areaSelectionOn) {
     const loc = mouseGridLocation();
     if (loc.inGrid) {
-      locations.push({
-        map: loc.map
-      });
       const selection = {
         action: areaSelectionAction,
         zoom: worldMap.zoom(),
@@ -165,25 +162,21 @@ function mouseClicked(event) {
   }
 }
 
-function drawSelectedLocations() {
-  locations.forEach(location => drawSelectedLocation(location));
+function drawDeviceSelections() {
+  deviceSelections.forEach(d => DrawDeviceSelection(d));
 }
 
-function drawSelectedLocation(location) {
-  const posTopLeft = worldMap.latLngToPixel(location.map.topLeft);
-  const posBotRight = worldMap.latLngToPixel(location.map.botRight);
+function DrawDeviceSelection(deviceSelection) {
+  const posTopLeft = worldMap.latLngToPixel(deviceSelection.region.topLeft);
+  const posBotRight = worldMap.latLngToPixel(deviceSelection.region.botRight);
 
-  if (isTooSmall(posTopLeft, posBotRight)) {
-    drawAsMarker(posTopLeft, posBotRight);
+  if (isPartial(deviceSelection)) {
+    drawAsMarker(posTopLeft, posBotRight, markerColorFor(deviceSelection));
   } else {
-    drawAsRegion(posTopLeft, posBotRight);
+    drawAsRegion(posTopLeft, posBotRight, regionColorFor(deviceSelection));
   }
 
-  function isTooSmall(posTopLeft, posBotRight) {
-    return posBotRight.x - posTopLeft.x < 20;
-  }
-
-  function drawAsMarker(posTopLeft, posBotRight) {
+  function drawAsMarker(posTopLeft, posBotRight, markerColor) {
     const w = posBotRight.x - posTopLeft.x;
     const h = posBotRight.y - posTopLeft.y;
     const x1 = posTopLeft.x + w / 2;
@@ -194,19 +187,55 @@ function drawSelectedLocation(location) {
     const y3 = y1 - 30;
     const x4 = x1 + 10;
     const y4 = y2;
-    fill(color(selectedMarkerColor));
+    fill(color(markerColor));
     strokeWeight(0);
     quad(x1, y1, x2, y2, x3, y3, x4, y4);
   }
 
-  function drawAsRegion(posTopLeft, posBotRight) {
+  function drawAsRegion(posTopLeft, posBotRight, regionColor) {
     const x = posTopLeft.x;
     const y = posTopLeft.y;
     const w = posBotRight.x - x;
     const h = posBotRight.y - y;
-    fill(color(selectedRegionColor));
+    fill(color(regionColor));
     strokeWeight(0);
     rect(x, y, w, h);
+  }
+
+  function markerColorFor(deviceSelection) {
+    if (isHappy(deviceSelection)) {
+      return [2, 240, 50];
+    } else if (isSad(deviceSelection)) {
+      return [230, 230, 0];
+    } else {
+      return [240, 9, 0];
+    }
+  }
+
+  function regionColorFor(deviceSelection) {
+    if (isHappy(deviceSelection)) {
+      return [2, 240, 50, 100];
+    } else if (isSad(deviceSelection)) {
+      return [8, 214, 0, 100];
+    } else {
+      return [240, 9, 0, 100];
+    }
+  }
+
+  function isHappy(deviceSelection) {
+    return deviceSelection.happyCount > 0 && deviceSelection.sadCount == 0;
+  }
+
+  function isSad(deviceSelection) {
+    return deviceSelection.happyCount == 0 && deviceSelection.sadCount > 0;
+  }
+
+  function isPartial(deviceSelection) {
+    return 0.5 > deviceSelection.deviceCount / maxDevicesIn(deviceSelection);
+  }
+
+  function maxDevicesIn(deviceSelection) {
+    return Math.pow(4, 18 - deviceSelection.region.zoom);
   }
 }
 
@@ -288,11 +317,11 @@ function recalculateLatLngGrid() {
   }
 }
 
-function requestMapData() {
-  setInterval(requestMapDataInterval, mapDataMsInterval);
+function deviceQuery() {
+  setInterval(deviceQueryInterval, deviceDataMsInterval);
 }
 
-function requestMapDataInterval() {
+function deviceQueryInterval() {
   const topLeft = worldMap.pixelToLatLng(0, 0);
   const botRight = worldMap.pixelToLatLng(windowWidth - 1, windowHeight - 1);
 
@@ -300,7 +329,7 @@ function requestMapDataInterval() {
     location + "selections",
     "json",
     {
-      zoom: worldMap.getZoom(),
+      zoom: Math.min(18, worldMap.getZoom() + 2),
       topLeft: {
         lat: topLeft.lat,
         lng: topLeft.lng
@@ -311,7 +340,7 @@ function requestMapDataInterval() {
       }
     },
     function (result) {
-      console.log(result);
+      deviceSelections = result;
     },
     function (error) {
       console.log(error);

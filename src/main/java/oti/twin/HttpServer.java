@@ -12,9 +12,6 @@ import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 
 import java.sql.*;
@@ -203,17 +200,13 @@ public class HttpServer {
     }
   }
 
-  private String querySelections(WorldMap.Region region) throws SQLException {
-    return toJson(read(region));
-  }
-
   private List<DeviceProjector.RegionSummary> read(WorldMap.Region region) throws SQLException {
     try (final Connection connection = DriverManager.getConnection(dbUrl, username, password)) {
       return read(connection, region);
     }
   }
 
-  private List<DeviceProjector.RegionSummary> read(Connection connection, WorldMap.Region region) throws SQLException {
+  private List<DeviceProjector.RegionSummary> read(Connection connection, WorldMap.Region regionQuery) throws SQLException {
     try (Statement statement = connection.createStatement()) {
       String sql = String.format("select * from region"
               + " where zoom = %d"
@@ -222,22 +215,19 @@ public class HttpServer {
               + " and bot_right_lat >= %1.9f"
               + " and bot_right_lng <= %1.9f"
               + " and device_count > 0",
-          region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
+          regionQuery.zoom, regionQuery.topLeft.lat, regionQuery.topLeft.lng, regionQuery.botRight.lat, regionQuery.botRight.lng);
       final ResultSet resultSet = statement.executeQuery(sql);
       List<DeviceProjector.RegionSummary> regionSummaries = new ArrayList<>();
       while (resultSet.next()) {
-        regionSummaries.add(new DeviceProjector.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count")));
+        WorldMap.LatLng topLeft = new WorldMap.LatLng(resultSet.getFloat("top_left_lat"), resultSet.getFloat("top_left_lng"));
+        WorldMap.LatLng botRight = new WorldMap.LatLng(resultSet.getFloat("bot_right_lat"), resultSet.getFloat("bot_right_lng"));
+        WorldMap.Region region = new WorldMap.Region(resultSet.getInt("zoom"), topLeft, botRight);
+        final DeviceProjector.RegionSummary regionSummary =
+            new DeviceProjector.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count"));
+        log().debug("{}", regionSummary);
+        regionSummaries.add(regionSummary);
       }
       return regionSummaries;
-    }
-  }
-
-  private static String toJson(Object pojo) {
-    final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    try {
-      return ow.writeValueAsString(pojo);
-    } catch (JsonProcessingException e) {
-      return String.format("{ \"error\" : \"%s\" }", e.getMessage());
     }
   }
 
