@@ -216,6 +216,6 @@ class DeviceProjector {
         ProjectionId.of("region", tag),
         sourceProvider,
         new DeviceEventHandler(tag, dbUrl, username, password)
-    ).withGroup(100, Duration.ofSeconds(1)); // TODO config these settings?
+    ).withGroup(100, Duration.ofMillis(1000)); // TODO config these settings?
   }
 }

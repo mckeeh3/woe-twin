@@ -1,13 +1,13 @@
 package oti.twin;
 
 import akka.actor.typed.ActorSystem;
+import akka.actor.typed.DispatcherSelector;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.model.ContentTypes;
-import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.model.*;
 import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static akka.http.javadsl.server.Directives.*;
 import static oti.twin.WorldMap.entityIdOf;
@@ -114,12 +115,18 @@ public class HttpServer {
             Jackson.unmarshaller(WorldMap.Region.class),
             queryRegion -> {
               log().debug("POST {}", queryRegion);
-              try {
-                return complete(StatusCodes.OK, read(queryRegion), Jackson.marshaller());
-              } catch (SQLException e) {
-                log().warn("Read selections query failed.", e);
-                return complete(StatusCodes.INTERNAL_SERVER_ERROR, e.getMessage());
-              }
+              return completeOKWithFuture(
+                  CompletableFuture.supplyAsync(() -> {
+                    try {
+                      return read(queryRegion);
+                    } catch (SQLException e) {
+                      log().warn("Read selections query failed.", e);
+                      return new ArrayList<DeviceProjector.RegionSummary>();
+                    }
+                  }, actorSystem.dispatchers().lookup(DispatcherSelector.blocking())),
+                  Jackson.marshaller()
+              );
+              //return complete(StatusCodes.OK, read(queryRegion), Jackson.marshaller());
             }
         )
     );
@@ -207,6 +214,7 @@ public class HttpServer {
   }
 
   private List<DeviceProjector.RegionSummary> read(Connection connection, WorldMap.Region regionQuery) throws SQLException {
+    final long start = System.nanoTime();
     try (Statement statement = connection.createStatement()) {
       String sql = String.format("select * from region"
               + " where zoom = %d"
@@ -227,6 +235,7 @@ public class HttpServer {
         log().debug("{}", regionSummary);
         regionSummaries.add(regionSummary);
       }
+      log().debug("Query {} {}", String.format("%,d", System.nanoTime() - start), regionQuery);
       return regionSummaries;
     }
   }

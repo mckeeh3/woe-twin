@@ -1,5 +1,5 @@
 
-const deviceDataMsInterval = 500;
+const deviceDataMsInterval = 250;
 
 let worldMap;
 let canvas;
@@ -35,7 +35,7 @@ function setup() {
   worldMap.overlay(canvas, mapReady);
   worldMap.onChange(mapChanged);
 
-  deviceQuery();
+  scheduleNextDeviceQuery();
 }
 
 function draw() {
@@ -204,21 +204,21 @@ function DrawDeviceSelection(deviceSelection) {
 
   function markerColorFor(deviceSelection) {
     if (isHappy(deviceSelection)) {
-      return [2, 240, 50];
+      return [0, 171, 23];
     } else if (isSad(deviceSelection)) {
-      return [230, 230, 0];
+      return [204, 10, 0];
     } else {
-      return [240, 9, 0];
+      return [209, 182, 0];
     }
   }
 
   function regionColorFor(deviceSelection) {
     if (isHappy(deviceSelection)) {
-      return [2, 240, 50, 100];
+      return [0, 235, 6, 100];
     } else if (isSad(deviceSelection)) {
-      return [8, 214, 0, 100];
-    } else {
       return [240, 9, 0, 100];
+    } else {
+      return [250, 182, 13, 100];
     }
   }
 
@@ -317,8 +317,8 @@ function recalculateLatLngGrid() {
   }
 }
 
-function deviceQuery() {
-  setInterval(deviceQueryInterval, deviceDataMsInterval);
+function scheduleNextDeviceQuery() {
+  setTimeout(deviceQueryInterval, deviceDataMsInterval);
 }
 
 function deviceQueryInterval() {
@@ -341,9 +341,11 @@ function deviceQueryInterval() {
     },
     function (result) {
       deviceSelections = result;
+      scheduleNextDeviceQuery();
     },
     function (error) {
       console.log(error);
+      scheduleNextDeviceQuery();
     }
   );
 }
