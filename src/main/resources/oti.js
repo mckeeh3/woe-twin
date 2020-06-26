@@ -326,7 +326,7 @@ function deviceQueryInterval() {
   const botRight = worldMap.pixelToLatLng(windowWidth - 1, windowHeight - 1);
 
   httpPost(
-    location + "selections",
+    location + "query-devices",
     "json",
     {
       zoom: Math.min(18, worldMap.getZoom() + 2),

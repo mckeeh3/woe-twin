@@ -62,7 +62,7 @@ public class HttpServer {
         path("mappa.js", () -> getFromResource("mappa.js", ContentTypes.APPLICATION_JSON)),
         path("telemetry", this::handleTelemetryActionPost),
         path("selection", this::handleSelectionRequest),
-        path("selections", this::querySelections)
+        path("query-devices", this::queryDevices)
     );
   }
 
@@ -109,7 +109,7 @@ public class HttpServer {
     );
   }
 
-  private Route querySelections() {
+  private Route queryDevices() {
     return post(
         () -> entity(
             Jackson.unmarshaller(WorldMap.Region.class),
@@ -123,10 +123,9 @@ public class HttpServer {
                       log().warn("Read selections query failed.", e);
                       return new ArrayList<DeviceProjector.RegionSummary>();
                     }
-                  }, actorSystem.dispatchers().lookup(DispatcherSelector.blocking())),
+                  }, actorSystem.dispatchers().lookup(DispatcherSelector.fromConfig("oti.twin.query-devices-dispatcher"))),
                   Jackson.marshaller()
               );
-              //return complete(StatusCodes.OK, read(queryRegion), Jackson.marshaller());
             }
         )
     );
@@ -232,7 +231,6 @@ public class HttpServer {
         WorldMap.Region region = new WorldMap.Region(resultSet.getInt("zoom"), topLeft, botRight);
         final DeviceProjector.RegionSummary regionSummary =
             new DeviceProjector.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count"));
-        log().debug("{}", regionSummary);
         regionSummaries.add(regionSummary);
       }
       log().debug("Query {} {}", String.format("%,d", System.nanoTime() - start), regionQuery);

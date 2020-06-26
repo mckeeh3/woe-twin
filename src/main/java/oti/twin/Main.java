@@ -2,6 +2,7 @@ package oti.twin;
 
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
+import akka.actor.typed.DispatcherSelector;
 import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.ShardedDaemonProcessSettings;
@@ -56,7 +57,7 @@ public class Main {
             Device.entityTypeKey,
             entityContext ->
                 Device.create(entityContext.getEntityId(), clusterSharding)
-        )
+        ).withEntityProps(DispatcherSelector.fromConfig("oti.sim.device-entity-dispatcher"))
     );
   }
 
