@@ -57,7 +57,7 @@ public class Main {
             Device.entityTypeKey,
             entityContext ->
                 Device.create(entityContext.getEntityId(), clusterSharding)
-        ).withEntityProps(DispatcherSelector.fromConfig("oti.sim.device-entity-dispatcher"))
+        ).withEntityProps(DispatcherSelector.fromConfig("oti.twin.device-entity-dispatcher"))
     );
   }
 

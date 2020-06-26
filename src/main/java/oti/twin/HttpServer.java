@@ -166,6 +166,8 @@ public class HttpServer {
           return new Device.TelemetryHappyCommand(region);
         case "sad":
           return new Device.TelemetrySadCommand(region);
+        case "ping":
+          return new Device.TelemetryPingCommand(region);
         default:
           throw new IllegalArgumentException(String.format("Action '%s' illegal, must be one of: 'create', 'delete', 'happy', or 'sad'.", action));
       }
