@@ -2,22 +2,26 @@ package oti.twin;
 
 import akka.Done;
 import akka.actor.typed.ActorSystem;
+import akka.japi.function.Function;
 import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
 import akka.persistence.query.Offset;
 import akka.projection.ProjectionId;
-import akka.projection.cassandra.javadsl.CassandraProjection;
-import akka.projection.cassandra.javadsl.GroupedCassandraProjection;
 import akka.projection.eventsourced.EventEnvelope;
 import akka.projection.eventsourced.javadsl.EventSourcedProvider;
-import akka.projection.javadsl.Handler;
+import akka.projection.javadsl.GroupedProjection;
 import akka.projection.javadsl.SourceProvider;
+import akka.projection.jdbc.JdbcSession;
+import akka.projection.jdbc.javadsl.JdbcHandler;
+import akka.projection.jdbc.javadsl.JdbcProjection;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 class DeviceProjector {
@@ -44,36 +48,56 @@ class DeviceProjector {
     }
 
     RegionSummary deactivatedHappy() {
-      return new RegionSummary(region, deviceCount - 1, happyCount - 1, sadCount);
+      return new RegionSummary(region, Math.max(0, deviceCount - 1), Math.max(0, happyCount - 1), sadCount);
     }
 
     RegionSummary deactivatedSad() {
-      return new RegionSummary(region, deviceCount - 1, happyCount, sadCount - 1);
+      return new RegionSummary(region, Math.max(0, deviceCount - 1), happyCount, Math.max(0, sadCount - 1));
     }
 
     RegionSummary madeHappy() {
-      return new RegionSummary(region, deviceCount, happyCount + 1, sadCount - 1);
+      return new RegionSummary(region, deviceCount, Math.min(deviceCount, happyCount + 1), Math.max(0, sadCount - 1));
     }
 
     RegionSummary madeSad() {
-      return new RegionSummary(region, deviceCount, happyCount - 1, sadCount + 1);
+      return new RegionSummary(region, deviceCount, Math.max(0, happyCount - 1), Math.min(deviceCount, sadCount + 1));
     }
   }
 
-  static class DeviceEventHandler extends Handler<List<EventEnvelope<Device.Event>>> {
+  static class DeviceEventHandler extends JdbcHandler<List<EventEnvelope<Device.Event>>, DbSession> {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final String tag;
     private final int zoom;
-    private final String dbUrl;
-    private final String username;
-    private final String password;
 
-    DeviceEventHandler(String tag, String dbUrl, String username, String password) {
+    DeviceEventHandler(String tag) {
       this.tag = tag;
       this.zoom = tagToZoom(tag);
-      this.dbUrl = dbUrl;
-      this.username = username;
-      this.password = password;
+    }
+
+    @Override
+    public void process(DbSession session, List<EventEnvelope<Device.Event>> eventEnvelopes) throws Exception {
+      final Connection connection = session.connection;
+
+      eventEnvelopes.forEach(eventEventEnvelope -> {
+        final Device.Event event = eventEventEnvelope.event();
+        log.debug("{} {}", tag, event);
+
+        try {
+          if (event instanceof Device.DeviceActivated) {
+            update(connection, (Device.DeviceActivated) event);
+          } else if (event instanceof Device.DeviceDeactivatedHappy) {
+            update(connection, (Device.DeviceDeactivatedHappy) event);
+          } else if (event instanceof Device.DeviceDeactivatedSad) {
+            update(connection, (Device.DeviceDeactivatedSad) event);
+          } else if (event instanceof Device.DeviceMadeHappy) {
+            update(connection, (Device.DeviceMadeHappy) event);
+          } else if (event instanceof Device.DeviceMadeSad) {
+            update(connection, (Device.DeviceMadeSad) event);
+          }
+        } catch (SQLException e) {
+          log.error(String.format("%s", tag), e);
+        }
+      });
     }
 
     @Override
@@ -84,39 +108,6 @@ class DeviceProjector {
     @Override
     public CompletionStage<Done> stop() {
       return super.stop();
-    }
-
-    @Override
-    public CompletionStage<Done> process(List<EventEnvelope<Device.Event>> eventEnvelopes) {
-
-      try {
-        final Connection connection = begin(dbUrl, username, password);
-        eventEnvelopes.forEach(eventEventEnvelope -> {
-          final Device.Event event = eventEventEnvelope.event();
-          log.debug("{} {}", tag, event);
-
-          try {
-            if (event instanceof Device.DeviceActivated) {
-              update(connection, (Device.DeviceActivated) event);
-            } else if (event instanceof Device.DeviceDeactivatedHappy) {
-              update(connection, (Device.DeviceDeactivatedHappy) event);
-            } else if (event instanceof Device.DeviceDeactivatedSad) {
-              update(connection, (Device.DeviceDeactivatedSad) event);
-            } else if (event instanceof Device.DeviceMadeHappy) {
-              update(connection, (Device.DeviceMadeHappy) event);
-            } else if (event instanceof Device.DeviceMadeSad) {
-              update(connection, (Device.DeviceMadeSad) event);
-            }
-          } catch (SQLException e) {
-            log.error(String.format("%s", tag), e);
-          }
-        });
-        commit(connection);
-      } catch (SQLException e) {
-        log.error(String.format("%s", tag), e);
-      }
-
-      return CompletableFuture.completedFuture(Done.getInstance());
     }
 
     private void update(Connection connection, Device.DeviceActivated event) throws SQLException {
@@ -137,16 +128,6 @@ class DeviceProjector {
 
     private void update(Connection connection, Device.DeviceMadeSad event) throws SQLException {
       update(connection, read(connection, eventToZoomRegion(zoom, event)).madeSad());
-    }
-
-    private Connection begin(String dbUrl, String username, String password) throws SQLException {
-      // TODO this should be replaced when transactions are handled by Akka Projection
-      log.debug("{} - BEGIN transaction", tag);
-      final Connection connection = DriverManager.getConnection(dbUrl, username, password);
-      try (Statement statement = connection.createStatement()) {
-        statement.execute("begin transaction isolation level repeatable read");
-        return connection;
-      }
     }
 
     private RegionSummary read(Connection connection, WorldMap.Region region) throws SQLException {
@@ -187,15 +168,6 @@ class DeviceProjector {
       }
     }
 
-    private void commit(Connection connection) throws SQLException {
-      // TODO this should be replaced when transactions are handled by Akka Projection
-      log.debug("{} - COMMIT transaction", tag);
-      try (Statement statement = connection.createStatement()) {
-        statement.execute("commit");
-        connection.close();
-      }
-    }
-
     private static int tagToZoom(String tag) {
       return Integer.parseInt(tag.split("-")[1]);
     }
@@ -205,17 +177,69 @@ class DeviceProjector {
     }
   }
 
-  static GroupedCassandraProjection<EventEnvelope<Device.Event>> start(ActorSystem<?> actorSystem, String tag) {
-    final String dbUrl = actorSystem.settings().config().getString("oti.twin.sql.url");
-    final String username = actorSystem.settings().config().getString("oti.twin.sql.username");
-    final String password = actorSystem.settings().config().getString("oti.twin.sql.password");
+  static class DbSession implements JdbcSession {
+    private final DataSource dataSource;
+    Connection connection;
 
+    DbSession(DataSource dataSource) {
+      this.dataSource = dataSource;
+    }
+
+    @Override
+    public <Result> Result withConnection(Function<Connection, Result> func) throws Exception {
+      connection = dataSource.getConnection();
+      return func.apply(connection);
+    }
+
+    @Override
+    public void commit() throws SQLException {
+      connection.commit();
+    }
+
+    @Override
+    public void rollback() throws SQLException {
+      connection.rollback();
+    }
+
+    @Override
+    public void close() throws SQLException {
+      connection.close();
+    }
+  }
+
+  static class DbSessionFactory {
+    private final DataSource dataSource;
+
+    DbSessionFactory(ActorSystem<?> actorSystem) {
+      final String dbUrl = actorSystem.settings().config().getString("oti.twin.sql.url");
+      final String username = actorSystem.settings().config().getString("oti.twin.sql.username");
+      final String password = actorSystem.settings().config().getString("oti.twin.sql.password");
+      final int maxPoolSize = actorSystem.settings().config().getInt("oti.twin.sql.max-pool-size");
+
+      final HikariConfig config = new HikariConfig();
+      config.setJdbcUrl(dbUrl);
+      config.setUsername(username);
+      config.setPassword(password);
+      config.setMaximumPoolSize(maxPoolSize);
+      config.setAutoCommit(false);
+
+      dataSource = new HikariDataSource(config);
+    }
+
+    DbSession newInstance() {
+      return new DbSession(dataSource);
+    }
+  }
+
+  static GroupedProjection<Offset, EventEnvelope<Device.Event>> start(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, String tag) {
     final SourceProvider<Offset, EventEnvelope<Device.Event>> sourceProvider =
         EventSourcedProvider.eventsByTag(actorSystem, CassandraReadJournal.Identifier(), tag);
-    return CassandraProjection.groupedWithin(
+    return JdbcProjection.groupedWithin(
         ProjectionId.of("region", tag),
         sourceProvider,
-        new DeviceEventHandler(tag, dbUrl, username, password)
-    ).withGroup(100, Duration.ofMillis(1000)); // TODO config these settings?
+        dbSessionFactory::newInstance,
+        () -> new DeviceEventHandler(tag),
+        actorSystem
+    ).withGroup(100, Duration.ofMillis(250)); // TODO config these settings?
   }
 }

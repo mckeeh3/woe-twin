@@ -9,10 +9,13 @@ import akka.projection.javadsl.SourceProvider;
 import akka.projection.testkit.javadsl.ProjectionTestKit;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,12 +50,17 @@ public class RegionProjectionTest {
   @Ignore
   @Test
   public void regionInsert() throws SQLException {
-    String jdbcUrl = "jdbc:postgresql://192.168.7.98:5433/";
-    //YBClusterAwareDataSource ds = new YBClusterAwareDataSource(jdbcUrl);
-    //try (Connection connection = ds.getConnection();
-    try (Connection connection = DriverManager.getConnection(jdbcUrl, "yugabyte", "yugabyte");
-         Statement statement = connection.createStatement()
-    ) {
+    final HikariConfig config = new HikariConfig();
+    config.setJdbcUrl("jdbc:postgresql://192.168.7.98:5433/");
+    config.setUsername("yugabyte");
+    config.setPassword("yugabyte");
+
+    final DataSource dataSource = new HikariDataSource(config);
+    //String jdbcUrl = "jdbc:postgresql://192.168.7.98:5433/";
+    //try (Connection connection = DriverManager.getConnection(jdbcUrl, "yugabyte", "yugabyte");
+    //     Statement statement = connection.createStatement()
+    try (final Connection connection = dataSource.getConnection();
+         final Statement statement = connection.createStatement()) {
       insert(statement, regionForZoom0());
       insert(statement, regionAtLatLng(18, latLng(51.50083552, -0.11656344)));
       insert(statement, regionAtLatLng(18, latLng(51.50036467, -0.11946023)));

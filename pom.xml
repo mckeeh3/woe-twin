@@ -16,7 +16,7 @@
         <aka.management.version>1.0.8</aka.management.version>
         <akka.http.version>10.1.12</akka.http.version>
         <akka.management.version>1.0.7</akka.management.version>
-        <akka.projection.version>0.2</akka.projection.version>
+        <akka.projection.version>0.3</akka.projection.version>
         <akka.persistence.cassandra.version>1.0.0</akka.persistence.cassandra.version>
         <yugabyte.version>42.2.7-yb-3</yugabyte.version>
         <postgresql.version>42.2.14</postgresql.version>
@@ -93,8 +93,13 @@
         </dependency>
         <dependency>
             <groupId>com.lightbend.akka</groupId>
-            <artifactId>akka-projection-cassandra_${scala.version}</artifactId>
+            <artifactId>akka-projection-jdbc_${scala.version}</artifactId>
             <version>${akka.projection.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>3.4.5</version>
         </dependency>
 
         <!-- Yugabyte -->

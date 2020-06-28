@@ -71,7 +71,9 @@ public class HttpServer {
         () -> entity(
             Jackson.unmarshaller(TelemetryRequest.class),
             telemetryRequest -> {
-              log().debug("POST {}", telemetryRequest);
+              if (!telemetryRequest.action.equals("ping")) {
+                log().debug("POST {}", telemetryRequest);
+              }
               try {
                 submitTelemetryToDevice(telemetryRequest);
                 return complete(StatusCodes.OK, TelemetryResponse.ok(StatusCodes.OK.intValue(), telemetryRequest), Jackson.marshaller());

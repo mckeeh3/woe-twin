@@ -62,13 +62,14 @@ public class Main {
   }
 
   static void startProjectionSharding(ActorSystem<?> actorSystem) {
+    final DeviceProjector.DbSessionFactory dbSessionFactory = new DeviceProjector.DbSessionFactory(actorSystem);
     final List<String> tags = Device.tagsAll(actorSystem);
 
     ShardedDaemonProcess.get(actorSystem).init(
         ProjectionBehavior.Command.class,
         "region-summary",
         tags.size(),
-        id -> ProjectionBehavior.create(DeviceProjector.start(actorSystem, tags.get(id))),
+        id -> ProjectionBehavior.create(DeviceProjector.start(actorSystem, dbSessionFactory, tags.get(id))),
         ShardedDaemonProcessSettings.create(actorSystem),
         Optional.of(ProjectionBehavior.stopMessage())
     );

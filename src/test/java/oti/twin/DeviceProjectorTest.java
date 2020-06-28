@@ -58,7 +58,6 @@ public class DeviceProjectorTest {
 
   @Ignore
   @Test
-  @Order(1)
   public void createDevice() {
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(18, new WorldMap.LatLng(51.50079211, -0.11682093));
@@ -74,18 +73,12 @@ public class DeviceProjectorTest {
             }
         );
 
+    final DeviceProjector.DbSessionFactory dbSessionFactory = new DeviceProjector.DbSessionFactory(testKit.system());
     final RegionSummaryReader regionSummaryReader = new RegionSummaryReader();
-    projectionTestKit.run(DeviceProjector.start(testKit.system(), "zoom-3-entity--12"), () ->
+    projectionTestKit.run(DeviceProjector.start(testKit.system(), dbSessionFactory, "zoom-3-entity--12"), () ->
         regionSummaryReader.read("No-op")
             .toCompletableFuture().get(1, TimeUnit.SECONDS)
     );
-  }
-
-  @Ignore
-  @Test
-  @Order(2)
-  public void t() {
-    DeviceProjector.start(testKit.system(), "zoom-3-entity--12");
   }
 
   @BeforeClass
