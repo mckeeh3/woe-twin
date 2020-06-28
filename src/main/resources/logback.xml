@@ -20,6 +20,7 @@
     <logger name="akka.remote.artery" level="INFO"/>
     <logger name="akka.io" level="INFO"/>
     <logger name="akka.http" level="INFO"/>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
 
     <root level="DEBUG">
         <appender-ref ref="ASYNC"/>

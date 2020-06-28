@@ -76,6 +76,8 @@ spec:
               value: "oti-twin-service.oti-twin-1.svc.cluster.local"
             - name: oti_twin_http_server_port
               value: "8080"
+            - name: device-projection-jdbc-pool-size
+              value: "50"
 
 ---
 kind: Role

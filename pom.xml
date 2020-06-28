@@ -49,6 +49,11 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-persistence-cassandra_${scala.version}</artifactId>
+            <version>${akka.persistence.cassandra.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-persistence-query_${scala.version}</artifactId>
             <version>${akka.version}</version>
         </dependency>
@@ -85,11 +90,6 @@
             <groupId>com.lightbend.akka</groupId>
             <artifactId>akka-projection-eventsourced_${scala.version}</artifactId>
             <version>${akka.projection.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-persistence-cassandra_${scala.version}</artifactId>
-            <version>${akka.persistence.cassandra.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lightbend.akka</groupId>

@@ -322,6 +322,7 @@ function scheduleNextDeviceQuery() {
 }
 
 function deviceQueryInterval() {
+  var start = performance.now();
   const topLeft = worldMap.pixelToLatLng(0, 0);
   const botRight = worldMap.pixelToLatLng(windowWidth - 1, windowHeight - 1);
 
@@ -340,6 +341,7 @@ function deviceQueryInterval() {
       }
     },
     function (result) {
+      console.log("UI query " + (performance.now() - start) + "ns");
       deviceSelections = result;
       scheduleNextDeviceQuery();
     },

@@ -25,45 +25,6 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 class DeviceProjector {
-  public static class RegionSummary {
-    public final WorldMap.Region region;
-    public final int deviceCount;
-    public final int happyCount;
-    public final int sadCount;
-
-    public RegionSummary(WorldMap.Region region, int deviceCount, int happyCount, int sadCount) {
-      this.region = region;
-      this.deviceCount = deviceCount;
-      this.happyCount = happyCount;
-      this.sadCount = sadCount;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("%s[%s, %d, %d, %d]", getClass().getSimpleName(), region, deviceCount, happyCount, sadCount);
-    }
-
-    RegionSummary activated() {
-      return new RegionSummary(region, deviceCount + 1, happyCount + 1, sadCount);
-    }
-
-    RegionSummary deactivatedHappy() {
-      return new RegionSummary(region, Math.max(0, deviceCount - 1), Math.max(0, happyCount - 1), sadCount);
-    }
-
-    RegionSummary deactivatedSad() {
-      return new RegionSummary(region, Math.max(0, deviceCount - 1), happyCount, Math.max(0, sadCount - 1));
-    }
-
-    RegionSummary madeHappy() {
-      return new RegionSummary(region, deviceCount, Math.min(deviceCount, happyCount + 1), Math.max(0, sadCount - 1));
-    }
-
-    RegionSummary madeSad() {
-      return new RegionSummary(region, deviceCount, Math.max(0, happyCount - 1), Math.min(deviceCount, sadCount + 1));
-    }
-  }
-
   static class DeviceEventHandler extends JdbcHandler<List<EventEnvelope<Device.Event>>, DbSession> {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final String tag;
@@ -72,15 +33,16 @@ class DeviceProjector {
     DeviceEventHandler(String tag) {
       this.tag = tag;
       this.zoom = tagToZoom(tag);
+      log.debug("Initialized {}", tag);
     }
 
     @Override
-    public void process(DbSession session, List<EventEnvelope<Device.Event>> eventEnvelopes) throws Exception {
+    public void process(DbSession session, List<EventEnvelope<Device.Event>> eventEnvelopes) {
       final Connection connection = session.connection;
 
+      final long start = System.nanoTime();
       eventEnvelopes.forEach(eventEventEnvelope -> {
         final Device.Event event = eventEventEnvelope.event();
-        log.debug("{} {}", tag, event);
 
         try {
           if (event instanceof Device.DeviceActivated) {
@@ -98,15 +60,18 @@ class DeviceProjector {
           log.error(String.format("%s", tag), e);
         }
       });
+      log.debug("{} processed {}, {}ns", tag, eventEnvelopes.size(), String.format("%,d", System.nanoTime() - start));
     }
 
     @Override
     public CompletionStage<Done> start() {
+      log.debug("Start {}", tag);
       return super.start();
     }
 
     @Override
     public CompletionStage<Done> stop() {
+      log.debug("Stop {}", tag);
       return super.stop();
     }
 
@@ -139,7 +104,6 @@ class DeviceProjector {
                 + " and bot_right_lat = %1.9f"
                 + " and bot_right_lng = %1.9f",
             region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
-        log.debug("{} - {}", tag, sql);
         final ResultSet resultSet = statement.executeQuery(sql);
         if (resultSet.next()) {
           return new RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count"));
@@ -163,7 +127,6 @@ class DeviceProjector {
             region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng,
             regionSummary.deviceCount, regionSummary.happyCount, regionSummary.sadCount, // for insert
             regionSummary.deviceCount, regionSummary.happyCount, regionSummary.sadCount); // for update
-        log.debug("{} - {}", tag, sql);
         statement.executeUpdate(sql);
       }
     }
@@ -224,6 +187,7 @@ class DeviceProjector {
       config.setAutoCommit(false);
 
       dataSource = new HikariDataSource(config);
+      actorSystem.log().debug("Datasource {}, pool size {}", dbUrl, maxPoolSize);
     }
 
     DbSession newInstance() {
@@ -241,5 +205,44 @@ class DeviceProjector {
         () -> new DeviceEventHandler(tag),
         actorSystem
     ).withGroup(100, Duration.ofMillis(250)); // TODO config these settings?
+  }
+
+  public static class RegionSummary {
+    public final WorldMap.Region region;
+    public final int deviceCount;
+    public final int happyCount;
+    public final int sadCount;
+
+    public RegionSummary(WorldMap.Region region, int deviceCount, int happyCount, int sadCount) {
+      this.region = region;
+      this.deviceCount = deviceCount;
+      this.happyCount = happyCount;
+      this.sadCount = sadCount;
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s[%s, %d, %d, %d]", getClass().getSimpleName(), region, deviceCount, happyCount, sadCount);
+    }
+
+    RegionSummary activated() {
+      return new RegionSummary(region, deviceCount + 1, happyCount + 1, sadCount);
+    }
+
+    RegionSummary deactivatedHappy() {
+      return new RegionSummary(region, Math.max(0, deviceCount - 1), Math.max(0, happyCount - 1), sadCount);
+    }
+
+    RegionSummary deactivatedSad() {
+      return new RegionSummary(region, Math.max(0, deviceCount - 1), happyCount, Math.max(0, sadCount - 1));
+    }
+
+    RegionSummary madeHappy() {
+      return new RegionSummary(region, deviceCount, Math.min(deviceCount, happyCount + 1), Math.max(0, sadCount - 1));
+    }
+
+    RegionSummary madeSad() {
+      return new RegionSummary(region, deviceCount, Math.max(0, happyCount - 1), Math.min(deviceCount, sadCount + 1));
+    }
   }
 }

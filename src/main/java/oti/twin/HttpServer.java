@@ -115,20 +115,17 @@ public class HttpServer {
     return post(
         () -> entity(
             Jackson.unmarshaller(WorldMap.Region.class),
-            queryRegion -> {
-              log().debug("POST {}", queryRegion);
-              return completeOKWithFuture(
-                  CompletableFuture.supplyAsync(() -> {
-                    try {
-                      return read(queryRegion);
-                    } catch (SQLException e) {
-                      log().warn("Read selections query failed.", e);
-                      return new ArrayList<DeviceProjector.RegionSummary>();
-                    }
-                  }, actorSystem.dispatchers().lookup(DispatcherSelector.fromConfig("oti.twin.query-devices-dispatcher"))),
-                  Jackson.marshaller()
-              );
-            }
+            queryRegion -> completeOKWithFuture(
+                CompletableFuture.supplyAsync(() -> {
+                  try {
+                    return read(queryRegion);
+                  } catch (SQLException e) {
+                    log().warn("Read selections query failed.", e);
+                    return new ArrayList<DeviceProjector.RegionSummary>();
+                  }
+                }, actorSystem.dispatchers().lookup(DispatcherSelector.fromConfig("oti.twin.query-devices-dispatcher"))),
+                Jackson.marshaller()
+            )
         )
     );
   }
@@ -218,7 +215,7 @@ public class HttpServer {
 
   private List<DeviceProjector.RegionSummary> read(Connection connection, WorldMap.Region regionQuery) throws SQLException {
     final long start = System.nanoTime();
-    try (Statement statement = connection.createStatement()) {
+    try (final Statement statement = connection.createStatement()) {
       String sql = String.format("select * from region"
               + " where zoom = %d"
               + " and top_left_lat <= %1.9f"
@@ -230,14 +227,14 @@ public class HttpServer {
       final ResultSet resultSet = statement.executeQuery(sql);
       List<DeviceProjector.RegionSummary> regionSummaries = new ArrayList<>();
       while (resultSet.next()) {
-        WorldMap.LatLng topLeft = new WorldMap.LatLng(resultSet.getFloat("top_left_lat"), resultSet.getFloat("top_left_lng"));
-        WorldMap.LatLng botRight = new WorldMap.LatLng(resultSet.getFloat("bot_right_lat"), resultSet.getFloat("bot_right_lng"));
-        WorldMap.Region region = new WorldMap.Region(resultSet.getInt("zoom"), topLeft, botRight);
+        final WorldMap.LatLng topLeft = new WorldMap.LatLng(resultSet.getFloat("top_left_lat"), resultSet.getFloat("top_left_lng"));
+        final WorldMap.LatLng botRight = new WorldMap.LatLng(resultSet.getFloat("bot_right_lat"), resultSet.getFloat("bot_right_lng"));
+        final WorldMap.Region region = new WorldMap.Region(resultSet.getInt("zoom"), topLeft, botRight);
         final DeviceProjector.RegionSummary regionSummary =
             new DeviceProjector.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count"));
         regionSummaries.add(regionSummary);
       }
-      log().debug("Query {} {}", String.format("%,d", System.nanoTime() - start), regionQuery);
+      log().debug("UI query {}, zoom {}, regions {}", String.format("%,dns", System.nanoTime() - start), regionQuery.zoom, regionSummaries.size());
       return regionSummaries;
     }
   }

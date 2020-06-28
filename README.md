@@ -89,10 +89,10 @@ From the oti-twin project directory.
 $ kc cp src/main/resources/akka-persistence-journal.cql yb-demo/yb-tserver-0:/tmp                                                                  
 Defaulting container name to yb-tserver.
 
-$ kc cp src/main/resources/akka-projection-offset-store.cql yb-demo/yb-tserver-0:/tmp
+$ kc cp src/main/resources/region-projection.sql yb-demo/yb-tserver-0:/tmp
 Defaulting container name to yb-tserver.
 
-$ kc cp src/main/resources/region-projection.sql yb-demo/yb-tserver-0:/tmp
+$ kc cp src/main/resources/akka-projection-offset-store.sql yb-demo/yb-tserver-0:/tmp
 Defaulting container name to yb-tserver.
 ~~~
 
@@ -108,7 +108,6 @@ Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
 ycqlsh> source '/tmp/akka-persistence-journal.cql'
-ycqlsh> source '/tmp/akka-projection-offset-store.cql'
 ycqlsh> describe keyspaces;
 
 system_schema  oti_twin  system_auth  system
@@ -116,8 +115,8 @@ system_schema  oti_twin  system_auth  system
 ycqlsh> use oti_twin;
 ycqlsh:oti_twin> describe tables;
 
-tag_views  tag_scanning         offset_store        metadata
-messages   all_persistence_ids  tag_write_progress
+tag_views  tag_scanning         tag_write_progress
+messages   all_persistence_ids  metadata          
 
 ycqlsh:oti_twin> quit
 ~~~
@@ -133,6 +132,7 @@ ysqlsh (11.2-YB-2.1.8.1-b0)
 Type "help" for help.
 
 yugabyte=# \i /tmp/region-projection.sql
+
 create schema if not exists iot_twin;
 CREATE SCHEMA
 create table if not exists region (
@@ -157,6 +157,29 @@ create index region_bot_right_lat on region (bot_right_lat);
 CREATE INDEX
 create index region_bot_right_lng on region (bot_right_lng);
 CREATE INDEX
+
+yugabyte=# \i /tmp/akka-projection-offset-store.sql
+
+create schema if not exists oti_twin;
+ysqlsh:/tmp/akka-projection-offset-store.sql:2: NOTICE:  schema "oti_twin" already exists, skipping
+CREATE SCHEMA
+create table if not exists akka_projection_offset_store (
+  "PROJECTION_NAME"   varchar(255) not null,
+  "PROJECTION_KEY"    varchar(255) not null,
+  "OFFSET"            varchar(255) not null,
+  "MANIFEST"          varchar(4) not null,
+  "MERGEABLE"         boolean not null,
+  "LAST_UPDATED"      timestamp(9) with time zone not null,
+  constraint pk_projection_id primary key ("PROJECTION_NAME", "PROJECTION_KEY")
+);
+ysqlsh:/tmp/akka-projection-offset-store.sql:12: WARNING:  TIMESTAMP(9) WITH TIME ZONE precision reduced to maximum allowed, 6
+LINE 7:   "LAST_UPDATED"      timestamp(9) with time zone not null,
+                              ^
+ysqlsh:/tmp/akka-projection-offset-store.sql:12: WARNING:  TIMESTAMP(9) WITH TIME ZONE precision reduced to maximum allowed, 6
+CREATE TABLE
+create index projection_name_index on akka_projection_offset_store ("PROJECTION_NAME");
+CREATE INDEX
+
 yugabyte=# \q
 ~~~
 
