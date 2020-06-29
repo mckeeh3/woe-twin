@@ -141,16 +141,18 @@ class DeviceProjector {
   }
 
   static class DbSession implements JdbcSession {
-    private final DataSource dataSource;
-    Connection connection;
+    final Connection connection;
 
     DbSession(DataSource dataSource) {
-      this.dataSource = dataSource;
+      try {
+        connection = dataSource.getConnection();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     @Override
     public <Result> Result withConnection(Function<Connection, Result> func) throws Exception {
-      connection = dataSource.getConnection();
       return func.apply(connection);
     }
 
