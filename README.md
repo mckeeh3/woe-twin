@@ -338,6 +338,14 @@ gcr.io/akka-yuga/oti-twin
 Only listing images in gcr.io/akka-yuga. Use --repository to list images in other repositories.
 ~~~
 
+Create the Kubernetes namespace. The namespace only needs to be created once.
+~~~bash
+$ kubectl apply -f kubernetes/namespace.json     
+~~~
+~~~
+namespace/oti-twin-1 created
+~~~
+
 ### Enable External Access
 
 Create a load balancer to enable access to the OTI Twin microservice HTTP endpoint.

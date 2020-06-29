@@ -78,7 +78,7 @@ spec:
             - name: device-projection-jdbc-pool-size
               value: "50"
             - name: projection-shards-per-zoom
-              value: 4
+              value: "4"
 
 ---
 kind: Role
