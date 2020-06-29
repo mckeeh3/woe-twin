@@ -271,6 +271,73 @@ oti-twin-746587fbf4-trkdt   1/1     Running   0          33s
 oti-twin-746587fbf4-zzk7f   1/1     Running   0          33s
 ~~~
 
+### Build and Deploy to Google Cloud Container Registry
+
+First, create a GKE (Google Kubernetes Engine) project. From the
+[Google Cloud Platform](https://console.cloud.google.com) Dashboard, click The
+triple bar icon at the top left and click Kubernetes Engine/Clusters. Follow the
+documentation TODO for creating a cluster and a project.
+
+Use the [Quickstart for Container Registry](https://cloud.google.com/container-registry/docs/quickstart)
+to create a Docker image container registry.
+
+Deploy [Yugabyte](https://download.yugabyte.com/#kubernetes) to the GKE cluster.
+
+Build the project, which will create a new Docker image.
+~~~bash
+$ mvn clean package docker:build
+~~~
+~~~
+...
+[INFO]
+[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ oti-twin ---
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/oti-twin/target/docker/oti-twin/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/oti-twin/target/docker/oti-twin/tmp/docker-build.tar
+[INFO] DOCKER> [oti-twin:latest]: Created docker-build.tar in 377 milliseconds
+[INFO] DOCKER> [oti-twin:latest]: Built image sha256:e8192
+[INFO] DOCKER> [oti-twin:latest]: Tag with latest,20200619-124148.ef13797
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  22.986 s
+[INFO] Finished at: 2020-06-19T12:48:55-04:00
+[INFO] ------------------------------------------------------------------------
+~~~
+
+Configure authentication to the Container Registry.
+See [Authentication methods](https://cloud.google.com/container-registry/docs/advanced-authentication).
+Here the [gcloud as a Docker credential helper](https://cloud.google.com/container-registry/docs/advanced-authentication#gcloud-helper)
+method is used.
+~~~bash
+$ gcloud auth login
+~~~
+
+Configure Docker with the following command:
+~~~bash
+$ gcloud auth configure-docker
+~~~
+
+Tag the Docker image.
+~~~bash
+$ docker tag oti-twin gcr.io/$(gcloud config get-value project)/oti-twin:$(date +"%Y%m%d-%H%M%S")
+~~~
+
+Push the Docker image to the ContainerRegistry.
+~~~bash
+$ docker push gcr.io/$(gcloud config get-value project)/oti-twin
+~~~
+
+To view the uploaded container search for "container registry" from the Google Cloud Console.
+You can also list the uploaded containers via the CLI.
+~~~bash
+$ gcloud container images list                    
+~~~
+~~~
+NAME
+gcr.io/akka-yuga/oti-twin
+Only listing images in gcr.io/akka-yuga. Use --repository to list images in other repositories.
+~~~
+
 ### Enable External Access
 
 Create a load balancer to enable access to the OTI Twin microservice HTTP endpoint.

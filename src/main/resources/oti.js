@@ -341,7 +341,7 @@ function deviceQueryInterval() {
       }
     },
     function (result) {
-      console.log((new Date()).toISOString() + " UI query " + (performance.now() - start) + "ns");
+      console.log((new Date()).toISOString() + " UI query " + (performance.now() - start) + "ms");
       deviceSelections = result;
       scheduleNextDeviceQuery();
     },
