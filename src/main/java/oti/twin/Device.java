@@ -59,7 +59,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
 
   private Effect<Event, State> onCreateCommand(State state, TelemetryCreateCommand telemetryCreateCommand) {
     if (state.isInactive()) {
-      log().debug("{}", telemetryCreateCommand);
+      log().info("{}", telemetryCreateCommand);
       return Effect().persist(new DeviceActivated(telemetryCreateCommand.region));
     }
     return Effect().none();
@@ -92,7 +92,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
 
   private Effect<Event, State> onPingCommand(State state, TelemetryPingCommand telemetryPingCommand) {
     if (state.isInactive()) {
-      log().debug("Ping create inactive device {}", telemetryPingCommand);
+      log().info("Ping create inactive device {}", telemetryPingCommand);
       return Effect().persist(new DeviceActivated(telemetryPingCommand.region));
     }
     return Effect().none();
