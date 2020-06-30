@@ -57,6 +57,7 @@ class DeviceProjector {
             update(connection, (Device.DeviceMadeSad) event);
           }
         } catch (SQLException e) {
+          log.error(String.format("%s", tag), e);
           throw new RuntimeException(String.format("%s", tag), e);
         }
       });
