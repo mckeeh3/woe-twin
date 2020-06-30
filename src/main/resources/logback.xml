@@ -22,6 +22,7 @@
     <logger name="akka.io" level="INFO"/>
     <logger name="akka.http" level="INFO"/>
     <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="akka.projection" level="DEBUG"/>
     <logger name="akka.projection.jdbc" level="DEBUG"/>
     <logger name="oti.twin.Device" level="INFO"/>
 
