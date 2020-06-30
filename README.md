@@ -86,7 +86,7 @@ yugabyte=# \q
 From the oti-twin project directory.
 
 ~~~bash
-$ kc cp src/main/resources/akka-persistence-journal.cql yb-demo/yb-tserver-0:/tmp                                                                  
+$ kc cp src/main/resources/akka-persistence-journal-create-twin.cql yb-demo/yb-tserver-0:/tmp                                                                  
 Defaulting container name to yb-tserver.
 
 $ kc cp src/main/resources/region-projection.sql yb-demo/yb-tserver-0:/tmp

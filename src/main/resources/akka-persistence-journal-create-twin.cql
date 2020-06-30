@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS oti_twin.tag_views (
     'min_sstable_size' : 50
     };
 
-CREATE TABLE IF NOT EXISTS oti_twin.tag_write_progress(
+CREATE TABLE IF NOT EXISTS oti_twin.tag_write_progress (
   persistence_id text,
   tag text,
   sequence_nr bigint,
@@ -69,16 +69,16 @@ CREATE TABLE IF NOT EXISTS oti_twin.tag_write_progress(
   offset timeuuid,
   PRIMARY KEY (persistence_id, tag));
 
-CREATE TABLE IF NOT EXISTS oti_twin.tag_scanning(
+CREATE TABLE IF NOT EXISTS oti_twin.tag_scanning (
   persistence_id text,
   sequence_nr bigint,
   PRIMARY KEY (persistence_id));
 
-CREATE TABLE IF NOT EXISTS oti_twin.metadata(
+CREATE TABLE IF NOT EXISTS oti_twin.metadata (
   persistence_id text PRIMARY KEY,
   deleted_to bigint,
   properties map<text,text>);
 
-CREATE TABLE IF NOT EXISTS oti_twin.all_persistence_ids(
+CREATE TABLE IF NOT EXISTS oti_twin.all_persistence_ids (
   persistence_id text PRIMARY KEY);
 
