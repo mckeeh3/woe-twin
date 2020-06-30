@@ -320,11 +320,12 @@ $ gcloud auth configure-docker
 Tag the Docker image.
 ~~~bash
 $ docker tag oti-twin gcr.io/$(gcloud config get-value project)/oti-twin:$(date +"%Y%m%d-%H%M%S")
+$ docker tag oti-twin gcr.io/$(gcloud config get-value project)/oti-twin:latest
 ~~~
 
 Push the Docker image to the ContainerRegistry.
 ~~~bash
-$ docker push gcr.io/$(gcloud config get-value project)/oti-twin
+$ docker push gcr.io/$(gcloud config get-value project)/oti-twin:latest
 ~~~
 
 To view the uploaded container search for "container registry" from the Google Cloud Console.

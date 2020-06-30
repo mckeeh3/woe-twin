@@ -57,7 +57,7 @@ class DeviceProjector {
             update(connection, (Device.DeviceMadeSad) event);
           }
         } catch (SQLException e) {
-          log.error(String.format("%s", tag), e);
+          throw new RuntimeException(String.format("%s", tag), e);
         }
       });
       log.debug("{} processed {}, {}ns", tag, eventEnvelopes.size(), String.format("%,d", System.nanoTime() - start));
@@ -114,21 +114,38 @@ class DeviceProjector {
     }
 
     private void update(Connection connection, RegionSummary regionSummary) throws SQLException {
-      final WorldMap.Region region = regionSummary.region;
+      String sql = regionSummary.deviceCount > 0
+          ? insertOrUpdate(regionSummary)
+          : delete(regionSummary);
       try (Statement statement = connection.createStatement()) {
-        String sql = String.format("insert into region"
-                + " (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng, device_count, happy_count, sad_count)"
-                + " values (%d, %1.9f, %1.9f, %1.9f, %1.9f, %d, %d, %d)"
-                + " on conflict on constraint region_pkey"
-                + " do update set"
-                + " device_count = %d,"
-                + " happy_count = %d,"
-                + " sad_count = %d",
-            region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng,
-            regionSummary.deviceCount, regionSummary.happyCount, regionSummary.sadCount, // for insert
-            regionSummary.deviceCount, regionSummary.happyCount, regionSummary.sadCount); // for update
         statement.executeUpdate(sql);
       }
+    }
+
+    private String insertOrUpdate(RegionSummary regionSummary) {
+      final WorldMap.Region region = regionSummary.region;
+      return String.format("insert into region"
+              + " (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng, device_count, happy_count, sad_count)"
+              + " values (%d, %1.9f, %1.9f, %1.9f, %1.9f, %d, %d, %d)"
+              + " on conflict on constraint region_pkey"
+              + " do update set"
+              + " device_count = %d,"
+              + " happy_count = %d,"
+              + " sad_count = %d",
+          region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng,
+          regionSummary.deviceCount, regionSummary.happyCount, regionSummary.sadCount, // for insert
+          regionSummary.deviceCount, regionSummary.happyCount, regionSummary.sadCount); // for update
+    }
+
+    private String delete(RegionSummary regionSummary) {
+      final WorldMap.Region region = regionSummary.region;
+      return String.format("delete from region"
+              + " where zoom = %d"
+              + " and top_left_lat = %1.9f"
+              + " and top_left_lng = %1.9f"
+              + " and bot_right_lat = %1.9f"
+              + " and bot_right_lng = %1.9f",
+          region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
     }
 
     private static int tagToZoom(String tag) {
