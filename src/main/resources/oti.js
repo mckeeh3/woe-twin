@@ -44,9 +44,9 @@ function setup() {
 function draw() {
   clear();
   drawLatLngGrid();
+  drawDeviceSelections();
   drawDashboard();
   drawMouseLocation();
-  drawDeviceSelections();
 }
 
 function drawLatLngGrid() {

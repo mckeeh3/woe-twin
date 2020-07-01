@@ -319,7 +319,6 @@ $ gcloud auth configure-docker
 
 Tag the Docker image.
 ~~~bash
-$ docker tag oti-twin gcr.io/$(gcloud config get-value project)/oti-twin:$(date +"%Y%m%d-%H%M%S")
 $ docker tag oti-twin gcr.io/$(gcloud config get-value project)/oti-twin:latest
 ~~~
 
@@ -347,6 +346,47 @@ $ kubectl apply -f kubernetes/namespace.json
 namespace/oti-twin-1 created
 ~~~
 
+Context "gke_akka-yuga_us-central1-c_yugadb" modified.
+
+Set this namespace as the default for subsequent `kubectl` commands.
+~~~bash
+kubectl config set-context --current --namespace=oti-twin-1
+~~~
+~~~
+Context "gke_akka-yuga_us-central1-c_yugadb" modified.
+~~~
+
+Deploy the Docker images to the Kubernetes cluster.
+~~~bash
+$ kubectl apply -f kubernetes/akka-cluster-gke.yml
+~~~
+~~~
+deployment.apps/oti-twin created
+role.rbac.authorization.k8s.io/pod-reader created
+rolebinding.rbac.authorization.k8s.io/read-pods created
+~~~
+
+View the status of the running pods.
+~~~bash
+$ kubectl get pods   
+~~~
+~~~
+NAME                        READY   STATUS    RESTARTS   AGE
+oti-twin-658d9878d9-7zsmv   1/1     Running   0          37m
+oti-twin-658d9878d9-bh2jn   1/1     Running   0          37m
+oti-twin-658d9878d9-slxmp   1/1     Running   0          37m
+~~~
+
+Open a shell on one of the pods.
+~~~bash
+$ kubectl exec -it oti-twin-658d9878d9-7zsmv -- /bin/bash
+~~~
+~~~
+root@oti-twin-658d9878d9-7zsmv:/# ll maven/oti-twin-1.0-SNAPSHOT.jar
+-rw-r--r-- 1 root root 779840 Jul  1 15:28 maven/oti-twin-1.0-SNAPSHOT.jar
+root@oti-twin-658d9878d9-7zsmv:/# exit
+exit
+~~~
 ### Enable External Access
 
 Create a load balancer to enable access to the OTI Twin microservice HTTP endpoint.
