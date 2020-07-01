@@ -12,8 +12,11 @@ import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +28,7 @@ import static oti.twin.WorldMap.entityIdOf;
 public class HttpServer {
   private final ActorSystem<?> actorSystem;
   private final ClusterSharding clusterSharding;
-  private final String dbUrl;
-  private final String username;
-  private final String password;
+  private final DataSource dataSource;
 
   static HttpServer start(String host, int port, ActorSystem<?> actorSystem) {
     return new HttpServer(host, port, actorSystem);
@@ -36,9 +37,7 @@ public class HttpServer {
   private HttpServer(String host, int port, ActorSystem<?> actorSystem) {
     this.actorSystem = actorSystem;
     clusterSharding = ClusterSharding.get(actorSystem);
-    dbUrl = actorSystem.settings().config().getString("oti.twin.sql.url");
-    username = actorSystem.settings().config().getString("oti.twin.sql.username");
-    password = actorSystem.settings().config().getString("oti.twin.sql.password");
+    dataSource = dataSource(actorSystem);
 
     start(host, port);
   }
@@ -207,8 +206,24 @@ public class HttpServer {
     }
   }
 
+  private DataSource dataSource(ActorSystem<?> actorSystem) {
+    final String dbUrl = actorSystem.settings().config().getString("oti.twin.sql.url");
+    final String username = actorSystem.settings().config().getString("oti.twin.sql.username");
+    final String password = actorSystem.settings().config().getString("oti.twin.sql.password");
+    final int maxPoolSize = actorSystem.settings().config().getInt("oti.twin.sql.max-pool-size");
+
+    final HikariConfig config = new HikariConfig();
+    config.setJdbcUrl(dbUrl);
+    config.setUsername(username);
+    config.setPassword(password);
+    config.setMaximumPoolSize(maxPoolSize);
+    config.setAutoCommit(false);
+
+    return new HikariDataSource(config);
+  }
+
   private List<DeviceProjector.RegionSummary> read(WorldMap.Region region) throws SQLException {
-    try (final Connection connection = DriverManager.getConnection(dbUrl, username, password)) {
+    try (final Connection connection = dataSource.getConnection()) {
       return read(connection, region);
     }
   }
