@@ -429,7 +429,7 @@ function recalculateLatLngGrid() {
 }
 
 function scheduleNextDeviceQuery() {
-  // TODO setTimeout(deviceQueryInterval, deviceDataMsInterval);
+  setTimeout(deviceQueryInterval, deviceDataMsInterval);
 }
 
 function deviceQueryInterval() {
@@ -464,73 +464,73 @@ function deviceQueryInterval() {
 }
 
 const grid = {
-    borderWidth: 20,
-    ticksHorizontal: 100,
-    ticksVertical: 0,
-    tickWidth: 0,
-    resize: function () {
-        gridWidth = windowWidth - 2 * this.borderWidth;
-        this.tickWidth = gridWidth / this.ticksHorizontal;
-        this.ticksVertical = windowHeight / windowWidth * this.ticksHorizontal;
-    },
-    toX: function (gridX) { // convert from grid scale to canvas scale
-        return this.borderWidth + gridX * this.tickWidth;
-    },
-    toY: function (gridY) {
-        return this.borderWidth + gridY * this.tickWidth;
-    },
-    toLength: function (gridLength) {
-        return gridLength * this.tickWidth
-    },
-    line: function (x1, y1, x2, y2) {
-        line(grid.toX(x1), grid.toY(y1), grid.toX(x2), grid.toY(y2));
-    },
-    rect: function (x, y, w, h) {
-        rect(grid.toX(x), grid.toY(y), grid.toLength(w), grid.toLength(h));
-    }
+  borderWidth: 20,
+  ticksHorizontal: 100,
+  ticksVertical: 0,
+  tickWidth: 0,
+  resize: function () {
+    gridWidth = windowWidth - 2 * this.borderWidth;
+    this.tickWidth = gridWidth / this.ticksHorizontal;
+    this.ticksVertical = windowHeight / windowWidth * this.ticksHorizontal;
+  },
+  toX: function (gridX) { // convert from grid scale to canvas scale
+    return this.borderWidth + gridX * this.tickWidth;
+  },
+  toY: function (gridY) {
+    return this.borderWidth + gridY * this.tickWidth;
+  },
+  toLength: function (gridLength) {
+    return gridLength * this.tickWidth
+  },
+  line: function (x1, y1, x2, y2) {
+    line(grid.toX(x1), grid.toY(y1), grid.toX(x2), grid.toY(y2));
+  },
+  rect: function (x, y, w, h) {
+    rect(grid.toX(x), grid.toY(y), grid.toLength(w), grid.toLength(h));
+  }
 };
 
 let Label = function () {
-    return {
-        setX: function(x) { this.x = x; return this; },
-        setY: function(y) { this.y = y; return this; },
-        setW: function(w) { this.w = w; return this; },
-        setH: function(h) { this.h = h; return this; },
-        setBorder: function(b) { this.border = b; return this; },
-        setKey: function(k) { this.key = k; return this; },
-        setValue: function(v) { this.value = v; return this; },
-        setBgColor: function(c) { this.bgColor = c; return this; },
-        setKeyColor: function(c) { this.keyColor = c; return this; },
-        setValueColor: function(c) { this.valueColor = c; return this; },
-        draw: function() {
-            const cx = grid.toX(this.x);
-            const cy = grid.toY(this.y);
-            const cw = grid.toLength(this.w);
-            const ch = grid.toLength(this.h);
-            const cb = grid.toLength(this.border);
+  return {
+    setX: function(x) { this.x = x; return this; },
+    setY: function(y) { this.y = y; return this; },
+    setW: function(w) { this.w = w; return this; },
+    setH: function(h) { this.h = h; return this; },
+    setBorder: function(b) { this.border = b; return this; },
+    setKey: function(k) { this.key = k; return this; },
+    setValue: function(v) { this.value = v; return this; },
+    setBgColor: function(c) { this.bgColor = c; return this; },
+    setKeyColor: function(c) { this.keyColor = c; return this; },
+    setValueColor: function(c) { this.valueColor = c; return this; },
+    draw: function() {
+      const cx = grid.toX(this.x);
+      const cy = grid.toY(this.y);
+      const cw = grid.toLength(this.w);
+      const ch = grid.toLength(this.h);
+      const cb = grid.toLength(this.border);
 
-            strokeWeight(0);
-            fill(this.bgColor || color(0, 0));
-            rect(cx, cy, cw, ch);
+      strokeWeight(0);
+      fill(this.bgColor || color(0, 0));
+      rect(cx, cy, cw, ch);
 
-            textSize(ch - cb * 2);
+      textSize(ch - cb * 2);
 
-            if (this.key) {
-                textAlign(LEFT, CENTER);
-                fill(this.keyColor || color(0, 0));
-                text(this.key, cx + cb, cy + ch / 2);
-            }
+      if (this.key) {
+        textAlign(LEFT, CENTER);
+        fill(this.keyColor || color(0, 0));
+        text(this.key, cx + cb, cy + ch / 2);
+      }
 
-            if (this.value) {
-                textAlign(RIGHT, CENTER);
-                fill(this.valueColor || color(0, 0));
-                text(this.value, cx + cw - cb, cy + ch / 2);
-            }
-        },
-        Label: function() {
-            if (!(this instanceof Label)) {
-                return new Label();
-            }
-        }
-    };
+      if (this.value) {
+        textAlign(RIGHT, CENTER);
+        fill(this.valueColor || color(0, 0));
+        text(this.value, cx + cw - cb, cy + ch / 2);
+      }
+    },
+    Label: function() {
+      if (!(this instanceof Label)) {
+        return new Label();
+      }
+    }
+  };
 };
