@@ -79,6 +79,10 @@ spec:
               value: "50"
             - name: projection-shards-per-zoom
               value: "4"
+            - name: projection-group-after-envelopes
+              value: "1000"
+            - name: projection-group-after-duration
+              value: "1s"
 
 ---
 kind: Role

@@ -216,6 +216,8 @@ class DeviceProjector {
   }
 
   static GroupedProjection<Offset, EventEnvelope<Device.Event>> start(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, String tag) {
+    final int groupAfterEnvelopes = actorSystem.settings().config().getInt("oti.twin.projection.group-after-envelopes");
+    final Duration groupAfterDuration = actorSystem.settings().config().getDuration("oti.twin.projection.group-after-duration");
     final SourceProvider<Offset, EventEnvelope<Device.Event>> sourceProvider =
         EventSourcedProvider.eventsByTag(actorSystem, CassandraReadJournal.Identifier(), tag);
     return JdbcProjection.groupedWithin(
@@ -224,7 +226,7 @@ class DeviceProjector {
         dbSessionFactory::newInstance,
         () -> new DeviceEventHandler(tag),
         actorSystem
-    ).withGroup(100, Duration.ofMillis(250)); // TODO config these settings?
+    ).withGroup(groupAfterEnvelopes, groupAfterDuration);
   }
 
   public static class RegionSummary {
