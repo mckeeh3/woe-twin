@@ -55,7 +55,7 @@ public class HttpServerTest {
 
     String host = testKit.system().settings().config().getString("oti.twin.http.server.host");
     int port = testKit.system().settings().config().getInt("oti.twin.http.server.port");
-    httpServer = HttpServer.start(host, port, testKit.system());
+    //httpServer = HttpServer.start(host, port, testKit.system());
   }
 
   @Test
