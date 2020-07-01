@@ -18,6 +18,7 @@ const areaSelectionColorDelete = [64, 64, 64, 50];
 const areaSelectionColorHappy = [0, 255, 0, 50];
 const areaSelectionColorSad = [255, 0, 0, 50];
 const selectedMarkerColor = [33, 183, 0];
+const minSelectableZoom = 9; // up to 262,144 devices, Math.pow(4, 9)
 const mappa = new Mappa('Leaflet');
 const mapOptions = {
   lat: 0,
@@ -34,6 +35,8 @@ function setup() {
   worldMap = mappa.tileMap(mapOptions);
   worldMap.overlay(canvas, mapReady);
   worldMap.onChange(mapChanged);
+
+  grid.resize();
 
   scheduleNextDeviceQuery();
 }
@@ -70,20 +73,124 @@ function drawMouseSectors() {
 }
 
 function drawDashboard() {
-  const height = 100;
-  const top = windowHeight - height;
-  fill(color(32, 128));
-  strokeWeight(0);
-  rect(0, top, windowWidth, height);
+  drawZoomAndMouseLocation();
+  drawSelectionInstructions();
+  drawSelectionCounts();
+}
+
+function drawZoomAndMouseLocation() {
   const latLng = worldMap.pixelToLatLng(mouseX, mouseY);
   const lat = latLng.lat.toFixed(8);
   const lng = latLng.lng.toFixed(8);
-  const zoom = worldMap.zoom();
-  const msg = `Lat ${lat}, Lng ${lng} Zoom ${zoom}`;
+  const height = 1.7;
+  const keyColor = color(255, 255, 0);
+  const valueColor = color(255);
+  const bgColor = color(50, 100);
 
-  textSize(20);
-  fill(color(255, 200, 0));
-  text(msg, 25, top + 30);
+  Label().setX(2).setY(0.25).setW(5).setH(height)
+          .setBorder(0.3)
+          .setKey("Zoom")
+          .setValue(worldMap.zoom())
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
+  Label().setX(7.5).setY(0.25).setW(10).setH(height)
+          .setBorder(0.3)
+          .setKey("Lat")
+          .setValue(lat)
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
+  Label().setX(18).setY(0.25).setW(10).setH(height)
+          .setBorder(0.3)
+          .setKey("Lng")
+          .setValue(lng)
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
+}
+
+function drawSelectionInstructions() {
+  if (worldMap.zoom() < minSelectableZoom) return;
+
+  const height = 1.7;
+  const keyColor = color(255, 255, 0);
+  const valueColor = color(255);
+  const bgColor = color(50, 100);
+
+  Label().setX(grid.ticksHorizontal - 6).setY(0.25).setW(6).setH(height)
+          .setBorder(0.3)
+          .setKey("'c'")
+          .setValue("create")
+          .setBgColor(bgColor)
+          .setKeyColor(color(212, 0, 255))
+          .setValueColor(color(255))
+          .draw();
+  Label().setX(grid.ticksHorizontal - 6).setY(2).setW(6).setH(height)
+          .setBorder(0.3)
+          .setKey("'d'")
+          .setValue("delete")
+          .setBgColor(bgColor)
+          .setKeyColor(color(50, 50, 50))
+          .setValueColor(color(255))
+          .draw();
+  Label().setX(grid.ticksHorizontal - 6).setY(3.75).setW(6).setH(height)
+          .setBorder(0.3)
+          .setKey("'h'")
+          .setValue("happy")
+          .setBgColor(bgColor)
+          .setKeyColor(color(0, 255, 0))
+          .setValueColor(color(255))
+          .draw();
+  Label().setX(grid.ticksHorizontal - 6).setY(5.5).setW(6).setH(height)
+          .setBorder(0.3)
+          .setKey("'s'")
+          .setValue("sad")
+          .setBgColor(bgColor)
+          .setKeyColor(color(255, 0, 0))
+          .setValueColor(color(255))
+          .draw();
+}
+
+function drawSelectionCounts() {
+  const height = 1.6;
+  const bgColor = color(50, 150);
+  const keyColor = color(255, 255, 0);
+  const valueColor = color(255);
+  const happyCounter = (a, c) => a + c.happyCount;
+  const deviceCounter = (a, c) => a + c.deviceCount;
+  const sadCounter = (a, c) => a + c.sadCount;
+  const deviceTotal = deviceSelections.reduce(deviceCounter, 0);
+  const happyTotal = deviceSelections.reduce(happyCounter, 0);
+  const sadTotal = deviceSelections.reduce(sadCounter, 0);
+
+  Label().setX(1).setY(grid.ticksVertical - 5.5).setW(20).setH(height)
+          .setBorder(0.3)
+          .setKey("Devices in view")
+          .setValue(deviceTotal.toLocaleString())
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
+  Label().setX(1).setY(grid.ticksVertical - 3.75).setW(20).setH(height)
+          .setBorder(0.3)
+          .setKey("Happy status")
+          .setValue(happyTotal.toLocaleString())
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
+  Label().setX(1).setY(grid.ticksVertical - 2).setW(20).setH(height)
+          .setBorder(0.3)
+          .setKey("Sad status")
+          .setValue(sadTotal.toLocaleString())
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
 }
 
 function mouseGridLocation() {
@@ -163,10 +270,10 @@ function mouseClicked(event) {
 }
 
 function drawDeviceSelections() {
-  deviceSelections.forEach(d => DrawDeviceSelection(d));
+  deviceSelections.forEach(d => drawDeviceSelection(d));
 }
 
-function DrawDeviceSelection(deviceSelection) {
+function drawDeviceSelection(deviceSelection) {
   const posTopLeft = worldMap.latLngToPixel(deviceSelection.region.topLeft);
   const posBotRight = worldMap.latLngToPixel(deviceSelection.region.botRight);
 
@@ -248,6 +355,8 @@ function windowResized() {
   worldMap.map.invalidateSize();
   resizeCanvas(windowWidth, windowHeight);
   mouseSelectionWidth = Math.min(windowWidth, windowHeight) / 10;
+
+  grid.resize();
 }
 
 function getStyleByClassName(className) {
@@ -256,6 +365,8 @@ function getStyleByClassName(className) {
 }
 
 function keyPressed() {
+  if (worldMap.zoom() < minSelectableZoom) return;
+
   switch (key) {
     case "C":
       areaSelectionOn = !areaSelectionOn;
@@ -318,7 +429,7 @@ function recalculateLatLngGrid() {
 }
 
 function scheduleNextDeviceQuery() {
-  setTimeout(deviceQueryInterval, deviceDataMsInterval);
+  // TODO setTimeout(deviceQueryInterval, deviceDataMsInterval);
 }
 
 function deviceQueryInterval() {
@@ -340,9 +451,9 @@ function deviceQueryInterval() {
         lng: botRight.lng
       }
     },
-    function (result) {
+    function (response) {
       console.log((new Date()).toISOString() + " UI query " + (performance.now() - start) + "ms");
-      deviceSelections = result;
+      deviceSelections = response;
       scheduleNextDeviceQuery();
     },
     function (error) {
@@ -351,3 +462,75 @@ function deviceQueryInterval() {
     }
   );
 }
+
+const grid = {
+    borderWidth: 20,
+    ticksHorizontal: 100,
+    ticksVertical: 0,
+    tickWidth: 0,
+    resize: function () {
+        gridWidth = windowWidth - 2 * this.borderWidth;
+        this.tickWidth = gridWidth / this.ticksHorizontal;
+        this.ticksVertical = windowHeight / windowWidth * this.ticksHorizontal;
+    },
+    toX: function (gridX) { // convert from grid scale to canvas scale
+        return this.borderWidth + gridX * this.tickWidth;
+    },
+    toY: function (gridY) {
+        return this.borderWidth + gridY * this.tickWidth;
+    },
+    toLength: function (gridLength) {
+        return gridLength * this.tickWidth
+    },
+    line: function (x1, y1, x2, y2) {
+        line(grid.toX(x1), grid.toY(y1), grid.toX(x2), grid.toY(y2));
+    },
+    rect: function (x, y, w, h) {
+        rect(grid.toX(x), grid.toY(y), grid.toLength(w), grid.toLength(h));
+    }
+};
+
+let Label = function () {
+    return {
+        setX: function(x) { this.x = x; return this; },
+        setY: function(y) { this.y = y; return this; },
+        setW: function(w) { this.w = w; return this; },
+        setH: function(h) { this.h = h; return this; },
+        setBorder: function(b) { this.border = b; return this; },
+        setKey: function(k) { this.key = k; return this; },
+        setValue: function(v) { this.value = v; return this; },
+        setBgColor: function(c) { this.bgColor = c; return this; },
+        setKeyColor: function(c) { this.keyColor = c; return this; },
+        setValueColor: function(c) { this.valueColor = c; return this; },
+        draw: function() {
+            const cx = grid.toX(this.x);
+            const cy = grid.toY(this.y);
+            const cw = grid.toLength(this.w);
+            const ch = grid.toLength(this.h);
+            const cb = grid.toLength(this.border);
+
+            strokeWeight(0);
+            fill(this.bgColor || color(0, 0));
+            rect(cx, cy, cw, ch);
+
+            textSize(ch - cb * 2);
+
+            if (this.key) {
+                textAlign(LEFT, CENTER);
+                fill(this.keyColor || color(0, 0));
+                text(this.key, cx + cb, cy + ch / 2);
+            }
+
+            if (this.value) {
+                textAlign(RIGHT, CENTER);
+                fill(this.valueColor || color(0, 0));
+                text(this.value, cx + cw - cb, cy + ch / 2);
+            }
+        },
+        Label: function() {
+            if (!(this instanceof Label)) {
+                return new Label();
+            }
+        }
+    };
+};
