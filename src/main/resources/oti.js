@@ -59,7 +59,11 @@ function drawLatLngGrid() {
 
 function drawMouseLocation() {
   if (areaSelectionOn) {
-    drawMouseSectors();
+    if (isAreaSelectionAllowed()) {
+      drawMouseSectors();
+    } else {
+      areaSelectionOn = false;
+    }
   }
 }
 
@@ -114,8 +118,9 @@ function drawZoomAndMouseLocation() {
 }
 
 function drawSelectionInstructions() {
-  if (worldMap.zoom() < minSelectableZoom) return;
+  if (!isAreaSelectionAllowed()) return;
 
+  const zoom = worldMap.zoom();
   const height = 1.7;
   const keyColor = color(255, 255, 0);
   const valueColor = color(255);
@@ -127,7 +132,7 @@ function drawSelectionInstructions() {
           .setValue("create")
           .setBgColor(bgColor)
           .setKeyColor(color(212, 0, 255))
-          .setValueColor(color(255))
+          .setValueColor(valueColor)
           .draw();
   Label().setX(grid.ticksHorizontal - 6).setY(2).setW(6).setH(height)
           .setBorder(0.3)
@@ -135,7 +140,7 @@ function drawSelectionInstructions() {
           .setValue("delete")
           .setBgColor(bgColor)
           .setKeyColor(color(50, 50, 50))
-          .setValueColor(color(255))
+          .setValueColor(valueColor)
           .draw();
   Label().setX(grid.ticksHorizontal - 6).setY(3.75).setW(6).setH(height)
           .setBorder(0.3)
@@ -143,7 +148,7 @@ function drawSelectionInstructions() {
           .setValue("happy")
           .setBgColor(bgColor)
           .setKeyColor(color(0, 255, 0))
-          .setValueColor(color(255))
+          .setValueColor(valueColor)
           .draw();
   Label().setX(grid.ticksHorizontal - 6).setY(5.5).setW(6).setH(height)
           .setBorder(0.3)
@@ -151,8 +156,20 @@ function drawSelectionInstructions() {
           .setValue("sad")
           .setBgColor(bgColor)
           .setKeyColor(color(255, 0, 0))
-          .setValueColor(color(255))
+          .setValueColor(valueColor)
           .draw();
+
+  if (areaSelectionOn && areaSelectionAction == "create") {
+    const devicesAtZoom = Math.pow(4, 18 - zoom);
+    const msg = `${devicesAtZoom.toLocaleString()} devices`
+
+    Label().setX(grid.ticksHorizontal - 17).setY(0.25).setW(10).setH(height)
+            .setBorder(0.3)
+            .setValue(msg)
+            .setBgColor(bgColor)
+            .setValueColor(color(255))
+            .draw();
+  }
 }
 
 function drawSelectionCounts() {
@@ -365,7 +382,7 @@ function getStyleByClassName(className) {
 }
 
 function keyPressed() {
-  if (worldMap.zoom() < minSelectableZoom) return;
+  if (!isAreaSelectionAllowed()) return;
 
   switch (key) {
     case "C":
@@ -389,6 +406,11 @@ function keyPressed() {
       areaSelectionColor = areaSelectionColorSad;
       break;
   }
+}
+
+function isAreaSelectionAllowed() {
+  const zoom = worldMap.zoom();
+  return zoom >= minSelectableZoom;
 }
 
 function mapReady() {
