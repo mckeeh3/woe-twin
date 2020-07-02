@@ -18,7 +18,7 @@ create index region_top_left_lat on oti_twin_zoom_15.region (top_left_lat);
 create index region_top_left_lng on oti_twin_zoom_15.region (top_left_lng);
 create index region_bot_right_lat on oti_twin_zoom_15.region (bot_right_lat);
 create index region_bot_right_lng on oti_twin_zoom_15.region (bot_right_lng);
-
+commit;
 
 
 create schema if not exists oti_twin_zoom_16;
@@ -40,7 +40,7 @@ create index region_top_left_lat on oti_twin_zoom_16.region (top_left_lat);
 create index region_top_left_lng on oti_twin_zoom_16.region (top_left_lng);
 create index region_bot_right_lat on oti_twin_zoom_16.region (bot_right_lat);
 create index region_bot_right_lng on oti_twin_zoom_16.region (bot_right_lng);
-
+commit;
 
 
 create schema if not exists oti_twin_zoom_17;
@@ -62,7 +62,7 @@ create index region_top_left_lat on oti_twin_zoom_17.region (top_left_lat);
 create index region_top_left_lng on oti_twin_zoom_17.region (top_left_lng);
 create index region_bot_right_lat on oti_twin_zoom_17.region (bot_right_lat);
 create index region_bot_right_lng on oti_twin_zoom_17.region (bot_right_lng);
-
+commit;
 
 
 create schema if not exists oti_twin_zoom_18;
@@ -84,4 +84,5 @@ create index region_top_left_lat on oti_twin_zoom_18.region (top_left_lat);
 create index region_top_left_lng on oti_twin_zoom_18.region (top_left_lng);
 create index region_bot_right_lat on oti_twin_zoom_18.region (bot_right_lat);
 create index region_bot_right_lng on oti_twin_zoom_18.region (bot_right_lng);
+commit;
 
