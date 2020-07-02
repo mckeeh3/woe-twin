@@ -1,7 +1,5 @@
 
-create schema if not exists oti_twin_zoom_15;
-
-create table if not exists oti_twin_zoom_15.region (
+create table if not exists region_zoom_10 (
     zoom            integer,
     top_left_lat    double precision,
     top_left_lng    double precision,
@@ -10,19 +8,17 @@ create table if not exists oti_twin_zoom_15.region (
     device_count    integer,
     happy_count     integer,
     sad_count       integer,
-    constraint region_zoom_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
+    constraint region_zoom_10_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
 );
 
-create index if not exists region_zoom on oti_twin_zoom_15.region (zoom);
-create index if not exists region_top_left_lat on oti_twin_zoom_15.region (top_left_lat);
-create index if not exists region_top_left_lng on oti_twin_zoom_15.region (top_left_lng);
-create index if not exists region_bot_right_lat on oti_twin_zoom_15.region (bot_right_lat);
-create index if not exists region_bot_right_lng on oti_twin_zoom_15.region (bot_right_lng);
+create index if not exists region_zoom_10_zoom on region_zoom_10 (zoom);
+create index if not exists region_zoom_10_top_left_lat on region_zoom_10 (top_left_lat);
+create index if not exists region_zoom_10_top_left_lng on region_zoom_10 (top_left_lng);
+create index if not exists region_zoom_10_bot_right_lat on region_zoom_10 (bot_right_lat);
+create index if not exists region_zoom_10_bot_right_lng on region_zoom_10 (bot_right_lng);
 
 
-create schema if not exists oti_twin_zoom_16;
-
-create table if not exists oti_twin_zoom_16.region (
+create table if not exists region_zoom_11 (
     zoom            integer,
     top_left_lat    double precision,
     top_left_lng    double precision,
@@ -31,19 +27,17 @@ create table if not exists oti_twin_zoom_16.region (
     device_count    integer,
     happy_count     integer,
     sad_count       integer,
-    constraint region_zoom_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
+    constraint region_zoom_11_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
 );
 
-create index if not exists region_zoom on oti_twin_zoom_16.region (zoom);
-create index if not exists region_top_left_lat on oti_twin_zoom_16.region (top_left_lat);
-create index if not exists region_top_left_lng on oti_twin_zoom_16.region (top_left_lng);
-create index if not exists region_bot_right_lat on oti_twin_zoom_16.region (bot_right_lat);
-create index if not exists region_bot_right_lng on oti_twin_zoom_16.region (bot_right_lng);
+create index if not exists region_zoom_11_zoom on region_zoom_11 (zoom);
+create index if not exists region_zoom_11_top_left_lat on region_zoom_11 (top_left_lat);
+create index if not exists region_zoom_11_top_left_lng on region_zoom_11 (top_left_lng);
+create index if not exists region_zoom_11_bot_right_lat on region_zoom_11 (bot_right_lat);
+create index if not exists region_zoom_11_bot_right_lng on region_zoom_11 (bot_right_lng);
 
 
-create schema if not exists oti_twin_zoom_17;
-
-create table if not exists oti_twin_zoom_17.region (
+create table if not exists region_zoom_12 (
     zoom            integer,
     top_left_lat    double precision,
     top_left_lng    double precision,
@@ -52,19 +46,17 @@ create table if not exists oti_twin_zoom_17.region (
     device_count    integer,
     happy_count     integer,
     sad_count       integer,
-    constraint region_zoom_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
+    constraint region_zoom_12_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
 );
 
-create index if not exists region_zoom on oti_twin_zoom_17.region (zoom);
-create index if not exists region_top_left_lat on oti_twin_zoom_17.region (top_left_lat);
-create index if not exists region_top_left_lng on oti_twin_zoom_17.region (top_left_lng);
-create index if not exists region_bot_right_lat on oti_twin_zoom_17.region (bot_right_lat);
-create index if not exists region_bot_right_lng on oti_twin_zoom_17.region (bot_right_lng);
+create index if not exists region_zoom_12_zoom on region_zoom_12 (zoom);
+create index if not exists region_zoom_12_top_left_lat on region_zoom_12 (top_left_lat);
+create index if not exists region_zoom_12_top_left_lng on region_zoom_12 (top_left_lng);
+create index if not exists region_zoom_12_bot_right_lat on region_zoom_12 (bot_right_lat);
+create index if not exists region_zoom_12_bot_right_lng on region_zoom_12 (bot_right_lng);
 
 
-create schema if not exists oti_twin_zoom_18;
-
-create table if not exists oti_twin_zoom_18.region (
+create table if not exists region_zoom_13 (
     zoom            integer,
     top_left_lat    double precision,
     top_left_lng    double precision,
@@ -73,12 +65,106 @@ create table if not exists oti_twin_zoom_18.region (
     device_count    integer,
     happy_count     integer,
     sad_count       integer,
-    constraint region_zoom_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
+    constraint region_zoom_13_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
 );
 
-create index if not exists region_zoom on oti_twin_zoom_18.region (zoom);
-create index if not exists region_top_left_lat on oti_twin_zoom_18.region (top_left_lat);
-create index if not exists region_top_left_lng on oti_twin_zoom_18.region (top_left_lng);
-create index if not exists region_bot_right_lat on oti_twin_zoom_18.region (bot_right_lat);
-create index if not exists region_bot_right_lng on oti_twin_zoom_18.region (bot_right_lng);
+create index if not exists region_zoom_13_zoom on region_zoom_13 (zoom);
+create index if not exists region_zoom_13_top_left_lat on region_zoom_13 (top_left_lat);
+create index if not exists region_zoom_13_top_left_lng on region_zoom_13 (top_left_lng);
+create index if not exists region_zoom_13_bot_right_lat on region_zoom_13 (bot_right_lat);
+create index if not exists region_zoom_13_bot_right_lng on region_zoom_13 (bot_right_lng);
 
+
+create table if not exists region_zoom_14 (
+    zoom            integer,
+    top_left_lat    double precision,
+    top_left_lng    double precision,
+    bot_right_lat   double precision,
+    bot_right_lng   double precision,
+    device_count    integer,
+    happy_count     integer,
+    sad_count       integer,
+    constraint region_zoom_14_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
+);
+
+create index if not exists region_zoom_14_zoom on region_zoom_14 (zoom);
+create index if not exists region_zoom_14_top_left_lat on region_zoom_14 (top_left_lat);
+create index if not exists region_zoom_14_top_left_lng on region_zoom_14 (top_left_lng);
+create index if not exists region_zoom_14_bot_right_lat on region_zoom_14 (bot_right_lat);
+create index if not exists region_zoom_14_bot_right_lng on region_zoom_14 (bot_right_lng);
+
+
+create table if not exists region_zoom_15 (
+    zoom            integer,
+    top_left_lat    double precision,
+    top_left_lng    double precision,
+    bot_right_lat   double precision,
+    bot_right_lng   double precision,
+    device_count    integer,
+    happy_count     integer,
+    sad_count       integer,
+    constraint region_zoom_15_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
+);
+
+create index if not exists region_zoom_15_zoom on region_zoom_15 (zoom);
+create index if not exists region_zoom_15_top_left_lat on region_zoom_15 (top_left_lat);
+create index if not exists region_zoom_15_top_left_lng on region_zoom_15 (top_left_lng);
+create index if not exists region_zoom_15_bot_right_lat on region_zoom_15 (bot_right_lat);
+create index if not exists region_zoom_15_bot_right_lng on region_zoom_15 (bot_right_lng);
+
+
+create table if not exists region_zoom_16 (
+    zoom            integer,
+    top_left_lat    double precision,
+    top_left_lng    double precision,
+    bot_right_lat   double precision,
+    bot_right_lng   double precision,
+    device_count    integer,
+    happy_count     integer,
+    sad_count       integer,
+    constraint region_zoom_16_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
+);
+
+create index if not exists region_zoom_16_zoom on region_zoom_16 (zoom);
+create index if not exists region_zoom_16_top_left_lat on region_zoom_16 (top_left_lat);
+create index if not exists region_zoom_16_top_left_lng on region_zoom_16 (top_left_lng);
+create index if not exists region_zoom_16_bot_right_lat on region_zoom_16 (bot_right_lat);
+create index if not exists region_zoom_16_bot_right_lng on region_zoom_16 (bot_right_lng);
+
+
+create table if not exists region_zoom_17 (
+    zoom            integer,
+    top_left_lat    double precision,
+    top_left_lng    double precision,
+    bot_right_lat   double precision,
+    bot_right_lng   double precision,
+    device_count    integer,
+    happy_count     integer,
+    sad_count       integer,
+    constraint region_zoom_17_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
+);
+
+create index if not exists region_zoom_17_zoom on region_zoom_17 (zoom);
+create index if not exists region_zoom_17_top_left_lat on region_zoom_17 (top_left_lat);
+create index if not exists region_zoom_17_top_left_lng on region_zoom_17 (top_left_lng);
+create index if not exists region_zoom_17_bot_right_lat on region_zoom_17 (bot_right_lat);
+create index if not exists region_zoom_17_bot_right_lng on region_zoom_17 (bot_right_lng);
+
+
+create table if not exists region_zoom_18 (
+    zoom            integer,
+    top_left_lat    double precision,
+    top_left_lng    double precision,
+    bot_right_lat   double precision,
+    bot_right_lng   double precision,
+    device_count    integer,
+    happy_count     integer,
+    sad_count       integer,
+    constraint region_zoom_18_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
+);
+
+create index if not exists region_zoom_18_zoom on region_zoom_18 (zoom);
+create index if not exists region_zoom_18_top_left_lat on region_zoom_18 (top_left_lat);
+create index if not exists region_zoom_18_top_left_lng on region_zoom_18 (top_left_lng);
+create index if not exists region_zoom_18_bot_right_lat on region_zoom_18 (bot_right_lat);
+create index if not exists region_zoom_18_bot_right_lng on region_zoom_18 (bot_right_lng);

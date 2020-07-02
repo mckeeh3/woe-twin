@@ -13,8 +13,8 @@ create table if not exists region (
     constraint region_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
 );
 
-create index region_zoom on region (zoom);
-create index region_top_left_lat on region (top_left_lat);
-create index region_top_left_lng on region (top_left_lng);
-create index region_bot_right_lat on region (bot_right_lat);
-create index region_bot_right_lng on region (bot_right_lng);
+create index if not exists region_zoom on region (zoom);
+create index if not exists region_top_left_lat on region (top_left_lat);
+create index if not exists region_top_left_lng on region (top_left_lng);
+create index if not exists region_bot_right_lat on region (bot_right_lat);
+create index if not exists region_bot_right_lng on region (bot_right_lng);
