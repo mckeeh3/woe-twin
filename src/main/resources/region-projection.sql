@@ -1,7 +1,7 @@
 
-create schema if not exists oti_twin;
+create schema oti_twin;
 
-create table if not exists oti_twin.region_zoom_17 (
+create table if not exists region (
     zoom            integer,
     top_left_lat    double precision,
     top_left_lng    double precision,
@@ -13,27 +13,8 @@ create table if not exists oti_twin.region_zoom_17 (
     constraint region_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
 );
 
-create index region_zoom on oti_twin.region_zoom_17 (zoom);
-create index region_top_left_lat on oti_twin.region_zoom_17 (top_left_lat);
-create index region_top_left_lng on oti_twin.region_zoom_17 (top_left_lng);
-create index region_bot_right_lat on oti_twin.region_zoom_17 (bot_right_lat);
-create index region_bot_right_lng on oti_twin.region_zoom_17 (bot_right_lng);
-
-create table if not exists oti_twin.region_zoom_18 (
-    zoom            integer,
-    top_left_lat    double precision,
-    top_left_lng    double precision,
-    bot_right_lat   double precision,
-    bot_right_lng   double precision,
-    device_count    integer,
-    happy_count     integer,
-    sad_count       integer,
-    constraint region_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
-);
-
-create index region_zoom on oti_twin.region_zoom_18 (zoom);
-create index region_top_left_lat on oti_twin.region_zoom_18 (top_left_lat);
-create index region_top_left_lng on oti_twin.region_zoom_18 (top_left_lng);
-create index region_bot_right_lat on oti_twin.region_zoom_18 (bot_right_lat);
-create index region_bot_right_lng on oti_twin.region_zoom_18 (bot_right_lng);
-
+create index region_zoom on region (zoom);
+create index region_top_left_lat on region (top_left_lat);
+create index region_top_left_lng on region (top_left_lng);
+create index region_bot_right_lat on region (bot_right_lat);
+create index region_bot_right_lng on region (bot_right_lng);
