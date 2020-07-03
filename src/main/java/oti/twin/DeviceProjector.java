@@ -298,8 +298,8 @@ class DeviceProjector {
       this.sadCount = sadCount;
     }
 
-    RegionSummary(Device.DeviceEvent deviceEvent) {
-      this(deviceEvent.region, 0, 0, 0);
+    RegionSummary(WorldMap.Region region) {
+      this(region, 0, 0, 0);
     }
 
     @Override
@@ -362,27 +362,27 @@ class DeviceProjector {
 
     private void activated(Device.DeviceActivated event) {
       regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
-          regionSummary == null ? (new RegionSummary(event)).activated() : regionSummary.activated());
+          regionSummary == null ? (new RegionSummary(region)).activated() : regionSummary.activated());
     }
 
     private void deactivatedHappy(Device.DeviceDeactivatedHappy event) {
       regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
-          regionSummary == null ? (new RegionSummary(event)).deactivatedHappy() : regionSummary.deactivatedHappy());
+          regionSummary == null ? (new RegionSummary(region)).deactivatedHappy() : regionSummary.deactivatedHappy());
     }
 
     private void deactivatedSad(Device.DeviceDeactivatedSad event) {
       regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
-          regionSummary == null ? (new RegionSummary(event)).deactivatedSad() : regionSummary.deactivatedSad());
+          regionSummary == null ? (new RegionSummary(region)).deactivatedSad() : regionSummary.deactivatedSad());
     }
 
     private void madeHappy(Device.DeviceMadeHappy event) {
       regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
-          regionSummary == null ? (new RegionSummary(event)).madeHappy() : regionSummary.madeHappy());
+          regionSummary == null ? (new RegionSummary(region)).madeHappy() : regionSummary.madeHappy());
     }
 
     private void madeSad(Device.DeviceMadeSad event) {
       regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
-          regionSummary == null ? (new RegionSummary(event)).madeSad() : regionSummary.madeSad());
+          regionSummary == null ? (new RegionSummary(region)).madeSad() : regionSummary.madeSad());
     }
 
     List<RegionSummary> asList() {
