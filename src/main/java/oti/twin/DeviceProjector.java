@@ -21,7 +21,10 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 class DeviceProjector {
@@ -38,6 +41,21 @@ class DeviceProjector {
 
     @Override
     public void process(DbSession session, List<EventEnvelope<Device.Event>> eventEnvelopes) {
+      final long start = System.nanoTime();
+      final Connection connection = session.connection;
+
+      try (Statement statement = connection.createStatement()) {
+        statement.executeUpdate(sql(summarize(eventEnvelopes)));
+      } catch (SQLException e) {
+        log.error(tag, e);
+        throw new RuntimeException(String.format("Event handler failure %s", tag), e);
+      }
+
+      log.debug("{} processed {}, {}ns", tag, eventEnvelopes.size(), String.format("%,d", System.nanoTime() - start));
+    }
+
+    //@Override
+    public void processOLD(DbSession session, List<EventEnvelope<Device.Event>> eventEnvelopes) {
       final Connection connection = session.connection;
 
       final long start = System.nanoTime();
@@ -74,6 +92,43 @@ class DeviceProjector {
     public CompletionStage<Done> stop() {
       log.debug("Stop {}", tag);
       return super.stop();
+    }
+
+    private List<RegionSummary> summarize(List<EventEnvelope<Device.Event>> eventEnvelopes) {
+      final RegionSummaries regionSummaries = new RegionSummaries();
+
+      eventEnvelopes.forEach(eventEventEnvelope -> {
+        final Device.Event event = eventEventEnvelope.event();
+        regionSummaries.add(eventEventEnvelope.event());
+      });
+
+      return regionSummaries.asList();
+    }
+
+    private String sql(List<RegionSummary> regionSummaries) {
+      final StringBuilder sql = new StringBuilder();
+      String delimiter = "";
+
+      sql.append("insert into region");
+      sql.append(" (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng, device_count, happy_count, sad_count)");
+      sql.append(" values");
+
+      for (RegionSummary regionSummary : regionSummaries) {
+        final WorldMap.Region region = regionSummary.region;
+        sql.append(delimiter);
+        sql.append(String.format("%n (%d, %1.9f, %1.9f, %1.9f, %1.9f, %d, %d, %d)",
+            region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng,
+            regionSummary.deviceCount, regionSummary.happyCount, regionSummary.sadCount));
+        delimiter = ",";
+      }
+
+      sql.append(" on conflict on constraint region_pkey");
+      sql.append(" do update set");
+      sql.append(" device_count = region.device_count + excluded.device_count,");
+      sql.append(" happy_count = region.happy_count + excluded.happy_count,");
+      sql.append(" sad_count = region.sad_count + excluded.sad_count");
+
+      return sql.toString();
     }
 
     private void update(Connection connection, Device.DeviceActivated event) throws SQLException {
@@ -229,17 +284,21 @@ class DeviceProjector {
     ).withGroup(groupAfterEnvelopes, groupAfterDuration);
   }
 
-  public static class RegionSummary {
+  static class RegionSummary {
     public final WorldMap.Region region;
-    public final int deviceCount;
-    public final int happyCount;
-    public final int sadCount;
+    public int deviceCount;
+    public int happyCount;
+    public int sadCount;
 
-    public RegionSummary(WorldMap.Region region, int deviceCount, int happyCount, int sadCount) {
+    RegionSummary(WorldMap.Region region, int deviceCount, int happyCount, int sadCount) {
       this.region = region;
       this.deviceCount = deviceCount;
       this.happyCount = happyCount;
       this.sadCount = sadCount;
+    }
+
+    RegionSummary(Device.DeviceEvent deviceEvent) {
+      this(deviceEvent.region, 0, 0, 0);
     }
 
     @Override
@@ -248,23 +307,80 @@ class DeviceProjector {
     }
 
     RegionSummary activated() {
-      return new RegionSummary(region, deviceCount + 1, happyCount + 1, sadCount);
+      deviceCount++;
+      happyCount++;
+      return this;
     }
 
     RegionSummary deactivatedHappy() {
-      return new RegionSummary(region, Math.max(0, deviceCount - 1), Math.max(0, happyCount - 1), sadCount);
+      deviceCount--;
+      happyCount--;
+      return this;
     }
 
     RegionSummary deactivatedSad() {
-      return new RegionSummary(region, Math.max(0, deviceCount - 1), happyCount, Math.max(0, sadCount - 1));
+      deviceCount--;
+      sadCount--;
+      return this;
     }
 
     RegionSummary madeHappy() {
-      return new RegionSummary(region, deviceCount, Math.min(deviceCount, happyCount + 1), Math.max(0, sadCount - 1));
+      happyCount++;
+      sadCount--;
+      return this;
     }
 
     RegionSummary madeSad() {
-      return new RegionSummary(region, deviceCount, Math.max(0, happyCount - 1), Math.min(deviceCount, sadCount + 1));
+      happyCount--;
+      sadCount++;
+      return this;
+    }
+  }
+
+  static class RegionSummaries {
+    private final Map<WorldMap.Region, RegionSummary> regionSummaries = new HashMap<>();
+
+    void add(Device.Event event) {
+      if (event instanceof Device.DeviceActivated) {
+        activated((Device.DeviceActivated) event);
+      } else if (event instanceof Device.DeviceDeactivatedHappy) {
+        deactivatedHappy((Device.DeviceDeactivatedHappy) event);
+      } else if (event instanceof Device.DeviceDeactivatedSad) {
+        deactivatedSad((Device.DeviceDeactivatedSad) event);
+      } else if (event instanceof Device.DeviceMadeHappy) {
+        madeHappy((Device.DeviceMadeHappy) event);
+      } else if (event instanceof Device.DeviceMadeSad) {
+        madeSad((Device.DeviceMadeSad) event);
+      }
+    }
+
+    private void activated(Device.DeviceActivated event) {
+      regionSummaries.compute(event.region, (region, regionSummary) ->
+          regionSummary == null ? (new RegionSummary(event)).activated() : regionSummary.activated());
+    }
+
+    private void deactivatedHappy(Device.DeviceDeactivatedHappy event) {
+      regionSummaries.compute(event.region, (region, regionSummary) ->
+          regionSummary == null ? (new RegionSummary(event)).deactivatedHappy() : regionSummary.deactivatedHappy());
+    }
+
+    private void deactivatedSad(Device.DeviceDeactivatedSad event) {
+      regionSummaries.compute(event.region, (region, regionSummary) ->
+          regionSummary == null ? (new RegionSummary(event)).deactivatedSad() : regionSummary.deactivatedSad());
+    }
+
+    private void madeHappy(Device.DeviceMadeHappy event) {
+      regionSummaries.compute(event.region, (region, regionSummary) ->
+          regionSummary == null ? (new RegionSummary(event)).madeHappy() : regionSummary.madeHappy());
+    }
+
+    private void madeSad(Device.DeviceMadeSad event) {
+      regionSummaries.compute(event.region, (region, regionSummary) ->
+          regionSummary == null ? (new RegionSummary(event)).madeSad() : regionSummary.madeSad());
+    }
+
+    List<RegionSummary> asList() {
+      return new ArrayList<RegionSummary>(regionSummaries.values());
     }
   }
 }
