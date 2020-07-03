@@ -45,7 +45,7 @@ class DeviceProjector {
       final Connection connection = session.connection;
 
       try (Statement statement = connection.createStatement()) {
-        log.info("{}", sql(summarize(eventEnvelopes)));
+        log.info("{} {}", tag, sql(summarize(eventEnvelopes)));
         statement.executeUpdate(sql(summarize(eventEnvelopes)));
       } catch (SQLException e) {
         log.error(tag, e);
@@ -261,6 +261,7 @@ class DeviceProjector {
       config.setPassword(password);
       config.setMaximumPoolSize(maxPoolSize);
       config.setAutoCommit(false);
+      config.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
 
       dataSource = new HikariDataSource(config);
       actorSystem.log().debug("Datasource {}, pool size {}", dbUrl, maxPoolSize);
