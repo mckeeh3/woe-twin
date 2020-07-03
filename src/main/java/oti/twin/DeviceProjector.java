@@ -261,7 +261,6 @@ class DeviceProjector {
       config.setPassword(password);
       config.setMaximumPoolSize(maxPoolSize);
       config.setAutoCommit(false);
-      config.setTransactionIsolation("TRANSACTION_SERIALIZABLE");
 
       dataSource = new HikariDataSource(config);
       actorSystem.log().debug("Datasource {}, pool size {}", dbUrl, maxPoolSize);
