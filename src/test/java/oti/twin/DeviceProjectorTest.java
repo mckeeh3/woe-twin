@@ -9,6 +9,8 @@ import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.projection.testkit.javadsl.ProjectionTestKit;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValue;
+import com.typesafe.config.ConfigValueType;
 import org.junit.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -23,6 +25,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static oti.twin.WorldMap.entityIdOf;
 import static oti.twin.WorldMap.regionAtLatLng;
 
@@ -79,6 +82,18 @@ public class DeviceProjectorTest {
         regionSummaryReader.read("No-op")
             .toCompletableFuture().get(1, TimeUnit.SECONDS)
     );
+  }
+
+  @Ignore // Found an issue with akka.projection.jdbc.internalJdbcSettings checking config type
+  @Test
+  public void configValueType() {
+    final int fixedPoolSize = testKit.system().settings().config()
+        .getInt("akka.projection.jdbc.blocking-jdbc-dispatcher.thread-pool-executor.fixed-pool-size");
+    assertEquals(50, fixedPoolSize);
+    final ConfigValue configValue = testKit.system().settings().config()
+        .getValue("akka.projection.jdbc.blocking-jdbc-dispatcher.thread-pool-executor.fixed-pool-size");
+    assertEquals(ConfigValueType.NUMBER, configValue.valueType());
+    assertNotEquals(ConfigValueType.STRING, configValue.valueType());
   }
 
   @BeforeClass
