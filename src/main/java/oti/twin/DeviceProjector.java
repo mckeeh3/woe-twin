@@ -96,7 +96,7 @@ class DeviceProjector {
     }
 
     private List<RegionSummary> summarize(List<EventEnvelope<Device.Event>> eventEnvelopes) {
-      final RegionSummaries regionSummaries = new RegionSummaries();
+      final RegionSummaries regionSummaries = new RegionSummaries(zoom);
 
       eventEnvelopes.forEach(eventEventEnvelope -> {
         final Device.Event event = eventEventEnvelope.event();
@@ -339,7 +339,12 @@ class DeviceProjector {
   }
 
   static class RegionSummaries {
+    private final int zoom;
     private final Map<WorldMap.Region, RegionSummary> regionSummaries = new HashMap<>();
+
+    RegionSummaries(int zoom) {
+      this.zoom = zoom;
+    }
 
     void add(Device.Event event) {
       if (event instanceof Device.DeviceActivated) {
@@ -356,32 +361,36 @@ class DeviceProjector {
     }
 
     private void activated(Device.DeviceActivated event) {
-      regionSummaries.compute(event.region, (region, regionSummary) ->
+      regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
           regionSummary == null ? (new RegionSummary(event)).activated() : regionSummary.activated());
     }
 
     private void deactivatedHappy(Device.DeviceDeactivatedHappy event) {
-      regionSummaries.compute(event.region, (region, regionSummary) ->
+      regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
           regionSummary == null ? (new RegionSummary(event)).deactivatedHappy() : regionSummary.deactivatedHappy());
     }
 
     private void deactivatedSad(Device.DeviceDeactivatedSad event) {
-      regionSummaries.compute(event.region, (region, regionSummary) ->
+      regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
           regionSummary == null ? (new RegionSummary(event)).deactivatedSad() : regionSummary.deactivatedSad());
     }
 
     private void madeHappy(Device.DeviceMadeHappy event) {
-      regionSummaries.compute(event.region, (region, regionSummary) ->
+      regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
           regionSummary == null ? (new RegionSummary(event)).madeHappy() : regionSummary.madeHappy());
     }
 
     private void madeSad(Device.DeviceMadeSad event) {
-      regionSummaries.compute(event.region, (region, regionSummary) ->
+      regionSummaries.compute(eventToZoomRegion(event), (region, regionSummary) ->
           regionSummary == null ? (new RegionSummary(event)).madeSad() : regionSummary.madeSad());
     }
 
     List<RegionSummary> asList() {
-      return new ArrayList<RegionSummary>(regionSummaries.values());
+      return new ArrayList<>(regionSummaries.values());
+    }
+
+    private WorldMap.Region eventToZoomRegion(Device.DeviceEvent event) {
+      return WorldMap.regionAtLatLng(zoom, WorldMap.atCenter(event.region));
     }
   }
 }
