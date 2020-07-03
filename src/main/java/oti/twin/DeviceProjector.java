@@ -45,6 +45,7 @@ class DeviceProjector {
       final Connection connection = session.connection;
 
       try (Statement statement = connection.createStatement()) {
+        log.info("{}", sql(summarize(eventEnvelopes)));
         statement.executeUpdate(sql(summarize(eventEnvelopes)));
       } catch (SQLException e) {
         log.error(tag, e);
