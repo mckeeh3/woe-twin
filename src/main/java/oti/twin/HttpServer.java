@@ -288,13 +288,13 @@ public class HttpServer {
     }
   }
 
-  static class QueryResponse implements Serializable {
-    final int deviceCount;
-    final int happyCount;
-    final int sadCount;
-    List<DeviceProjector.RegionSummary> regionSummaries;
+  public static class QueryResponse implements Serializable {
+    public final int deviceCount;
+    public final int happyCount;
+    public final int sadCount;
+    public List<DeviceProjector.RegionSummary> regionSummaries;
 
-    QueryResponse(int deviceCount, int happyCount, int sadCount) {
+    public QueryResponse(int deviceCount, int happyCount, int sadCount) {
       this.deviceCount = deviceCount;
       this.happyCount = happyCount;
       this.sadCount = sadCount;
