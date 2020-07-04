@@ -7,7 +7,6 @@ let mouseSelectionWidth;
 let areaSelectionOn = false;
 let areaSelectionAction = "";
 let areaSelectionColor = [0, 0, 0, 0];
-let deviceSelections = [];
 let queryResponse = {};
 
 const drawFPS = 30;
@@ -181,9 +180,9 @@ function drawSelectionCounts() {
   const happyCounter = (a, c) => a + c.happyCount;
   const deviceCounter = (a, c) => a + c.deviceCount;
   const sadCounter = (a, c) => a + c.sadCount;
-  const deviceTotal = deviceSelections.reduce(deviceCounter, 0);
-  const happyTotal = deviceSelections.reduce(happyCounter, 0);
-  const sadTotal = deviceSelections.reduce(sadCounter, 0);
+  const deviceTotal = queryResponse.regionSummaries.reduce(deviceCounter, 0);
+  const happyTotal = queryResponse.regionSummaries.reduce(happyCounter, 0);
+  const sadTotal = queryResponse.regionSummaries.reduce(sadCounter, 0);
 
   Label().setX(1).setY(grid.ticksVertical - 5.5).setW(20).setH(height)
           .setBorder(0.3)
@@ -288,7 +287,7 @@ function mouseClicked(event) {
 }
 
 function drawDeviceSelections() {
-  deviceSelections.forEach(d => drawDeviceSelection(d));
+  queryResponse.regionSummaries.forEach(d => drawDeviceSelection(d));
 }
 
 function drawDeviceSelection(deviceSelection) {
@@ -477,7 +476,6 @@ function deviceQueryInterval() {
     function (response) {
       console.log((new Date()).toISOString() + " UI query " + (performance.now() - start) + "ms");
       queryResponse = response;
-      deviceSelections = queryResponse.regionSummaries;
       scheduleNextDeviceQuery();
     },
     function (error) {
