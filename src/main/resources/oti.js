@@ -8,6 +8,7 @@ let areaSelectionOn = false;
 let areaSelectionAction = "";
 let areaSelectionColor = [0, 0, 0, 0];
 let deviceSelections = [];
+let queryResponse = {};
 
 const drawFPS = 30;
 const gridLatLines = [];
@@ -475,7 +476,8 @@ function deviceQueryInterval() {
     },
     function (response) {
       console.log((new Date()).toISOString() + " UI query " + (performance.now() - start) + "ms");
-      deviceSelections = response;
+      queryResponse = response;
+      deviceSelections = queryResponse.regionSummaries;
       scheduleNextDeviceQuery();
     },
     function (error) {
