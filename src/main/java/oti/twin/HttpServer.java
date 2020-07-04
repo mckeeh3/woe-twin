@@ -30,8 +30,8 @@ public class HttpServer {
   private final ClusterSharding clusterSharding;
   private final DataSource dataSource;
 
-  static HttpServer start(String host, int port, ActorSystem<?> actorSystem) {
-    return new HttpServer(host, port, actorSystem);
+  static void start(String host, int port, ActorSystem<?> actorSystem) {
+    new HttpServer(host, port, actorSystem);
   }
 
   private HttpServer(String host, int port, ActorSystem<?> actorSystem) {
@@ -117,7 +117,26 @@ public class HttpServer {
             queryRegion -> completeOKWithFuture(
                 CompletableFuture.supplyAsync(() -> {
                   try {
-                    return read(queryRegion);
+                    return query(queryRegion);
+                  } catch (SQLException e) {
+                    log().warn("Read selections query failed.", e);
+                    return new QueryResponse(0, 0, 0);
+                  }
+                }, actorSystem.dispatchers().lookup(DispatcherSelector.fromConfig("oti.twin.query-devices-dispatcher"))),
+                Jackson.marshaller()
+            )
+        )
+    );
+  }
+
+  private Route queryDevicesOLD() {
+    return post(
+        () -> entity(
+            Jackson.unmarshaller(WorldMap.Region.class),
+            queryRegion -> completeOKWithFuture(
+                CompletableFuture.supplyAsync(() -> {
+                  try {
+                    return query(queryRegion);
                   } catch (SQLException e) {
                     log().warn("Read selections query failed.", e);
                     return new ArrayList<DeviceProjector.RegionSummary>();
@@ -222,35 +241,63 @@ public class HttpServer {
     return new HikariDataSource(config);
   }
 
-  private List<DeviceProjector.RegionSummary> read(WorldMap.Region region) throws SQLException {
+  private QueryResponse query(WorldMap.Region region) throws SQLException {
+    final QueryResponse queryResponse = queryDeviceTotals();
     try (final Connection connection = dataSource.getConnection()) {
-      return read(connection, region);
+      queryResponse.regionSummaries = query(connection, region);
+      return queryResponse;
     }
   }
 
-  private List<DeviceProjector.RegionSummary> read(Connection connection, WorldMap.Region regionQuery) throws SQLException {
-    final long start = System.nanoTime();
-    try (final Statement statement = connection.createStatement()) {
-      String sql = String.format("select * from region"
-              + " where zoom = %d"
-              + " and top_left_lat <= %1.9f"
-              + " and top_left_lng >= %1.9f"
-              + " and bot_right_lat >= %1.9f"
-              + " and bot_right_lng <= %1.9f"
-              + " and device_count > 0",
-          regionQuery.zoom, regionQuery.topLeft.lat, regionQuery.topLeft.lng, regionQuery.botRight.lat, regionQuery.botRight.lng);
+  private QueryResponse queryDeviceTotals() throws SQLException {
+    final String sql = "select sum(device_count), sum(happy_count), sum(sad_count) from region where zoom = 3";
+    try (final Connection connection = dataSource.getConnection();
+         final Statement statement = connection.createStatement()) {
       final ResultSet resultSet = statement.executeQuery(sql);
-      List<DeviceProjector.RegionSummary> regionSummaries = new ArrayList<>();
+      if (resultSet.next()) {
+        return new QueryResponse(resultSet.getInt(1), resultSet.getInt(2), resultSet.getInt(3));
+      } else {
+        return new QueryResponse(0, 0, 0);
+      }
+    }
+  }
+
+  private List<DeviceProjector.RegionSummary> query(Connection connection, WorldMap.Region regionQuery) throws SQLException {
+    final long start = System.nanoTime();
+    final List<DeviceProjector.RegionSummary> regionSummaries = new ArrayList<>();
+    final String sql = String.format("select * from region"
+            + " where zoom = %d"
+            + " and top_left_lat <= %1.9f"
+            + " and top_left_lng >= %1.9f"
+            + " and bot_right_lat >= %1.9f"
+            + " and bot_right_lng <= %1.9f"
+            + " and device_count > 0",
+        regionQuery.zoom, regionQuery.topLeft.lat, regionQuery.topLeft.lng, regionQuery.botRight.lat, regionQuery.botRight.lng);
+    try (final Statement statement = connection.createStatement()) {
+      final ResultSet resultSet = statement.executeQuery(sql);
       while (resultSet.next()) {
         final WorldMap.LatLng topLeft = new WorldMap.LatLng(resultSet.getFloat("top_left_lat"), resultSet.getFloat("top_left_lng"));
         final WorldMap.LatLng botRight = new WorldMap.LatLng(resultSet.getFloat("bot_right_lat"), resultSet.getFloat("bot_right_lng"));
         final WorldMap.Region region = new WorldMap.Region(resultSet.getInt("zoom"), topLeft, botRight);
-        final DeviceProjector.RegionSummary regionSummary =
-            new DeviceProjector.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count"));
-        regionSummaries.add(regionSummary);
+        regionSummaries
+            .add(new DeviceProjector.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count")));
       }
       log().debug("UI query {}, zoom {}, regions {}", String.format("%,dns", System.nanoTime() - start), regionQuery.zoom, regionSummaries.size());
       return regionSummaries;
+    }
+  }
+
+  static class QueryResponse {
+    final int deviceCount;
+    final int happyCount;
+    final int sadCount;
+    List<DeviceProjector.RegionSummary> regionSummaries;
+
+    QueryResponse(int deviceCount, int happyCount, int sadCount) {
+      this.deviceCount = deviceCount;
+      this.happyCount = happyCount;
+      this.sadCount = sadCount;
+      regionSummaries = new ArrayList<>();
     }
   }
 
