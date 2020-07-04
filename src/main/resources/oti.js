@@ -8,6 +8,10 @@ let areaSelectionOn = false;
 let areaSelectionAction = "";
 let areaSelectionColor = [0, 0, 0, 0];
 let queryResponse = {};
+queryResponse.deviceCount = 0;
+queryResponse.happyCount = 0;
+queryResponse.sadCount = 0;
+queryResponse.regionSummaries = [];
 
 const drawFPS = 30;
 const gridLatLines = [];
@@ -204,6 +208,31 @@ function drawSelectionCounts() {
           .setBorder(0.3)
           .setKey("Sad status")
           .setValue(sadTotal.toLocaleString())
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
+
+  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 5.5).setW(20).setH(height)
+          .setBorder(0.3)
+          .setKey("Devices in world")
+          .setValue(queryResponse.deviceCount.toLocaleString())
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
+  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 3.75).setW(20).setH(height)
+          .setBorder(0.3)
+          .setKey("Happy status")
+          .setValue(queryResponse.happyCount.toLocaleString())
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
+  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 2).setW(20).setH(height)
+          .setBorder(0.3)
+          .setKey("Sad status")
+          .setValue(queryResponse.sadCount.toLocaleString())
           .setBgColor(bgColor)
           .setKeyColor(keyColor)
           .setValueColor(valueColor)
