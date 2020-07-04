@@ -130,25 +130,6 @@ public class HttpServer {
     );
   }
 
-  private Route queryDevicesOLD() {
-    return post(
-        () -> entity(
-            Jackson.unmarshaller(WorldMap.Region.class),
-            queryRegion -> completeOKWithFuture(
-                CompletableFuture.supplyAsync(() -> {
-                  try {
-                    return query(queryRegion);
-                  } catch (SQLException e) {
-                    log().warn("Read selections query failed.", e);
-                    return new ArrayList<DeviceProjector.RegionSummary>();
-                  }
-                }, actorSystem.dispatchers().lookup(DispatcherSelector.fromConfig("oti.twin.query-devices-dispatcher"))),
-                Jackson.marshaller()
-            )
-        )
-    );
-  }
-
   public static class TelemetryRequest {
     public final String action;
     public final int zoom;
@@ -264,7 +245,7 @@ public class HttpServer {
   }
 
   private List<DeviceProjector.RegionSummary> query(Connection connection, WorldMap.Region regionQuery) throws SQLException {
-    final long start = System.nanoTime();
+    //final long start = System.nanoTime();
     final List<DeviceProjector.RegionSummary> regionSummaries = new ArrayList<>();
     final String sql = String.format("select * from region"
             + " where zoom = %d"
@@ -283,7 +264,7 @@ public class HttpServer {
         regionSummaries
             .add(new DeviceProjector.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count")));
       }
-      log().debug("UI query {}, zoom {}, regions {}", String.format("%,dns", System.nanoTime() - start), regionQuery.zoom, regionSummaries.size());
+      //log().debug("UI query {}, zoom {}, regions {}", String.format("%,dns", System.nanoTime() - start), regionQuery.zoom, regionSummaries.size());
       return regionSummaries;
     }
   }
