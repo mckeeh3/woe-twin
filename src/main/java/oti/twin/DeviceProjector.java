@@ -19,7 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,41 +47,14 @@ class DeviceProjector {
       final Connection connection = session.connection;
 
       try (Statement statement = connection.createStatement()) {
-        log.info("{} {}", tag, sql(summarize(eventEnvelopes)));
-        statement.executeUpdate(sql(summarize(eventEnvelopes)));
+        final String sql = sql(summarize(eventEnvelopes));
+        log.info("{} {}", tag, sql);
+        statement.executeUpdate(sql);
       } catch (SQLException e) {
         log.error(tag, e);
         throw new RuntimeException(String.format("Event handler failure %s", tag), e);
       }
 
-      log.debug("{} processed {}, {}ns", tag, eventEnvelopes.size(), String.format("%,d", System.nanoTime() - start));
-    }
-
-    //@Override
-    public void processOLD(DbSession session, List<EventEnvelope<Device.Event>> eventEnvelopes) {
-      final Connection connection = session.connection;
-
-      final long start = System.nanoTime();
-      eventEnvelopes.forEach(eventEventEnvelope -> {
-        final Device.Event event = eventEventEnvelope.event();
-
-        try {
-          if (event instanceof Device.DeviceActivated) {
-            update(connection, (Device.DeviceActivated) event);
-          } else if (event instanceof Device.DeviceDeactivatedHappy) {
-            update(connection, (Device.DeviceDeactivatedHappy) event);
-          } else if (event instanceof Device.DeviceDeactivatedSad) {
-            update(connection, (Device.DeviceDeactivatedSad) event);
-          } else if (event instanceof Device.DeviceMadeHappy) {
-            update(connection, (Device.DeviceMadeHappy) event);
-          } else if (event instanceof Device.DeviceMadeSad) {
-            update(connection, (Device.DeviceMadeSad) event);
-          }
-        } catch (SQLException e) {
-          log.error(String.format("%s", tag), e);
-          throw new RuntimeException(String.format("%s", tag), e);
-        }
-      });
       log.debug("{} processed {}, {}ns", tag, eventEnvelopes.size(), String.format("%,d", System.nanoTime() - start));
     }
 
@@ -98,10 +73,7 @@ class DeviceProjector {
     private List<RegionSummary> summarize(List<EventEnvelope<Device.Event>> eventEnvelopes) {
       final RegionSummaries regionSummaries = new RegionSummaries(zoom);
 
-      eventEnvelopes.forEach(eventEventEnvelope -> {
-        final Device.Event event = eventEventEnvelope.event();
-        regionSummaries.add(eventEventEnvelope.event());
-      });
+      eventEnvelopes.forEach(eventEventEnvelope -> regionSummaries.add(eventEventEnvelope.event()));
 
       return regionSummaries.asList();
     }
@@ -132,85 +104,8 @@ class DeviceProjector {
       return sql.toString();
     }
 
-    private void update(Connection connection, Device.DeviceActivated event) throws SQLException {
-      update(connection, read(connection, eventToZoomRegion(zoom, event)).activated());
-    }
-
-    private void update(Connection connection, Device.DeviceDeactivatedHappy event) throws SQLException {
-      update(connection, read(connection, eventToZoomRegion(zoom, event)).deactivatedHappy());
-    }
-
-    private void update(Connection connection, Device.DeviceDeactivatedSad event) throws SQLException {
-      update(connection, read(connection, eventToZoomRegion(zoom, event)).deactivatedSad());
-    }
-
-    private void update(Connection connection, Device.DeviceMadeHappy event) throws SQLException {
-      update(connection, read(connection, eventToZoomRegion(zoom, event)).madeHappy());
-    }
-
-    private void update(Connection connection, Device.DeviceMadeSad event) throws SQLException {
-      update(connection, read(connection, eventToZoomRegion(zoom, event)).madeSad());
-    }
-
-    private RegionSummary read(Connection connection, WorldMap.Region region) throws SQLException {
-      try (Statement statement = connection.createStatement()) {
-        String sql = String.format("select * from region"
-                + " where zoom = %d"
-                + " and top_left_lat = %1.9f"
-                + " and top_left_lng = %1.9f"
-                + " and bot_right_lat = %1.9f"
-                + " and bot_right_lng = %1.9f",
-            region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
-        final ResultSet resultSet = statement.executeQuery(sql);
-        if (resultSet.next()) {
-          return new RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count"));
-        } else {
-          return new RegionSummary(region, 0, 0, 0);
-        }
-      }
-    }
-
-    private void update(Connection connection, RegionSummary regionSummary) throws SQLException {
-      String sql = regionSummary.deviceCount > 0
-          ? insertOrUpdate(regionSummary)
-          : delete(regionSummary);
-      try (Statement statement = connection.createStatement()) {
-        statement.executeUpdate(sql);
-      }
-    }
-
-    private String insertOrUpdate(RegionSummary regionSummary) {
-      final WorldMap.Region region = regionSummary.region;
-      return String.format("insert into region"
-              + " (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng, device_count, happy_count, sad_count)"
-              + " values (%d, %1.9f, %1.9f, %1.9f, %1.9f, %d, %d, %d)"
-              + " on conflict on constraint region_pkey"
-              + " do update set"
-              + " device_count = %d,"
-              + " happy_count = %d,"
-              + " sad_count = %d",
-          region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng,
-          regionSummary.deviceCount, regionSummary.happyCount, regionSummary.sadCount, // for insert
-          regionSummary.deviceCount, regionSummary.happyCount, regionSummary.sadCount); // for update
-    }
-
-    private String delete(RegionSummary regionSummary) {
-      final WorldMap.Region region = regionSummary.region;
-      return String.format("delete from region"
-              + " where zoom = %d"
-              + " and top_left_lat = %1.9f"
-              + " and top_left_lng = %1.9f"
-              + " and bot_right_lat = %1.9f"
-              + " and bot_right_lng = %1.9f",
-          region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
-    }
-
     private static int tagToZoom(String tag) {
       return Integer.parseInt(tag.split("-")[1]);
-    }
-
-    private static WorldMap.Region eventToZoomRegion(int zoom, Device.DeviceEvent event) {
-      return WorldMap.regionAtLatLng(zoom, WorldMap.atCenter(event.region));
     }
   }
 
