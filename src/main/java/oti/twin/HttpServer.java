@@ -17,6 +17,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 
 import javax.sql.DataSource;
+import java.io.Serializable;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -287,7 +288,7 @@ public class HttpServer {
     }
   }
 
-  static class QueryResponse {
+  static class QueryResponse implements Serializable {
     final int deviceCount;
     final int happyCount;
     final int sadCount;
