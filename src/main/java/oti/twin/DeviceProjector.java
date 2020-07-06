@@ -49,7 +49,7 @@ class DeviceProjector {
       try (Statement statement = connection.createStatement()) {
         final String sql = sql(summarize(eventEnvelopes));
         log.info("{} {}", tag, sql);
-        //statement.executeUpdate(sql);
+        statement.executeUpdate(sql);
       } catch (SQLException e) {
         log.error(tag, e);
         throw new RuntimeException(String.format("Event handler failure %s", tag), e);
