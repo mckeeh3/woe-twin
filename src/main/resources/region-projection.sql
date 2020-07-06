@@ -8,6 +8,6 @@ create table if not exists region (
     device_count    integer,
     happy_count     integer,
     sad_count       integer,
-    constraint region_pkey primary key (((zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng) HASH)
+    constraint region_pkey primary key ((zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng) HASH))
 );
 
