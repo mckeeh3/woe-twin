@@ -32,7 +32,7 @@ public class Main {
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
     startClusterSharding(actorSystem);
-    //startProjectionSharding(actorSystem);
+    startProjectionSharding(actorSystem);
   }
 
   private static void startClusterBootstrap(ActorSystem<?> actorSystem) {
