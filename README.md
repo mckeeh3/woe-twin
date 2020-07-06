@@ -514,3 +514,9 @@ Leave the shell using the `exit` command.
 / # exit
 pod "dns-test" deleted
 ~~~
+
+### Scale Running Akka Nodes/K8 pods
+
+~~~bash
+$ kubectl scale --replicas=10 deployment/oti-twin
+~~~
