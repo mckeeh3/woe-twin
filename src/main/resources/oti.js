@@ -93,7 +93,7 @@ function drawZoomAndMouseLocation() {
   const height = 1.7;
   const keyColor = color(255, 255, 0);
   const valueColor = color(255);
-  const bgColor = color(50, 100);
+  const bgColor = color(0, 0, 75, 125);
 
   Label().setX(2).setY(0.25).setW(5).setH(height)
           .setBorder(0.3)
@@ -103,7 +103,7 @@ function drawZoomAndMouseLocation() {
           .setKeyColor(keyColor)
           .setValueColor(valueColor)
           .draw();
-  Label().setX(7.5).setY(0.25).setW(10).setH(height)
+  Label().setX(7.05).setY(0.25).setW(10).setH(height)
           .setBorder(0.3)
           .setKey("Lat")
           .setValue(lat)
@@ -111,7 +111,7 @@ function drawZoomAndMouseLocation() {
           .setKeyColor(keyColor)
           .setValueColor(valueColor)
           .draw();
-  Label().setX(18).setY(0.25).setW(10).setH(height)
+  Label().setX(17.1).setY(0.25).setW(10).setH(height)
           .setBorder(0.3)
           .setKey("Lng")
           .setValue(lng)
@@ -128,7 +128,7 @@ function drawSelectionInstructions() {
   const height = 1.7;
   const keyColor = color(255, 255, 0);
   const valueColor = color(255);
-  const bgColor = color(50, 100);
+  const bgColor = color(0, 0, 75, 125);
 
   Label().setX(grid.ticksHorizontal - 6).setY(0.25).setW(1.7).setH(height)
           .setBorder(0.3)
@@ -194,17 +194,17 @@ function drawSelectionInstructions() {
 
 function drawSelectionCounts() {
   const height = 1.6;
-  const bgColor = color(50, 150);
+  const bgColor = color(0, 0, 75, 125);
   const keyColor = color(255, 255, 0);
   const valueColor = color(255);
-  const happyCounter = (a, c) => a + c.happyCount;
   const deviceCounter = (a, c) => a + c.deviceCount;
+  const happyCounter = (a, c) => a + c.happyCount;
   const sadCounter = (a, c) => a + c.sadCount;
   const deviceTotal = queryResponse.regionSummaries.reduce(deviceCounter, 0);
   const happyTotal = queryResponse.regionSummaries.reduce(happyCounter, 0);
   const sadTotal = queryResponse.regionSummaries.reduce(sadCounter, 0);
 
-  Label().setX(1).setY(grid.ticksVertical - 5.5).setW(20).setH(height)
+  Label().setX(1).setY(grid.ticksVertical - 5.3).setW(20).setH(height)
           .setBorder(0.3)
           .setKey("Devices in view")
           .setValue(deviceTotal.toLocaleString())
@@ -212,7 +212,7 @@ function drawSelectionCounts() {
           .setKeyColor(keyColor)
           .setValueColor(valueColor)
           .draw();
-  Label().setX(1).setY(grid.ticksVertical - 3.75).setW(20).setH(height)
+  Label().setX(1).setY(grid.ticksVertical - 3.65).setW(20).setH(height)
           .setBorder(0.3)
           .setKey("Happy status")
           .setValue(happyTotal.toLocaleString())
@@ -229,7 +229,7 @@ function drawSelectionCounts() {
           .setValueColor(valueColor)
           .draw();
 
-  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 5.5).setW(20).setH(height)
+  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 5.3).setW(20).setH(height)
           .setBorder(0.3)
           .setKey("Devices in world")
           .setValue(queryResponse.deviceCount.toLocaleString())
@@ -237,7 +237,7 @@ function drawSelectionCounts() {
           .setKeyColor(keyColor)
           .setValueColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 3.75).setW(20).setH(height)
+  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 3.65).setW(20).setH(height)
           .setBorder(0.3)
           .setKey("Happy status")
           .setValue(queryResponse.happyCount.toLocaleString())
