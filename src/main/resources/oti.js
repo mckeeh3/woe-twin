@@ -17,10 +17,10 @@ const drawFPS = 30;
 const gridLatLines = [];
 const gridLngLines = [];
 const selectedRegionColor = [212, 0, 255, 48];
-const areaSelectionColorCreate = [212, 0, 255, 50];
-const areaSelectionColorDelete = [64, 64, 64, 50];
-const areaSelectionColorHappy = [0, 255, 0, 50];
-const areaSelectionColorSad = [255, 0, 0, 50];
+const areaSelectionColorCreate = [212, 0, 255, 100];
+const areaSelectionColorDelete = [64, 64, 64, 100];
+const areaSelectionColorHappy = [0, 255, 0, 100];
+const areaSelectionColorSad = [255, 0, 0, 100];
 const selectedMarkerColor = [33, 183, 0];
 const minSelectableZoom = 9; // up to 262,144 devices, Math.pow(4, 9)
 const mappa = new Mappa('Leaflet');
@@ -130,36 +130,52 @@ function drawSelectionInstructions() {
   const valueColor = color(255);
   const bgColor = color(50, 100);
 
-  Label().setX(grid.ticksHorizontal - 6).setY(0.25).setW(6).setH(height)
+  Label().setX(grid.ticksHorizontal - 6).setY(0.25).setW(1.7).setH(height)
           .setBorder(0.3)
           .setKey("'c'")
+          .setBgColor(areaSelectionColorCreate)
+          .setKeyColor(valueColor)
+          .draw();
+  Label().setX(grid.ticksHorizontal - 4.3).setY(0.25).setW(4.3).setH(height)
+          .setBorder(0.3)
           .setValue("create")
           .setBgColor(bgColor)
-          .setKeyColor(color(212, 0, 255))
           .setValueColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(2).setW(6).setH(height)
+  Label().setX(grid.ticksHorizontal - 6).setY(2).setW(1.7).setH(height)
           .setBorder(0.3)
           .setKey("'d'")
+          .setBgColor(areaSelectionColorDelete)
+          .setKeyColor(valueColor)
+          .draw();
+  Label().setX(grid.ticksHorizontal - 4.3).setY(2).setW(4.3).setH(height)
+          .setBorder(0.3)
           .setValue("delete")
           .setBgColor(bgColor)
-          .setKeyColor(color(50, 50, 50))
           .setValueColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(3.75).setW(6).setH(height)
+  Label().setX(grid.ticksHorizontal - 6).setY(3.75).setW(1.7).setH(height)
           .setBorder(0.3)
           .setKey("'h'")
+          .setBgColor(areaSelectionColorHappy)
+          .setKeyColor(valueColor)
+          .draw();
+  Label().setX(grid.ticksHorizontal - 4.3).setY(3.75).setW(4.3).setH(height)
+          .setBorder(0.3)
           .setValue("happy")
           .setBgColor(bgColor)
-          .setKeyColor(color(0, 255, 0))
           .setValueColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(5.5).setW(6).setH(height)
+  Label().setX(grid.ticksHorizontal - 6).setY(5.5).setW(1.7).setH(height)
           .setBorder(0.3)
           .setKey("'s'")
+          .setBgColor(areaSelectionColorSad)
+          .setKeyColor(color(255))
+          .draw();
+  Label().setX(grid.ticksHorizontal - 4.3).setY(5.5).setW(4.3).setH(height)
+          .setBorder(0.3)
           .setValue("sad")
           .setBgColor(bgColor)
-          .setKeyColor(color(255, 0, 0))
           .setValueColor(valueColor)
           .draw();
 
