@@ -78,7 +78,7 @@ class DeviceProjector {
       return regionSummaries.asList();
     }
 
-    private String sql(List<RegionSummary> regionSummaries) {
+    static String sql(List<RegionSummary> regionSummaries) {
       final StringBuilder sql = new StringBuilder();
       String delimiter = "";
 

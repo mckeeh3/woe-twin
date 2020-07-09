@@ -207,7 +207,7 @@ public class HttpServer {
     }
   }
 
-  private DataSource dataSource(ActorSystem<?> actorSystem) {
+  private static DataSource dataSource(ActorSystem<?> actorSystem) {
     final String dbUrl = actorSystem.settings().config().getString("oti.twin.sql.url");
     final String username = actorSystem.settings().config().getString("oti.twin.sql.username");
     final String password = actorSystem.settings().config().getString("oti.twin.sql.password");
