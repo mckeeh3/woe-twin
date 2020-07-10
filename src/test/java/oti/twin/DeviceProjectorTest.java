@@ -98,6 +98,7 @@ public class DeviceProjectorTest {
     assertNotEquals(ConfigValueType.STRING, configValue.valueType());
   }
 
+  @Ignore
   @Test
   public void loadTest() throws SQLException {
     final int zoom = 8;

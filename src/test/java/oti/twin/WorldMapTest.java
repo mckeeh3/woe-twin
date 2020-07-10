@@ -2,6 +2,8 @@ package oti.twin;
 
 import org.junit.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
@@ -190,6 +192,16 @@ public class WorldMapTest {
     assertTrue(regionCenter.contains(latLngCenter));
 
     assertEquals(regionStart, regionCenter);
+  }
+
+  @Test
+  public void regionsInAreaContainsRegions() {
+    final LatLng topLeft = latLng(85.24439622732126, -168.04687500000003);
+    final LatLng botRight = latLng(-85.24439622732126, 167.87109375000003);
+    final Region area = new Region(5, topLeft, botRight);
+    final List<Region> regions = regionsIn(area);
+
+    assertTrue(regions.size() > 0);
   }
 }
 

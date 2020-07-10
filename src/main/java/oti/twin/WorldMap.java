@@ -106,6 +106,34 @@ interface WorldMap {
         region.topLeft.lng + (region.botRight.lng - region.topLeft.lng) / 2);
   }
 
+  static List<Region> regionsIn(Region area) {
+    final Region start = regionAtLatLng(area.zoom, area.topLeft);
+    List<Region> regions = new ArrayList<>(regionsInRow(area, start));
+    (new ArrayList<>(regions)).forEach(region -> regions.addAll(regionsInCol(area, start)));
+    return regions;
+  }
+
+  private static List<Region> regionsInRow(Region area, Region start) {
+    List<Region> regions = new ArrayList<>();
+    regions.add(start);
+    Region next = start.cloneRight();
+    while (area.overlaps(next)) {
+      regions.add(next);
+      next = next.cloneRight();
+    }
+    return regions;
+  }
+
+  private static List<Region> regionsInCol(Region area, Region start) {
+    List<Region> regions = new ArrayList<>();
+    Region next = start.cloneRight();
+    while (area.overlaps(next)) {
+      regions.add(next);
+      next = next.cloneBelow();
+    }
+    return regions;
+  }
+
   class LatLng implements CborSerializable {
     public final double lat;
     public final double lng;
@@ -188,6 +216,16 @@ interface WorldMap {
 
     boolean isDevice() {
       return zoom == zoomMax; // devices are represented at finest zoom in level.
+    }
+
+    Region cloneRight() {
+      final double lngDelta = botRight.lng - topLeft.lng;
+      return new Region(zoom, topLeft(topLeft.lat, topLeft.lng + lngDelta), botRight(botRight.lat, botRight.lng + lngDelta));
+    }
+
+    Region cloneBelow() {
+      final double latDelta = topLeft.lat - botRight.lat;
+      return new Region(zoom, topLeft(topLeft.lat + latDelta, topLeft.lng), botRight(botRight.lat + latDelta, botRight.lng));
     }
 
     @Override
