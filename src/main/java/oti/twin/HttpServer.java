@@ -247,16 +247,8 @@ public class HttpServer {
   private List<DeviceProjector.RegionSummary> query(Connection connection, WorldMap.Region regionQuery) throws SQLException {
     //final long start = System.nanoTime();
     final List<DeviceProjector.RegionSummary> regionSummaries = new ArrayList<>();
-    final String sql = String.format("select * from region"
-            + " where zoom = %d"
-            + " and top_left_lat <= %1.9f"
-            + " and top_left_lng >= %1.9f"
-            + " and bot_right_lat >= %1.9f"
-            + " and bot_right_lng <= %1.9f"
-            + " and device_count > 0",
-        regionQuery.zoom, regionQuery.topLeft.lat, regionQuery.topLeft.lng, regionQuery.botRight.lat, regionQuery.botRight.lng);
     try (final Statement statement = connection.createStatement()) {
-      final ResultSet resultSet = statement.executeQuery(sql);
+      final ResultSet resultSet = statement.executeQuery(sqlInRange(regionQuery));
       while (resultSet.next()) {
         final WorldMap.LatLng topLeft = new WorldMap.LatLng(resultSet.getFloat("top_left_lat"), resultSet.getFloat("top_left_lng"));
         final WorldMap.LatLng botRight = new WorldMap.LatLng(resultSet.getFloat("bot_right_lat"), resultSet.getFloat("bot_right_lng"));
@@ -267,6 +259,40 @@ public class HttpServer {
       //log().debug("UI query {}, zoom {}, regions {}", String.format("%,dns", System.nanoTime() - start), regionQuery.zoom, regionSummaries.size());
       return regionSummaries;
     }
+  }
+
+  private static String sqlInRange(WorldMap.Region regionQuery) {
+    return String.format("select * from region"
+            + " where zoom = %d"
+            + " and top_left_lat <= %1.9f"
+            + " and top_left_lng >= %1.9f"
+            + " and bot_right_lat >= %1.9f"
+            + " and bot_right_lng <= %1.9f"
+            + " and device_count > 0",
+        regionQuery.zoom, regionQuery.topLeft.lat, regionQuery.topLeft.lng, regionQuery.botRight.lat, regionQuery.botRight.lng);
+  }
+
+  // This was an experiment suggested by Yugabyte as an attempt to do selects when using HASH on the primary key
+  // The query response times were too high
+  static String sqlInRegions(WorldMap.Region regionQuery) {
+    final StringBuilder sql = new StringBuilder();
+    final List<WorldMap.Region> regions = WorldMap.regionsIn(regionQuery);
+    final String nl = String.format("%n");
+    String delimiter = "";
+
+    sql.append("select * from region").append(nl);
+    sql.append(" where (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)").append(nl);
+    sql.append(" in (values ");
+
+    for (WorldMap.Region r : regions) {
+      sql.append(String.format("%s%n", delimiter));
+      sql.append(String.format("(%d, %1.9f, %1.9f, %1.9f, %1.9f)", r.zoom, r.topLeft.lat, r.topLeft.lng, r.botRight.lat, r.botRight.lng));
+      delimiter = ",";
+    }
+
+    sql.append(")").append(nl);
+
+    return sql.toString();
   }
 
   public static class QueryResponse implements Serializable {

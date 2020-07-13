@@ -12,6 +12,7 @@ queryResponse.deviceCount = 0;
 queryResponse.happyCount = 0;
 queryResponse.sadCount = 0;
 queryResponse.regionSummaries = [];
+let activityMonitor = {};
 
 const drawFPS = 30;
 const gridLatLines = [];
@@ -43,6 +44,7 @@ function setup() {
   grid.resize();
 
   scheduleNextDeviceQuery();
+  initActivityMonitor();
 }
 
 function draw() {
@@ -51,6 +53,7 @@ function draw() {
   drawDeviceSelections();
   drawDashboard();
   drawMouseLocation();
+  drawActivityMonitor();
 }
 
 function drawLatLngGrid() {
@@ -528,6 +531,21 @@ function deviceQueryInterval() {
       scheduleNextDeviceQuery();
     }
   );
+}
+
+function initActivityMonitor() {
+  activityMonitor.size = 100;
+  activityMonitor.lastUpdate = Date.now();
+  for (let i = 0; i < activityMonitor.size; i++) {
+    activityMonitor.counts.push({deviceCount: 0, happyCount: 0, sadCount: 0});
+  }
+}
+
+function drawActivityMonitor() {
+  if (Date.now() - activityMonitor.lastUpdate > 1000) {
+    activityMonitor.counts.shift();
+    activityMonitor.counts.push({});
+  }
 }
 
 const grid = {

@@ -109,7 +109,7 @@ interface WorldMap {
   static List<Region> regionsIn(Region area) {
     final Region start = regionAtLatLng(area.zoom, area.topLeft);
     List<Region> regions = new ArrayList<>(regionsInRow(area, start));
-    (new ArrayList<>(regions)).forEach(region -> regions.addAll(regionsInCol(area, start)));
+    (new ArrayList<>(regions)).forEach(region -> regions.addAll(regionsInCol(area, region)));
     return regions;
   }
 
@@ -126,7 +126,7 @@ interface WorldMap {
 
   private static List<Region> regionsInCol(Region area, Region start) {
     List<Region> regions = new ArrayList<>();
-    Region next = start.cloneRight();
+    Region next = start.cloneBelow();
     while (area.overlaps(next)) {
       regions.add(next);
       next = next.cloneBelow();
@@ -224,7 +224,7 @@ interface WorldMap {
     }
 
     Region cloneBelow() {
-      final double latDelta = topLeft.lat - botRight.lat;
+      final double latDelta = botRight.lat - topLeft.lat;
       return new Region(zoom, topLeft(topLeft.lat + latDelta, topLeft.lng), botRight(botRight.lat + latDelta, botRight.lng));
     }
 

@@ -21,7 +21,9 @@ import org.junit.Test;
 
 import java.util.UUID;
 
+import static oti.twin.WorldMap.latLng;
 import static oti.twin.WorldMap.regionAtLatLng;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HttpServerTest {
   private static HttpServer httpServer;
@@ -72,6 +74,17 @@ public class HttpServerTest {
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(18, new WorldMap.LatLng(51.50079211, -0.11682093));
     testKit.system().log().info("{}", toJson(region));
+  }
+
+  @Test
+  public void regionQuerySqlIsInArea() {
+    final WorldMap.LatLng topLeft = latLng(85.24439622732126, -168.04687500000003);
+    final WorldMap.LatLng botRight = latLng(-85.24439622732126, 167.87109375000003);
+    final WorldMap.Region area = new WorldMap.Region(5, topLeft, botRight);
+
+    final String sql = HttpServer.sqlInRegions(area);
+    testKit.system().log().info("{}", sql);
+    assertNotNull(sql);
   }
 
   private static HttpEntity.Strict toHttpEntity(Object pojo) {
