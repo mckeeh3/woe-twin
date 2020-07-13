@@ -545,7 +545,8 @@ function initActivityMonitor() {
 function drawActivityMonitor() {
   if (Date.now() - activityMonitor.lastUpdate > 1000) {
     activityMonitor.counts.shift();
-    activityMonitor.counts.push({});
+    activityMonitor.counts.push({deviceCount: queryResponse.deviceCount, happyCount: queryResponse.happyCount, sadCount: queryResponse.sadCount});
+    activityMonitor.lastUpdate += 1000;
   }
 }
 
