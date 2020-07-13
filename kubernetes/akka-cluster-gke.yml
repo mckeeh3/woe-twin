@@ -78,7 +78,7 @@ spec:
             - name: device_projection_jdbc_pool_size
               value: "50"
             - name: projection_shards_per_zoom
-              value: "4"
+              value: "1"
             - name: projection_group_after_envelopes
               value: "1000"
             - name: projection_group_after_duration

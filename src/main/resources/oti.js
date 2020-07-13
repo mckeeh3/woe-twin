@@ -536,6 +536,7 @@ function deviceQueryInterval() {
 function initActivityMonitor() {
   activityMonitor.size = 100;
   activityMonitor.lastUpdate = Date.now();
+  activityMonitor.counts = [];
   for (let i = 0; i < activityMonitor.size; i++) {
     activityMonitor.counts.push({deviceCount: 0, happyCount: 0, sadCount: 0});
   }
