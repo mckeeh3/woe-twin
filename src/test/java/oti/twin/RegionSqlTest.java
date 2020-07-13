@@ -83,6 +83,7 @@ public class RegionSqlTest {
     }
   }
 
+  @Ignore
   @Test
   public void coordinatesZoomingOutFromSamePoint() throws SQLException {
     Map<Integer, Region> queryAreas = zoomedRegionAreas();
