@@ -522,7 +522,7 @@ function deviceQueryInterval() {
       }
     },
     function (response) {
-      console.log((new Date()).toISOString() + " UI query " + (performance.now() - start) + "ms");
+      console.log((new Date()).toISOString() + " UI query " + (performance.now() - start) + "ms, regions " + response.regionSummaries.length.toLocaleString());
       queryResponse = response;
       scheduleNextDeviceQuery();
     },
@@ -543,9 +543,10 @@ function initActivityMonitor() {
 }
 
 function drawActivityMonitor() {
-  if (Date.now() - activityMonitor.lastUpdate > 1000) {
+  const timeNow = Data.now();
+  if (timeNow - activityMonitor.lastUpdate > 1000) {
     activityMonitor.counts.shift();
-    activityMonitor.counts.push({deviceCount: queryResponse.deviceCount, happyCount: queryResponse.happyCount, sadCount: queryResponse.sadCount});
+    activityMonitor.counts.push({deviceCount: queryResponse.deviceCount, happyCount: queryResponse.happyCount, sadCount: queryResponse.sadCount, time: timeNow});
     activityMonitor.lastUpdate += 1000;
   }
 }
