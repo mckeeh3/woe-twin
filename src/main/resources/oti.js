@@ -545,15 +545,15 @@ function initActivityMonitor() {
 function drawActivityMonitor() {
   const timeNow = Date.now();
   if (timeNow - activityMonitor.lastUpdate > 1000) {
-    const last = activityMonitor[activityMonitor.length - 1];
+    const last = activityMonitor.counts[activityMonitor.counts.length - 1];
     activityMonitor.counts.shift();
     activityMonitor.counts.push({
       deviceCount: queryResponse.deviceCount,
-      deviceDelta: queryResponse.deviceCount - last.deviceCount;
+      deviceDelta: queryResponse.deviceCount - last.deviceCount,
       happyCount: queryResponse.happyCount,
-      happyDelta: queryResponse.happyCount - last.happyCount;
+      happyDelta: queryResponse.happyCount - last.happyCount,
       sadCount: queryResponse.sadCount,
-      sadDelta: queryResponse.sadCount - last.sadCount;
+      sadDelta: queryResponse.sadCount - last.sadCount,
       time: timeNow});
     activityMonitor.lastUpdate += 1000;
   }
