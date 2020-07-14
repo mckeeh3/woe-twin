@@ -543,23 +543,50 @@ function initActivityMonitor() {
 }
 
 function drawActivityMonitor() {
-  const timeNow = Date.now();
-  if (timeNow - activityMonitor.lastUpdate > 1000) {
-    const last = activityMonitor.counts[activityMonitor.counts.length - 1];
-    activityMonitor.counts.shift();
-    activityMonitor.counts.push({
-      deviceCount: queryResponse.deviceCount,
-      deviceDelta: queryResponse.deviceCount - last.deviceCount,
-      happyCount: queryResponse.happyCount,
-      happyDelta: queryResponse.happyCount - last.happyCount,
-      sadCount: queryResponse.sadCount,
-      sadDelta: queryResponse.sadCount - last.sadCount,
-      time: timeNow});
-    activityMonitor.lastUpdate += 1000;
-  }
+  updateData();
+
+  const bgColor = color(0, 0, 75, 125);
+  const valueColor = color(255);
+  const offsetLeftRight = 22;
+  const width = grid.ticksHorizontal - 2 * offsetLeftRight;
+  const height = 7;
+  fill(bgColor);
+  grid.rect(offsetLeftRight, grid.ticksVertical - 7, width, height);
 
   const minDelta = minDeviceDelta();
   const maxDelta = maxDeviceDelta();
+  const scale = {pos: scalePos(maxDelta), neg: scaleNeg(minDelta)};
+
+  Label().setX(offsetLeftRight).setY(grid.ticksVertical - 7.9).setW(3).setH(0.8)
+          .setBorder(0.1)
+          .setKey(scale.pos)
+          .setBgColor(bgColor)
+          .setKeyColor(valueColor)
+          .draw();
+
+  Label().setX(offsetLeftRight).setY(grid.ticksVertical + 0.1).setW(3).setH(0.8)
+          .setBorder(0.1)
+          .setKey(scale.neg)
+          .setBgColor(bgColor)
+          .setKeyColor(valueColor)
+          .draw();
+
+  function updateData() {
+    const timeNow = Date.now();
+    if (timeNow - activityMonitor.lastUpdate > 1000) {
+      const last = activityMonitor.counts[activityMonitor.counts.length - 1];
+      activityMonitor.counts.shift();
+      activityMonitor.counts.push({
+        deviceCount: queryResponse.deviceCount,
+        deviceDelta: queryResponse.deviceCount - last.deviceCount,
+        happyCount: queryResponse.happyCount,
+        happyDelta: queryResponse.happyCount - last.happyCount,
+        sadCount: queryResponse.sadCount,
+        sadDelta: queryResponse.sadCount - last.sadCount,
+        time: timeNow});
+      activityMonitor.lastUpdate += 1000;
+    }
+  }
 
   function minDeviceDelta() {
     let countMin = Number.MAX_SAFE_INTEGER;
@@ -575,6 +602,22 @@ function drawActivityMonitor() {
       countMax = Math.max(countMax, activityMonitor.counts[i].deviceDelta);
     }
     return countMax;
+  }
+
+  function scalePos(maxDelta) {
+    let scale = 1;
+    while (scale < maxDelta) {
+      scale *= 10;
+    }
+    return scale;
+  }
+
+  function scaleNeg(minDelta) {
+    let scale = -1;
+    while (scale > minDelta) {
+      scale *= 10;
+    }
+    return scale;
   }
 }
 
