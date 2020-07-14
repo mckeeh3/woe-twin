@@ -16,7 +16,7 @@
     <logger name="com.datastax.oss" level="INFO"/>
     <logger name="akka.actor.TimerScheduler" level="INFO"/>
     <logger name="akka.persistence.typed" level="INFO"/>
-    <logger name="akka.persistence.cassandra" level="DEBUG"/>
+    <logger name="akka.persistence.cassandra" level="INFO"/>
     <logger name="io.netty.util.internal" level="INFO"/>
     <logger name="akka.remote.artery" level="INFO"/>
     <logger name="akka.io" level="INFO"/>
