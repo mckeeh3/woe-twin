@@ -557,7 +557,25 @@ function drawActivityMonitor() {
       time: timeNow});
     activityMonitor.lastUpdate += 1000;
   }
-  const countMin = Math.min.apply(null, )
+
+  const minDelta = minDeviceDelta();
+  const maxDelta = maxDeviceDelta();
+
+  function minDeviceDelta() {
+    let countMin = Number.MAX_SAFE_INTEGER;
+    for (let i = 0; i < activityMonitor.counts.length; i++ ) {
+      countMin = Math.min(countMin, activityMonitor.counts[i].deviceDelta);
+    }
+    return countMin;
+  }
+
+  function maxDeviceDelta() {
+    let countMax = Number.MIN_SAFE_INTEGER;
+    for (let i = 0; i < activityMonitor.counts.length; i++ ) {
+      countMax = Math.max(countMax, activityMonitor.counts[i].deviceDelta);
+    }
+    return countMax;
+  }
 }
 
 const grid = {
