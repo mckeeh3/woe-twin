@@ -538,17 +538,26 @@ function initActivityMonitor() {
   activityMonitor.lastUpdate = Date.now();
   activityMonitor.counts = [];
   for (let i = 0; i < activityMonitor.size; i++) {
-    activityMonitor.counts.push({deviceCount: 0, happyCount: 0, sadCount: 0});
+    activityMonitor.counts.push({deviceCount: 0, deviceDelta: 0, happyCount: 0, happyDelta: 0, sadCount: 0, sadDelta: 0});
   }
 }
 
 function drawActivityMonitor() {
-  const timeNow = Data.now();
+  const timeNow = Date.now();
   if (timeNow - activityMonitor.lastUpdate > 1000) {
+    const last = activityMonitor[activityMonitor.length - 1];
     activityMonitor.counts.shift();
-    activityMonitor.counts.push({deviceCount: queryResponse.deviceCount, happyCount: queryResponse.happyCount, sadCount: queryResponse.sadCount, time: timeNow});
+    activityMonitor.counts.push({
+      deviceCount: queryResponse.deviceCount,
+      deviceDelta: queryResponse.deviceCount - last.deviceCount;
+      happyCount: queryResponse.happyCount,
+      happyDelta: queryResponse.happyCount - last.happyCount;
+      sadCount: queryResponse.sadCount,
+      sadDelta: queryResponse.sadCount - last.sadCount;
+      time: timeNow});
     activityMonitor.lastUpdate += 1000;
   }
+  const countMin = Math.min.apply(null, )
 }
 
 const grid = {
