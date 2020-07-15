@@ -502,7 +502,7 @@ function recalculateLatLngGrid() {
 }
 
 function scheduleNextDeviceQuery() {
-//  setTimeout(deviceQueryInterval, deviceDataMsInterval);
+  setTimeout(deviceQueryInterval, deviceDataMsInterval);
 }
 
 function deviceQueryInterval() {
