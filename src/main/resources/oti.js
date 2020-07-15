@@ -549,32 +549,79 @@ function drawActivityMonitor() {
   updateData();
 
   const verticalOffset = 5.0;
-  const bgColor = color(0, 0, 75, 125);
-  const valueBgColor = color(200, 200, 200, 200);
-  const valueFontColor = color(50, 50, 200);
   const offsetLeftRight = 22;
   const width = grid.ticksHorizontal - 2 * offsetLeftRight;
   const height = verticalOffset - 0.5;
-  fill(bgColor);
-  grid.rect(offsetLeftRight, grid.ticksVertical - verticalOffset, width, height);
 
   const minDelta = minDeviceDelta();
   const maxDelta = maxDeviceDelta();
   const scale = {pos: scalePos(maxDelta), neg: scaleNeg(minDelta)};
 
-  Label().setX(offsetLeftRight).setY(grid.ticksVertical - verticalOffset).setW(3).setH(0.8)
-          .setBorder(0.1)
-          .setKey(scale.pos)
-          .setBgColor(valueBgColor)
-          .setKeyColor(valueFontColor)
-          .draw();
+  const x = offsetLeftRight;
+  const y = grid.ticksVertical - verticalOffset;
 
-  Label().setX(offsetLeftRight).setY(grid.ticksVertical - 1.3).setW(3).setH(0.8)
-          .setBorder(0.1)
-          .setKey(scale.neg)
-          .setBgColor(valueBgColor)
-          .setKeyColor(valueFontColor)
-          .draw();
+  drawBackground(x, y, width, height);
+  drawAxis(x, y, width, height, scale);
+  drawActivity(x, y, width, height, scale);
+  drawLabels(x, y, grid.ticksVertical - 1.3, scale);
+
+  function drawBackground(x, y, width, height) {
+    const bgColor = color(0, 0, 75, 125);
+    fill(bgColor);
+    grid.rect(x, y, width, height);
+  }
+
+  function drawLabels(x, yTop, yBot, scale) {
+    const valueBgColor = color(200, 200, 200, 200);
+    const valueFontColor = color(50, 50, 200);
+    Label().setX(x).setY(yTop).setW(3).setH(0.8)
+            .setBorder(0.1)
+            .setKey(scale.pos)
+            .setBgColor(valueBgColor)
+            .setKeyColor(valueFontColor)
+            .draw();
+
+    Label().setX(x).setY(yBot).setW(3).setH(0.8)
+            .setBorder(0.1)
+            .setKey(scale.neg)
+            .setBgColor(valueBgColor)
+            .setKeyColor(valueFontColor)
+            .draw();
+  }
+
+  function drawAxis(x, y, width, height, scale) {
+    const range = scale.pos - scale.neg;
+    const yAxis = y + height * scale.pos / range;
+    stroke(color(200, 200, 0));
+    strokeWeight(1);
+    grid.line(x, yAxis, x + width, yAxis);
+  }
+
+  function drawActivity(x, y, width, height, scale) {
+    for (let i = 0; i < activityMonitor.counts.length; i++) {
+      const deltas = activityMonitor.counts[i];
+      const barWidth = width / activityMonitor.counts.length / 2;
+      const barX = x + i * barWidth * 2;
+      drawActivityBar(barX, y, width, height, scale, deltas.happyDelta, color(0, 200, 0));
+      drawActivityBar(barX + barWidth, y, width, height, scale, deltas.sadDelta, color(200, 0, 0));
+    }
+  }
+
+  function drawActivityBar(x, y, width, height, scale, delta, barColor) {
+    if (delta != 0) {
+      const range = scale.pos - scale.neg;
+      const barWidth = width / activityMonitor.counts.length / 2;
+      const rangeHeight = height / range;
+      const barTop = Math.max(0, delta);
+      const barBot = Math.min(0, delta);
+      const barX = x;
+      const barY = y + (scale.pos - barTop) * rangeHeight;
+      const barHeight = height * ((scale.pos - barBot) - (scale.pos - barTop)) / range;
+      fill(barColor);
+      noStroke();
+      grid.rect(barX, barY, barWidth, barHeight);
+    }
+  }
 
   function updateData() {
     const timeNow = Date.now();
@@ -594,19 +641,19 @@ function drawActivityMonitor() {
   }
 
   function minDeviceDelta() {
-    let countMin = Number.MAX_SAFE_INTEGER;
-    for (let i = 0; i < activityMonitor.counts.length; i++ ) {
-      countMin = Math.min(countMin, activityMonitor.counts[i].deviceDelta);
-    }
-    return countMin;
+    let deltaMin = Number.MAX_SAFE_INTEGER;
+    activityMonitor.counts.forEach(deltas => {
+      deltaMin = Math.min(deltaMin, deltas.deviceDelta, deltas.happyDelta, deltas.sadDelta);
+    });
+    return deltaMin;
   }
 
   function maxDeviceDelta() {
-    let countMax = Number.MIN_SAFE_INTEGER;
-    for (let i = 0; i < activityMonitor.counts.length; i++ ) {
-      countMax = Math.max(countMax, activityMonitor.counts[i].deviceDelta);
-    }
-    return countMax;
+    let deltaMax = Number.MIN_SAFE_INTEGER;
+    activityMonitor.counts.forEach(deltas => {
+      deltaMax = Math.max(deltaMax, deltas.deviceDelta, deltas.happyDelta, deltas.sadDelta);
+    });
+    return deltaMax;
   }
 
   function scalePos(maxDelta) {
