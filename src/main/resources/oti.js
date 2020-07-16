@@ -57,7 +57,7 @@ function draw() {
 }
 
 function drawLatLngGrid() {
-  stroke(175);
+  stroke(125);
   strokeWeight(0.5);
 
   gridLatLines.forEach(latLine => line(0, latLine.y, windowWidth - 1, latLine.y));
@@ -102,7 +102,7 @@ function drawZoomAndMouseLocation() {
   Label().setX(2).setY(0.1).setW(5).setH(height)
           .setBorder(border)
           .setKey("Zoom")
-          .setValue(worldMap.zoom())
+          .setValue(19 - worldMap.zoom())
           .setBgColor(bgColor)
           .setKeyColor(keyColor)
           .setValueColor(valueColor)
@@ -119,6 +119,14 @@ function drawZoomAndMouseLocation() {
           .setBorder(border)
           .setKey("Lng")
           .setValue(lng)
+          .setBgColor(bgColor)
+          .setKeyColor(keyColor)
+          .setValueColor(valueColor)
+          .draw();
+  Label().setX(2).setY(1.4).setW(9).setH(height - 0.2)
+          .setBorder(border)
+          .setKey("Device density")
+          .setValue((Math.pow(4, 18 - worldMap.zoom()).toLocaleString()))
           .setBgColor(bgColor)
           .setKeyColor(keyColor)
           .setValueColor(valueColor)
@@ -537,7 +545,7 @@ function deviceQueryInterval() {
 }
 
 function initActivityMonitor() {
-  activityMonitor.size = 100;
+  activityMonitor.size = 180;
   activityMonitor.lastUpdate = Date.now();
   activityMonitor.counts = [];
   for (let i = 0; i < activityMonitor.size; i++) {
