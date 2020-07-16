@@ -584,14 +584,14 @@ function drawActivityMonitor() {
     const valueFontColor = color(50, 50, 200);
     Label().setX(x).setY(yTop).setW(3).setH(0.8)
             .setBorder(0.1)
-            .setKey(scale.pos)
+            .setKey(scale.pos.toLocaleString())
             .setBgColor(valueBgColor)
             .setKeyColor(valueFontColor)
             .draw();
 
     Label().setX(x).setY(yBot).setW(3).setH(0.8)
             .setBorder(0.1)
-            .setKey(scale.neg)
+            .setKey(scale.neg.toLocaleString())
             .setBgColor(valueBgColor)
             .setKeyColor(valueFontColor)
             .draw();
