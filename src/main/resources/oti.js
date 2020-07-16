@@ -665,19 +665,19 @@ function drawActivityMonitor() {
   }
 
   function scalePos(maxDelta) {
-    let scale = 1;
-    while (scale < maxDelta) {
+    let scale = 10;
+    while (maxDelta / scale > 10) {
       scale *= 10;
     }
-    return scale;
+    return Math.floor(maxDelta / scale) * scale + scale;
   }
 
   function scaleNeg(minDelta) {
-    let scale = -1;
-    while (scale > minDelta) {
+    let scale = -10;
+    while (minDelta / scale > 10) {
       scale *= 10;
     }
-    return scale;
+    return Math.floor(minDelta / scale) * scale + scale;
   }
 }
 
