@@ -633,7 +633,8 @@ function drawActivityMonitor() {
 
   function updateData() {
     const timeNow = Date.now();
-    if (timeNow - activityMonitor.lastUpdate > 1000) {
+    const timeDelta = timeNow - activityMonitor.lastUpdate;
+    if (timeDelta > 1000) {
       const last = activityMonitor.counts[activityMonitor.counts.length - 1];
       activityMonitor.counts.shift();
       activityMonitor.counts.push({
@@ -644,7 +645,7 @@ function drawActivityMonitor() {
         sadCount: queryResponse.sadCount,
         sadDelta: queryResponse.sadCount - last.sadCount,
         time: timeNow});
-      activityMonitor.lastUpdate += 1000;
+      activityMonitor.lastUpdate = timeDelta > 5000 ? timeNow : activityMonitor.lastUpdate + 1000;
     }
   }
 
