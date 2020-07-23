@@ -570,6 +570,7 @@ function drawActivityMonitor() {
 
   drawBackground(x, y, width, height);
   drawAxis(x, y, width, height, scale);
+  drawTickLines(x, y, width, height, scale);
   drawActivity(x, y, width, height, scale);
   drawLabels(x, y, grid.ticksVertical - 1.3, scale);
 
@@ -603,6 +604,24 @@ function drawActivityMonitor() {
     stroke(color(200, 200, 0));
     strokeWeight(1);
     grid.line(x, yAxis, x + width, yAxis);
+  }
+
+  function drawTickLines(x, y, width, height, scale) {
+    const range = scale.pos - scale.neg;
+    const yAxis = y + height * scale.pos / range;
+    const tick = (scale.pos > -1 * scale.neg ? yAxis - y : y + height - yAxis) * 0.25;
+    let yTick = yAxis - tick;
+    stroke(color(200, 200, 200));
+    strokeWeight(0.75);
+    while (yTick > y) {
+      grid.line(x, yTick, x + width, yTick);
+      yTick -= tick;
+    }
+    yTick = yAxis + tick;
+    while (yTick < y + height) {
+      grid.line(x, yTick, x + width, yTick);
+      yTick += tick;
+    }
   }
 
   function drawActivity(x, y, width, height, scale) {
