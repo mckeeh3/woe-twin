@@ -1,15 +1,14 @@
 
-create schema if not exists oti_twin;
-
-create table if not exists akka_projection_offset_store (
-  "PROJECTION_NAME"   varchar(255) not null,
-  "PROJECTION_KEY"    varchar(255) not null,
-  "OFFSET"            varchar(255) not null,
-  "MANIFEST"          varchar(4) not null,
-  "MERGEABLE"         boolean not null,
-  "LAST_UPDATED"      timestamp(9) with time zone not null,
-  constraint pk_projection_id primary key ("PROJECTION_NAME", "PROJECTION_KEY")
+create table if not exists "AKKA_PROJECTION_OFFSET_STORE" (
+  "PROJECTION_NAME" VARCHAR(255) NOT NULL,
+  "PROJECTION_KEY" VARCHAR(255) NOT NULL,
+  "OFFSET" VARCHAR(255) NOT NULL,
+  "MANIFEST" VARCHAR(4) NOT NULL,
+  "MERGEABLE" BOOLEAN NOT NULL,
+  "LAST_UPDATED" BIGINT NOT NULL
 );
 
-create index projection_name_index on akka_projection_offset_store ("PROJECTION_NAME");
+create index "PROJECTION_NAME_INDEX" on "AKKA_PROJECTION_OFFSET_STORE" ("PROJECTION_NAME");
 
+alter table "AKKA_PROJECTION_OFFSET_STORE"
+  add constraint "PK_PROJECTION_ID" primary key("PROJECTION_NAME","PROJECTION_KEY");
