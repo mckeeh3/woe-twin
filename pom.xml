@@ -16,7 +16,7 @@
         <aka.management.version>1.0.8</aka.management.version>
         <akka.http.version>10.1.12</akka.http.version>
         <akka.management.version>1.0.8</akka.management.version>
-        <akka.projection.version>0.3</akka.projection.version>
+        <akka.projection.version>1.0.0-RC1</akka.projection.version>
         <akka.persistence.cassandra.version>1.0.0</akka.persistence.cassandra.version>
         <yugabyte.version>42.2.7-yb-3</yugabyte.version>
         <postgresql.version>42.2.14</postgresql.version>
