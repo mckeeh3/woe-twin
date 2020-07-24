@@ -1,6 +1,5 @@
 package oti.twin;
 
-import akka.Done;
 import akka.actor.typed.ActorSystem;
 import akka.japi.function.Function;
 import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
@@ -27,7 +26,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
 
 class DeviceProjector {
   static class DeviceEventHandler extends JdbcHandler<List<EventEnvelope<Device.Event>>, DbSession> {
@@ -59,15 +57,15 @@ class DeviceProjector {
     }
 
     @Override
-    public CompletionStage<Done> start() {
+    public void start() {
       log.debug("Start {}", tag);
-      return super.start();
+      super.start();
     }
 
     @Override
-    public CompletionStage<Done> stop() {
+    public void stop() {
       log.debug("Stop {}", tag);
-      return super.stop();
+      super.stop();
     }
 
     private List<RegionSummary> summarize(List<EventEnvelope<Device.Event>> eventEnvelopes) {
