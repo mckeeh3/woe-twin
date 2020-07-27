@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
-import static oti.twin.WorldMap.*;
+import static woe.twin.WorldMap.*;
 
 public class RegionProjectionTest {
   @ClassRule

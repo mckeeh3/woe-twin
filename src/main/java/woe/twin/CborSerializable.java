@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 /**
  * Marker trait for serialization with Jackson CBOR

@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: oti-twin
-  name: oti-twin
-  namespace: oti-twin-1
+    app: woe-twin
+  name: woe-twin
+  namespace: woe-twin-1
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: oti-twin
+      app: woe-twin
   template:
     metadata:
       labels:
-        app: oti-twin
-        actorSystemName: oti-twin
+        app: woe-twin
+        actorSystemName: woe-twin
     spec:
       containers:
-        - name: oti-twin
-          image: oti-twin:latest
+        - name: woe-twin
+          image: woe-twin:latest
           # remove for real clusters, useful for minikube
           imagePullPolicy: Never
           readinessProbe:
@@ -68,13 +68,13 @@ spec:
               value: "yugabyte"
             - name: postgresql_password
               value: "yugabyte"
-            - name: oti_simulator_http_server_host
-              value: "oti-sim-service.oti-sim-1.svc.cluster.local"
-            - name: oti_simulator_http_server_port
+            - name: woe_simulator_http_server_host
+              value: "woe-sim-service.woe-sim-1.svc.cluster.local"
+            - name: woe_simulator_http_server_port
               value: "8080"
-            - name: oti_twin_http_server_host
-              value: "oti-twin-service.oti-twin-1.svc.cluster.local"
-            - name: oti_twin_http_server_port
+            - name: woe_twin_http_server_host
+              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+            - name: woe_twin_http_server_port
               value: "8080"
             - name: device-projection-jdbc-pool-size
               value: "50"
@@ -84,7 +84,7 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: pod-reader
-  namespace: oti-twin-1
+  namespace: woe-twin-1
 rules:
   - apiGroups: [""] # "" indicates the core API group
     resources: ["pods"]
@@ -94,12 +94,12 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
-  namespace: oti-twin-1
+  namespace: woe-twin-1
 subjects:
   # Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
   # For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
   - kind: User
-    name: system:serviceaccount:oti-twin-1:default
+    name: system:serviceaccount:woe-twin-1:default
 roleRef:
   kind: Role
   name: pod-reader

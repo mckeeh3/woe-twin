@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.testkit.typed.javadsl.LoggingTestKit;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
@@ -6,7 +6,6 @@ import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
-import akka.serialization.jackson.JacksonCborSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.typesafe.config.Config;
@@ -20,8 +19,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static oti.twin.WorldMap.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static woe.twin.WorldMap.*;
 
 public class DeviceTest {
   private static ClusterSharding clusterSharding;

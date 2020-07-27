@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.actor.typed.ActorSystem;
@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static oti.twin.WorldMap.*;
+import static woe.twin.WorldMap.*;
 
 public class RegionSqlTest {
   @ClassRule
@@ -129,10 +129,10 @@ public class RegionSqlTest {
   }
 
   private static DataSource dataSource(ActorSystem<?> actorSystem) {
-    final String dbUrl = actorSystem.settings().config().getString("oti.twin.sql.url");
-    final String username = actorSystem.settings().config().getString("oti.twin.sql.username");
-    final String password = actorSystem.settings().config().getString("oti.twin.sql.password");
-    final int maxPoolSize = actorSystem.settings().config().getInt("oti.twin.sql.max-pool-size");
+    final String dbUrl = actorSystem.settings().config().getString("woe.twin.sql.url");
+    final String username = actorSystem.settings().config().getString("woe.twin.sql.username");
+    final String password = actorSystem.settings().config().getString("woe.twin.sql.password");
+    final int maxPoolSize = actorSystem.settings().config().getInt("woe.twin.sql.max-pool-size");
 
     final HikariConfig config = new HikariConfig();
     config.setJdbcUrl(dbUrl);

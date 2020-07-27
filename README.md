@@ -1,5 +1,4 @@
-# OTI Twin Microservice
-# Of Things Internet Twin - OTI Twin Microservice
+# What On Earth Twin - woe-twin microservice
 
 TODO
 
@@ -40,7 +39,7 @@ the map selection on to map sub regions. Typically, each map region
 contains 4 sub regions. This recursion starts at zoom level 0 and continues
 to zoom level 18.
 
-### Deploy the OTI Twin Microservice
+### Deploy the WOE Twin Microservice
 
 #### Yugabyte on Kubernetes or MiniKube
 
@@ -83,7 +82,7 @@ yugabyte=# \q
 
 ##### Copy CQL and SQL DDL commands to the Yugabyte server
 
-From the oti-twin project directory.
+From the woe-twin project directory.
 
 ~~~bash
 $ kubectl cp src/main/resources/akka-persistence-journal-create-twin.cql yb-demo/yb-tserver-0:/tmp                                                                  
@@ -110,15 +109,15 @@ Use HELP for help.
 ycqlsh> source '/tmp/akka-persistence-journal-create-twin.cql'
 ycqlsh> describe keyspaces;
 
-system_schema  oti_twin  system_auth  system
+system_schema  woe_twin  system_auth  system
 
-ycqlsh> use oti_twin;
-ycqlsh:oti_twin> describe tables;
+ycqlsh> use woe_twin;
+ycqlsh:woe_twin> describe tables;
 
 tag_views  tag_scanning         tag_write_progress
 messages   all_persistence_ids  metadata          
 
-ycqlsh:oti_twin> quit
+ycqlsh:woe_twin> quit
 ~~~
 
 PostgreSQL
@@ -160,8 +159,8 @@ CREATE INDEX
 
 yugabyte=# \i /tmp/akka-projection-offset-store.sql
 
-create schema if not exists oti_twin;
-ysqlsh:/tmp/akka-projection-offset-store.sql:2: NOTICE:  schema "oti_twin" already exists, skipping
+create schema if not exists woe_twin;
+ysqlsh:/tmp/akka-projection-offset-store.sql:2: NOTICE:  schema "woe_twin" already exists, skipping
 CREATE SCHEMA
 create table if not exists akka_projection_offset_store (
   "PROJECTION_NAME"   varchar(255) not null,
@@ -185,7 +184,7 @@ yugabyte=# \q
 
 ### Build and Deploy to MiniKube
 
-From the oti-twin project directory.
+From the woe-twin project directory.
 
 Before the build, set up the Docker environment variables using the following commands.
 ~~~bash
@@ -212,12 +211,12 @@ $ mvn clean package docker:build
 ~~~
 ...
 [INFO]
-[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ oti-twin ---
-[INFO] Copying files to /home/hxmc/Lightbend/akka-java/oti-twin/target/docker/oti-twin/build/maven
-[INFO] Building tar: /home/hxmc/Lightbend/akka-java/oti-twin/target/docker/oti-twin/tmp/docker-build.tar
-[INFO] DOCKER> [oti-twin:latest]: Created docker-build.tar in 377 milliseconds
-[INFO] DOCKER> [oti-twin:latest]: Built image sha256:e8192
-[INFO] DOCKER> [oti-twin:latest]: Tag with latest,20200619-124148.ef13797
+[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ woe-twin ---
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-twin/target/docker/woe-twin/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-twin/target/docker/woe-twin/tmp/docker-build.tar
+[INFO] DOCKER> [woe-twin:latest]: Created docker-build.tar in 377 milliseconds
+[INFO] DOCKER> [woe-twin:latest]: Built image sha256:e8192
+[INFO] DOCKER> [woe-twin:latest]: Tag with latest,20200619-124148.ef13797
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
@@ -228,11 +227,11 @@ $ mvn clean package docker:build
 
 Add the local docker image into MiniKube.
 ~~~bash
-$ minikube cache add oti-twin:latest
+$ minikube cache add woe-twin:latest
 $ minikube cache list
 ~~~
 ~~~              
-oti-twin:latest
+woe-twin:latest
 ~~~
 
 Create the Kubernetes namespace. The namespace only needs to be created once.
@@ -240,12 +239,12 @@ Create the Kubernetes namespace. The namespace only needs to be created once.
 $ kubectl apply -f kubernetes/namespace.json     
 ~~~
 ~~~
-namespace/oti-twin-1 created
+namespace/woe-twin-1 created
 ~~~
 
 Set this namespace as the default for subsequent `kubectl` commands.
 ~~~bash
-$ kubectl config set-context --current --namespace=oti-twin-1
+$ kubectl config set-context --current --namespace=woe-twin-1
 ~~~
 ~~~
 Context "minikube" modified.
@@ -256,7 +255,7 @@ Deploy the Docker images to the Kubernetes cluster.
 $ kubectl apply -f kubernetes/akka-cluster.yml
 ~~~
 ~~~
-deployment.apps/oti-twin created
+deployment.apps/woe-twin created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
@@ -266,9 +265,9 @@ $ kubectl get pods
 ~~~
 ~~~
 NAME                      READY   STATUS    RESTARTS   AGE
-oti-twin-746587fbf4-2zth5   1/1     Running   0          33s
-oti-twin-746587fbf4-trkdt   1/1     Running   0          33s
-oti-twin-746587fbf4-zzk7f   1/1     Running   0          33s
+woe-twin-746587fbf4-2zth5   1/1     Running   0          33s
+woe-twin-746587fbf4-trkdt   1/1     Running   0          33s
+woe-twin-746587fbf4-zzk7f   1/1     Running   0          33s
 ~~~
 
 ### Build and Deploy to Google Cloud Container Registry
@@ -290,12 +289,12 @@ $ mvn clean package docker:build
 ~~~
 ...
 [INFO]
-[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ oti-twin ---
-[INFO] Copying files to /home/hxmc/Lightbend/akka-java/oti-twin/target/docker/oti-twin/build/maven
-[INFO] Building tar: /home/hxmc/Lightbend/akka-java/oti-twin/target/docker/oti-twin/tmp/docker-build.tar
-[INFO] DOCKER> [oti-twin:latest]: Created docker-build.tar in 377 milliseconds
-[INFO] DOCKER> [oti-twin:latest]: Built image sha256:e8192
-[INFO] DOCKER> [oti-twin:latest]: Tag with latest,20200619-124148.ef13797
+[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ woe-twin ---
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-twin/target/docker/woe-twin/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-twin/target/docker/woe-twin/tmp/docker-build.tar
+[INFO] DOCKER> [woe-twin:latest]: Created docker-build.tar in 377 milliseconds
+[INFO] DOCKER> [woe-twin:latest]: Built image sha256:e8192
+[INFO] DOCKER> [woe-twin:latest]: Tag with latest,20200619-124148.ef13797
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
@@ -319,12 +318,12 @@ $ gcloud auth configure-docker
 
 Tag the Docker image.
 ~~~bash
-$ docker tag oti-twin gcr.io/$(gcloud config get-value project)/oti-twin:latest
+$ docker tag woe-twin gcr.io/$(gcloud config get-value project)/woe-twin:latest
 ~~~
 
 Push the Docker image to the ContainerRegistry.
 ~~~bash
-$ docker push gcr.io/$(gcloud config get-value project)/oti-twin:latest
+$ docker push gcr.io/$(gcloud config get-value project)/woe-twin:latest
 ~~~
 
 To view the uploaded container search for "container registry" from the Google Cloud Console.
@@ -334,7 +333,7 @@ $ gcloud container images list
 ~~~
 ~~~
 NAME
-gcr.io/akka-yuga/oti-twin
+gcr.io/akka-yuga/woe-twin
 Only listing images in gcr.io/akka-yuga. Use --repository to list images in other repositories.
 ~~~
 
@@ -343,14 +342,14 @@ Create the Kubernetes namespace. The namespace only needs to be created once.
 $ kubectl apply -f kubernetes/namespace.json     
 ~~~
 ~~~
-namespace/oti-twin-1 created
+namespace/woe-twin-1 created
 ~~~
 
 Context "gke_akka-yuga_us-central1-c_yugadb" modified.
 
 Set this namespace as the default for subsequent `kubectl` commands.
 ~~~bash
-kubectl config set-context --current --namespace=oti-twin-1
+kubectl config set-context --current --namespace=woe-twin-1
 ~~~
 ~~~
 Context "gke_akka-yuga_us-central1-c_yugadb" modified.
@@ -361,7 +360,7 @@ Deploy the Docker images to the Kubernetes cluster.
 $ kubectl apply -f kubernetes/akka-cluster-gke.yml
 ~~~
 ~~~
-deployment.apps/oti-twin created
+deployment.apps/woe-twin created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
@@ -372,40 +371,40 @@ $ kubectl get pods
 ~~~
 ~~~
 NAME                        READY   STATUS    RESTARTS   AGE
-oti-twin-658d9878d9-7zsmv   1/1     Running   0          37m
-oti-twin-658d9878d9-bh2jn   1/1     Running   0          37m
-oti-twin-658d9878d9-slxmp   1/1     Running   0          37m
+woe-twin-658d9878d9-7zsmv   1/1     Running   0          37m
+woe-twin-658d9878d9-bh2jn   1/1     Running   0          37m
+woe-twin-658d9878d9-slxmp   1/1     Running   0          37m
 ~~~
 
 Open a shell on one of the pods.
 ~~~bash
-$ kubectl exec -it oti-twin-658d9878d9-7zsmv -- /bin/bash
+$ kubectl exec -it woe-twin-658d9878d9-7zsmv -- /bin/bash
 ~~~
 ~~~
-root@oti-twin-658d9878d9-7zsmv:/# ll maven/oti-twin-1.0-SNAPSHOT.jar
--rw-r--r-- 1 root root 779840 Jul  1 15:28 maven/oti-twin-1.0-SNAPSHOT.jar
-root@oti-twin-658d9878d9-7zsmv:/# exit
+root@woe-twin-658d9878d9-7zsmv:/# ll maven/woe-twin-1.0-SNAPSHOT.jar
+-rw-r--r-- 1 root root 779840 Jul  1 15:28 maven/woe-twin-1.0-SNAPSHOT.jar
+root@woe-twin-658d9878d9-7zsmv:/# exit
 exit
 ~~~
 ### Enable External Access
 
-Create a load balancer to enable access to the OTI Twin microservice HTTP endpoint.
+Create a load balancer to enable access to the WOE Twin microservice HTTP endpoint.
 
 ~~~bash
-$ kubectl expose deployment oti-twin --type=LoadBalancer --name=oti-twin-service
+$ kubectl expose deployment woe-twin --type=LoadBalancer --name=woe-twin-service
 ~~~
 ~~~
-service/oti-twin-service exposed
+service/woe-twin-service exposed
 ~~~
 
 Next, view to external port assignments.
 
 ~~~bash
-$ kubectl get services oti-twin-service
+$ kubectl get services woe-twin-service
 ~~~
 ~~~
 NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-oti-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   5h4m
+woe-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   5h4m
 ~~~
 
 Note that in this example, the Kubernetes internal port 8080 external port assignment of 32171.
@@ -448,7 +447,7 @@ $ curl -v http://$(minikube ip):32171
   <title>Of Things Internet</title>
   <script src="p5.js" type="text/javascript"></script>
   <script src="mappa.js" type="text/javascript"></script>
-  <script src="oti.js" type="text/javascript"></script>
+  <script src="woe.js" type="text/javascript"></script>
   <style> body { padding: 0; margin: 0; }</style>
 </head>
 
@@ -461,17 +460,17 @@ $ curl -v http://$(minikube ip):32171
 ~~~
 
 ### Verify Internal HTTP access
-The OTI Twin and OTI Sim microservices communicate with each other via HTTP. Each
+The WOE Twin and WOE Sim microservices communicate with each other via HTTP. Each
 microservie needs to know the host name of the other service. Use the following to
 verify the hostname of this service.
 
 First, get the IP assigned to the load balancer.
 ~~~bash
-$ kubectl get service oti-twin-service
+$ kubectl get service woe-twin-service
 ~~~
 ~~~
 NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-oti-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   16h~~~
+woe-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   16h~~~
 ~~~
 In this example, the internal load balancer IP is 10.106.225.172.
 
@@ -486,13 +485,13 @@ Server:    10.96.0.10
 Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
 
 Name:      10.106.25.172
-Address 1: 10.106.25.172 oti-twin-service.oti-twin-1.svc.cluster.local
+Address 1: 10.106.25.172 woe-twin-service.woe-twin-1.svc.cluster.local
 ~~~
-Note that the load balancer host name is `oti-twin-service.oti-twin-1.svc.cluster.local`.
+Note that the load balancer host name is `woe-twin-service.woe-twin-1.svc.cluster.local`.
 
-Verify that the OTI Twin HTTP server is accessible via the host name.
+Verify that the WOE Twin HTTP server is accessible via the host name.
 ~~~
-/ # wget -qO- http://oti-twin-service.oti-twin-1.svc.cluster.local:8080
+/ # wget -qO- http://woe-twin-service.woe-twin-1.svc.cluster.local:8080
 <!DOCTYPE html>
 <html lang="en">
 
@@ -500,7 +499,7 @@ Verify that the OTI Twin HTTP server is accessible via the host name.
   <title>Of Things Internet</title>
   <script src="p5.js" type="text/javascript"></script>
   <script src="mappa.js" type="text/javascript"></script>
-  <script src="oti.js" type="text/javascript"></script>
+  <script src="woe.js" type="text/javascript"></script>
   <style> body { padding: 0; margin: 0; }</style>
 </head>
 
@@ -518,5 +517,5 @@ pod "dns-test" deleted
 ### Scale Running Akka Nodes/K8 pods
 
 ~~~bash
-$ kubectl scale --replicas=10 deployment/oti-twin
+$ kubectl scale --replicas=10 deployment/woe-twin
 ~~~

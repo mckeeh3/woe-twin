@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.DispatcherSelector;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static akka.http.javadsl.server.Directives.*;
-import static oti.twin.WorldMap.entityIdOf;
+import static woe.twin.WorldMap.entityIdOf;
 
 public class HttpServer {
   private final ActorSystem<?> actorSystem;
@@ -55,9 +55,9 @@ public class HttpServer {
 
   private Route route() {
     return concat(
-        path("", () -> getFromResource("oti.html", ContentTypes.TEXT_HTML_UTF8)),
-        path("oti.html", () -> getFromResource("oti.html", ContentTypes.TEXT_HTML_UTF8)),
-        path("oti.js", () -> getFromResource("oti.js", ContentTypes.APPLICATION_JSON)),
+        path("", () -> getFromResource("woe.html", ContentTypes.TEXT_HTML_UTF8)),
+        path("woe.html", () -> getFromResource("woe.html", ContentTypes.TEXT_HTML_UTF8)),
+        path("woe.js", () -> getFromResource("woe.js", ContentTypes.APPLICATION_JSON)),
         path("p5.js", () -> getFromResource("p5.js", ContentTypes.APPLICATION_JSON)),
         path("mappa.js", () -> getFromResource("mappa.js", ContentTypes.APPLICATION_JSON)),
         path("telemetry", this::handleTelemetryActionPost),
@@ -123,7 +123,7 @@ public class HttpServer {
                     log().warn("Read selections query failed.", e);
                     return new QueryResponse(0, 0, 0);
                   }
-                }, actorSystem.dispatchers().lookup(DispatcherSelector.fromConfig("oti.twin.query-devices-dispatcher"))),
+                }, actorSystem.dispatchers().lookup(DispatcherSelector.fromConfig("woe.twin.query-devices-dispatcher"))),
                 Jackson.marshaller()
             )
         )
@@ -208,10 +208,10 @@ public class HttpServer {
   }
 
   private static DataSource dataSource(ActorSystem<?> actorSystem) {
-    final String dbUrl = actorSystem.settings().config().getString("oti.twin.sql.url");
-    final String username = actorSystem.settings().config().getString("oti.twin.sql.username");
-    final String password = actorSystem.settings().config().getString("oti.twin.sql.password");
-    final int maxPoolSize = actorSystem.settings().config().getInt("oti.twin.sql.max-pool-size");
+    final String dbUrl = actorSystem.settings().config().getString("woe.twin.sql.url");
+    final String username = actorSystem.settings().config().getString("woe.twin.sql.username");
+    final String password = actorSystem.settings().config().getString("woe.twin.sql.password");
+    final int maxPoolSize = actorSystem.settings().config().getInt("woe.twin.sql.max-pool-size");
 
     final HikariConfig config = new HikariConfig();
     config.setJdbcUrl(dbUrl);

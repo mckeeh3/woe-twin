@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.typed.ActorSystem;
 import akka.http.javadsl.Http;
@@ -33,8 +33,8 @@ class HttpClient {
   }
 
   private static String url(ActorSystem<?> actorSystem) {
-    final String host = actorSystem.settings().config().getString("oti.simulator.http.server.host");
-    final int port = actorSystem.settings().config().getInt("oti.simulator.http.server.port");
+    final String host = actorSystem.settings().config().getString("woe.simulator.http.server.host");
+    final int port = actorSystem.settings().config().getInt("woe.simulator.http.server.port");
     return String.format("http://%s:%d/selection", host, port);
   }
 

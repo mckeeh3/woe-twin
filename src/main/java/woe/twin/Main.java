@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
@@ -28,7 +28,7 @@ public class Main {
   }
 
   public static void main(String[] args) {
-    ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "oti-twin");
+    ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "woe-twin");
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
     startClusterSharding(actorSystem);
@@ -43,7 +43,7 @@ public class Main {
   static void startHttpServer(ActorSystem<?> actorSystem) {
     try {
       String host = InetAddress.getLocalHost().getHostName();
-      int port = actorSystem.settings().config().getInt("oti.twin.http.server.port");
+      int port = actorSystem.settings().config().getInt("woe.twin.http.server.port");
       HttpServer.start(host, port, actorSystem);
     } catch (UnknownHostException e) {
       actorSystem.log().error("Http server start failure.", e);
@@ -57,7 +57,7 @@ public class Main {
             Device.entityTypeKey,
             entityContext ->
                 Device.create(entityContext.getEntityId(), clusterSharding)
-        ).withEntityProps(DispatcherSelector.fromConfig("oti.twin.device-entity-dispatcher"))
+        ).withEntityProps(DispatcherSelector.fromConfig("woe.twin.device-entity-dispatcher"))
     );
   }
 

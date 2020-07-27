@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static oti.twin.WorldMap.*;
+import static woe.twin.WorldMap.*;
 
 class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.State> {
   final String entityId;
@@ -313,7 +313,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     }
   }
 
-  static final String projectionShardsPerZoom = "oti.twin.projection-shards-per-zoom";
+  static final String projectionShardsPerZoom = "woe.twin.projection-shards-per-zoom";
   private static final String tagFormat = "zoom-%d-tag-%d";
 
   private Set<String> tagsForEntity() {

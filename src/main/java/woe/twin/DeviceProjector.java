@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.typed.ActorSystem;
 import akka.japi.function.Function;
@@ -143,10 +143,10 @@ class DeviceProjector {
     private final DataSource dataSource;
 
     DbSessionFactory(ActorSystem<?> actorSystem) {
-      final String dbUrl = actorSystem.settings().config().getString("oti.twin.sql.url");
-      final String username = actorSystem.settings().config().getString("oti.twin.sql.username");
-      final String password = actorSystem.settings().config().getString("oti.twin.sql.password");
-      final int maxPoolSize = actorSystem.settings().config().getInt("oti.twin.sql.max-pool-size");
+      final String dbUrl = actorSystem.settings().config().getString("woe.twin.sql.url");
+      final String username = actorSystem.settings().config().getString("woe.twin.sql.username");
+      final String password = actorSystem.settings().config().getString("woe.twin.sql.password");
+      final int maxPoolSize = actorSystem.settings().config().getInt("woe.twin.sql.max-pool-size");
 
       final HikariConfig config = new HikariConfig();
       config.setJdbcUrl(dbUrl);
@@ -165,8 +165,8 @@ class DeviceProjector {
   }
 
   static GroupedProjection<Offset, EventEnvelope<Device.Event>> start(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, String tag) {
-    final int groupAfterEnvelopes = actorSystem.settings().config().getInt("oti.twin.projection.group-after-envelopes");
-    final Duration groupAfterDuration = actorSystem.settings().config().getDuration("oti.twin.projection.group-after-duration");
+    final int groupAfterEnvelopes = actorSystem.settings().config().getInt("woe.twin.projection.group-after-envelopes");
+    final Duration groupAfterDuration = actorSystem.settings().config().getDuration("woe.twin.projection.group-after-duration");
     final SourceProvider<Offset, EventEnvelope<Device.Event>> sourceProvider =
         EventSourcedProvider.eventsByTag(actorSystem, CassandraReadJournal.Identifier(), tag);
     return JdbcProjection.groupedWithin(

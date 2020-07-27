@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

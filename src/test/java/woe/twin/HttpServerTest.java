@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.cluster.Cluster;
@@ -21,8 +21,8 @@ import org.junit.Test;
 
 import java.util.UUID;
 
-import static oti.twin.WorldMap.latLng;
-import static oti.twin.WorldMap.regionAtLatLng;
+import static woe.twin.WorldMap.latLng;
+import static woe.twin.WorldMap.regionAtLatLng;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class HttpServerTest {
@@ -55,8 +55,8 @@ public class HttpServerTest {
     );
     testKit.system().log().info("Test cluster node {}", Cluster.get(testKit.system()).selfMember());
 
-    String host = testKit.system().settings().config().getString("oti.twin.http.server.host");
-    int port = testKit.system().settings().config().getInt("oti.twin.http.server.port");
+    String host = testKit.system().settings().config().getString("woe.twin.http.server.host");
+    int port = testKit.system().settings().config().getInt("woe.twin.http.server.port");
     //httpServer = HttpServer.start(host, port, testKit.system());
   }
 

@@ -1,4 +1,4 @@
-package oti.twin;
+package woe.twin;
 
 import akka.actor.testkit.typed.javadsl.LoggingTestKit;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
@@ -25,8 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static oti.twin.WorldMap.entityIdOf;
-import static oti.twin.WorldMap.regionAtLatLng;
+import static woe.twin.WorldMap.entityIdOf;
+import static woe.twin.WorldMap.regionAtLatLng;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DeviceProjectorTest {
