@@ -5,6 +5,7 @@ let worldMap;
 let canvas;
 let mouseSelectionWidth;
 let areaSelectionOn = false;
+let areaSelectionRate = 1000;
 let areaSelectionAction = "";
 let areaSelectionColor = [0, 0, 0, 0];
 let queryResponse = {};
@@ -245,7 +246,7 @@ function drawSelectionCounts() {
 
   Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 4.6).setW(20).setH(height)
           .setBorder(border)
-          .setKey("Devices in world")
+          .setKey("Devices worldwide")
           .setValue(queryResponse.deviceCount.toLocaleString())
           .setBgColor(bgColor)
           .setKeyColor(keyColor)
@@ -318,6 +319,34 @@ function mouseGridIndexes() {
 }
 
 function mouseClicked(event) {
+  if (areaSelectionOn) {
+    const loc = mouseGridLocation();
+    if (loc.inGrid) {
+      httpPost(
+        location + "selection",
+        "json",
+        {
+          action: areaSelectionAction,
+          rate: areaSelectionRate,
+          zoom: worldMap.zoom(),
+          topLeftLat: loc.map.topLeft.lat,
+          topLeftLng: loc.map.topLeft.lng,
+          botRightLat: loc.map.botRight.lat,
+          botRightLng: loc.map.botRight.lng
+        },
+        function (response) {
+          console.log(response);
+        },
+        function (error) {
+          console.log(error);
+        }
+      );
+    }
+    areaSelectionOn = false;
+  }
+}
+
+function mouseClickedOLD(event) {
   if (areaSelectionOn) {
     const loc = mouseGridLocation();
     if (loc.inGrid) {
@@ -464,6 +493,42 @@ function keyPressed() {
       areaSelectionAction = "sad";
       areaSelectionColor = areaSelectionColorSad;
       break;
+  }
+}
+
+function keyTyped() {
+  if (keyCode == 'r'.charCodeAt(0)) {
+    if (areaSelectionRate > 10000000) {
+      areaSelectionRate -= 10000000;
+    } else if (areaSelectionRate > 1000000) {
+      areaSelectionRate -= 1000000;
+    } else if (areaSelectionRate > 100000) {
+      areaSelectionRate -= 100000;
+    } else if (areaSelectionRate > 10000) {
+      areaSelectionRate -= 10000;
+    } else if (areaSelectionRate > 1000) {
+      areaSelectionRate -= 1000;
+    } else if (areaSelectionRate > 100) {
+      areaSelectionRate -= 100;
+    }
+    areaSelectionRate = Math.max(100, areaSelectionRate);
+    console.log("Decrease " + areaSelectionRate.toLocaleString());
+  } else if (keyCode == 'R'.charCodeAt(0)) {
+    if (areaSelectionRate >= 10000000) {
+      areaSelectionRate += 10000000;
+    } else if (areaSelectionRate >= 1000000) {
+      areaSelectionRate += 1000000;
+    } else if (areaSelectionRate >= 100000) {
+      areaSelectionRate += 100000;
+    } else if (areaSelectionRate >= 10000) {
+      areaSelectionRate += 10000;
+    } else if (areaSelectionRate >= 1000) {
+      areaSelectionRate += 1000;
+    } else if (areaSelectionRate >= 100) {
+      areaSelectionRate += 100;
+    }
+    areaSelectionRate = Math.min(Math.pow(10, 9), areaSelectionRate);
+    console.log("Increase " + areaSelectionRate.toLocaleString());
   }
 }
 
