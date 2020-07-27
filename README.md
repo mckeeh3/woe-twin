@@ -59,8 +59,8 @@ Recommended default deployment changes.
 ~~~bash
 $ helm install yugabyte-db yugabytedb/yugabyte --namespace yugabyte-db --wait \
 --set replicas.tserver=4,\
-resourse.tserver.requests.cpu=4,\
-resourse.tserver.limits.cpu=8
+resource.tserver.requests.cpu=4,\
+resource.tserver.limits.cpu=8
 ~~~
 
 #### Create Cassandra and PostgreSQL Tables
