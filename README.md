@@ -41,15 +41,27 @@ to zoom level 18.
 
 ### Deploy the WOE Twin Microservice
 
+The `kubectl` CLI provides a nice Kubectl Autocomplete feature for `bash` and `zsh`.
+See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-autocomplete) for instructions.
+
 #### Yugabyte on Kubernetes or MiniKube
 
 Follow the documentation for installing Kubernetes,
 [MiniKube](https://kubernetes.io/docs/tasks/tools/install-minikube/)
 and
-[Yugabyte](https://download.yugabyte.com/#kubernetes).
+[Yugabyte](https://docs.yugabyte.com/latest/deploy/).
 
-The `kubectl` CLI provides a nice Kubectl Autocomplete feature for `bash` and `zsh`.
-See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-autocomplete) for instructions.
+Recommended default deployment changes.
+* Deploy with [Helm](https://docs.yugabyte.com/latest/deploy/kubernetes/single-zone/gke/helm-chart/)
+* Use namespace `yugabyte-db`. `kubectl create namespace yugabyte-db`
+* Specify Kubernetes pod replicas, CPU request and limit when doing the `hrlm install` step.
+
+~~~bash
+$ helm install yugabyte-db yugabytedb/yugabyte --namespace yugabyte-db --wait \
+--set replicas.tserver=4,\
+resourse.tserver.requests.cpu=4,\
+resourse.tserver.limits.cpu=8
+~~~
 
 #### Create Cassandra and PostgreSQL Tables
 
@@ -58,10 +70,10 @@ CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
 
 Cassandra CQL
 ~~~bash
-$ kubectl --namespace yb-demo exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
+$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
 
 Defaulting container name to yb-tserver.
-Use 'kubectl describe pod/yb-tserver-0 -n yb-demo' to see all of the containers in this pod.
+Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
@@ -70,10 +82,10 @@ ycqlsh> quit
 
 PostgreSQL
 ~~~bash
-$ kubectl --namespace yb-demo exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0  --echo-queries
+$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0  --echo-queries
 
 Defaulting container name to yb-tserver.
-Use 'kubectl describe pod/yb-tserver-0 -n yb-demo' to see all of the containers in this pod.
+Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 ysqlsh (11.2-YB-2.1.8.1-b0)
 Type "help" for help.
 
@@ -85,24 +97,24 @@ yugabyte=# \q
 From the woe-twin project directory.
 
 ~~~bash
-$ kubectl cp src/main/resources/akka-persistence-journal-create-twin.cql yb-demo/yb-tserver-0:/tmp                                                                  
+$ kubectl cp src/main/resources/akka-persistence-journal-create-twin.cql yugabyte-db/yb-tserver-0:/tmp                                                                  
 Defaulting container name to yb-tserver.
 
-$ kubectl cp src/main/resources/region-projection.sql yb-demo/yb-tserver-0:/tmp
+$ kubectl cp src/main/resources/region-projection.sql yugabyte-db/yb-tserver-0:/tmp
 Defaulting container name to yb-tserver.
 
-$ kubectl cp src/main/resources/akka-projection-offset-store.sql yb-demo/yb-tserver-0:/tmp
+$ kubectl cp src/main/resources/akka-projection-offset-store.sql yugabyte-db/yb-tserver-0:/tmp
 Defaulting container name to yb-tserver.
 ~~~
 
 ##### Create the Cassandra and PostgreSQL Tables
 Cassandra
 ~~~bash
-$ kubectl --namespace yb-demo exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0                                                      
+$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0                                                      
 ~~~
 ~~~
 Defaulting container name to yb-tserver.
-Use 'kubectl describe pod/yb-tserver-0 -n yb-demo' to see all of the containers in this pod.
+Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
@@ -122,11 +134,11 @@ ycqlsh:woe_twin> quit
 
 PostgreSQL
 ~~~bash
-$ kubectl --namespace yb-demo exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0  --echo-queries
+$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0  --echo-queries
 ~~~
 ~~~
 Defaulting container name to yb-tserver.
-Use 'kubectl describe pod/yb-tserver-0 -n yb-demo' to see all of the containers in this pod.
+Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 ysqlsh (11.2-YB-2.1.8.1-b0)
 Type "help" for help.
 
