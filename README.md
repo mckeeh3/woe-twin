@@ -63,15 +63,53 @@ resource.tserver.requests.cpu=4,\
 resource.tserver.limits.cpu=8
 ~~~
 
+As shown in the Yugabyte documentation, verify the status of the deployment using the following command.
+~~~bash
+$ helm status yugabyte-db -n yugabyte-db
+~~~
+~~~
+NAME: yugabyte-db
+LAST DEPLOYED: Mon Jul 27 14:36:03 2020
+NAMESPACE: yugabyte-db
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+1. Get YugabyteDB Pods by running this command:
+  kubectl --namespace yugabyte-db get pods
+
+2. Get list of YugabyteDB services that are running:
+  kubectl --namespace yugabyte-db get services
+
+3. Get information about the load balancer services:
+  kubectl get svc --namespace yugabyte-db
+
+4. Connect to one of the tablet server:
+  kubectl exec --namespace yugabyte-db -it yb-tserver-0 bash
+
+5. Run YSQL shell from inside of a tablet server:
+  kubectl exec --namespace yugabyte-db -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0.yb-tservers.yugabyte-db
+
+6. Cleanup YugabyteDB Pods
+  For helm 2:
+  helm delete yugabyte-db --purge
+  For helm 3:
+  helm delete yugabyte-db -n yugabyte-db
+  NOTE: You need to manually delete the persistent volume
+  kubectl delete pvc --namespace yugabyte-db -l app=yb-master
+  kubectl delete pvc --namespace yugabyte-db -l app=yb-tserver
+~~~
+
 #### Create Cassandra and PostgreSQL Tables
 
 Try the following commands to verify access to Cassandra CQL and PostgreSQL
 CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
 
-Cassandra CQL
+Cassandra CQL shell
 ~~~bash
 $ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
-
+~~~
+~~~
 Defaulting container name to yb-tserver.
 Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 Connected to local cluster at yb-tserver-0:9042.
@@ -80,16 +118,17 @@ Use HELP for help.
 ycqlsh> quit
 ~~~
 
-PostgreSQL
+PostgreSQL shell
 ~~~bash
 $ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0  --echo-queries
-
+~~~
+~~~
 Defaulting container name to yb-tserver.
 Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
-ysqlsh (11.2-YB-2.1.8.1-b0)
+ysqlsh (11.2-YB-2.2.0.0-b0)
 Type "help" for help.
 
-yugabyte=# \q
+yugabyte=# quit
 ~~~
 
 ##### Copy CQL and SQL DDL commands to the Yugabyte server
@@ -118,17 +157,23 @@ Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the contain
 Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
+~~~
+~~~
 ycqlsh> source '/tmp/akka-persistence-journal-create-twin.cql'
 ycqlsh> describe keyspaces;
-
+~~~
+~~~
 system_schema  woe_twin  system_auth  system
-
+~~~
+~~~
 ycqlsh> use woe_twin;
 ycqlsh:woe_twin> describe tables;
-
+~~~
+~~~
 tag_views  tag_scanning         tag_write_progress
 messages   all_persistence_ids  metadata          
-
+~~~
+~~~
 ycqlsh:woe_twin> quit
 ~~~
 
@@ -141,11 +186,11 @@ Defaulting container name to yb-tserver.
 Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 ysqlsh (11.2-YB-2.1.8.1-b0)
 Type "help" for help.
-
+~~~
+~~~
 yugabyte=# \i /tmp/region-projection.sql
-
-create schema if not exists iot_twin;
-CREATE SCHEMA
+~~~
+~~~
 create table if not exists region (
     zoom            integer,
     top_left_lat    double precision,
@@ -156,41 +201,27 @@ create table if not exists region (
     happy_count     integer,
     sad_count       integer,
     constraint region_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
-);
+) split into 20 tablets;
 CREATE TABLE
-create index region_zoom on region (zoom);
-CREATE INDEX
-create index region_top_left_lat on region (top_left_lat);
-CREATE INDEX
-create index region_top_left_lng on region (top_left_lng);
-CREATE INDEX
-create index region_bot_right_lat on region (bot_right_lat);
-CREATE INDEX
-create index region_bot_right_lng on region (bot_right_lng);
-CREATE INDEX
-
+~~~
+~~~
 yugabyte=# \i /tmp/akka-projection-offset-store.sql
-
-create schema if not exists woe_twin;
-ysqlsh:/tmp/akka-projection-offset-store.sql:2: NOTICE:  schema "woe_twin" already exists, skipping
-CREATE SCHEMA
-create table if not exists akka_projection_offset_store (
-  "PROJECTION_NAME"   varchar(255) not null,
-  "PROJECTION_KEY"    varchar(255) not null,
-  "OFFSET"            varchar(255) not null,
-  "MANIFEST"          varchar(4) not null,
-  "MERGEABLE"         boolean not null,
-  "LAST_UPDATED"      timestamp(9) with time zone not null,
-  constraint pk_projection_id primary key ("PROJECTION_NAME", "PROJECTION_KEY")
+~~~
+~~~
+create table if not exists "AKKA_PROJECTION_OFFSET_STORE" (
+  "PROJECTION_NAME" VARCHAR(255) NOT NULL,
+  "PROJECTION_KEY" VARCHAR(255) NOT NULL,
+  "OFFSET" VARCHAR(255) NOT NULL,
+  "MANIFEST" VARCHAR(4) NOT NULL,
+  "MERGEABLE" BOOLEAN NOT NULL,
+  "LAST_UPDATED" BIGINT NOT NULL,
+  constraint "PK_PROJECTION_ID" primary key ("PROJECTION_NAME","PROJECTION_KEY")
 );
-ysqlsh:/tmp/akka-projection-offset-store.sql:12: WARNING:  TIMESTAMP(9) WITH TIME ZONE precision reduced to maximum allowed, 6
-LINE 7:   "LAST_UPDATED"      timestamp(9) with time zone not null,
-                              ^
-ysqlsh:/tmp/akka-projection-offset-store.sql:12: WARNING:  TIMESTAMP(9) WITH TIME ZONE precision reduced to maximum allowed, 6
 CREATE TABLE
-create index projection_name_index on akka_projection_offset_store ("PROJECTION_NAME");
+create index if not exists "PROJECTION_NAME_INDEX" on "AKKA_PROJECTION_OFFSET_STORE" ("PROJECTION_NAME");
 CREATE INDEX
-
+~~~
+~~~
 yugabyte=# \q
 ~~~
 
@@ -281,6 +312,135 @@ woe-twin-746587fbf4-2zth5   1/1     Running   0          33s
 woe-twin-746587fbf4-trkdt   1/1     Running   0          33s
 woe-twin-746587fbf4-zzk7f   1/1     Running   0          33s
 ~~~
+
+#### Enable External Access
+
+Create a load balancer to enable access to the WOE Twin microservice HTTP endpoint.
+
+~~~bash
+$ kubectl expose deployment woe-twin --type=LoadBalancer --name=woe-twin-service
+~~~
+~~~
+service/woe-twin-service exposed
+~~~
+
+Next, view to external port assignments.
+
+~~~bash
+$ kubectl get services woe-twin-service
+~~~
+~~~
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
+woe-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   5h4m
+~~~
+
+Note that in this example, the Kubernetes internal port 8080 external port assignment of 32171.
+
+For MiniKube deployments, the full URL to access the HTTP endpoint is constructed using the MiniKube IP and the external port.
+
+~~~bash
+$ minikube ip       
+~~~
+In this example the MiniKube IP is:
+~~~
+192.168.99.102
+~~~
+Try accessing this endpoint using the curl command or from a browser.
+~~~bash
+$ curl -v http://$(minikube ip):32171
+~~~
+~~~
+*   Trying 192.168.99.102:32171...
+* Connected to 192.168.99.102 (192.168.99.102) port 32171 (#0)
+> GET / HTTP/1.1
+> Host: 192.168.99.102:32171
+> User-Agent: curl/7.70.0
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< Last-Modified: Thu, 18 Jun 2020 14:31:18 GMT
+< ETag: "52800172c7d756f0"
+< Accept-Ranges: bytes
+< Server: akka-http/10.1.12
+< Date: Fri, 19 Jun 2020 00:26:36 GMT
+< Content-Type: text/html; charset=UTF-8
+< Content-Length: 330
+<
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Of Things Internet</title>
+  <script src="p5.js" type="text/javascript"></script>
+  <script src="mappa.js" type="text/javascript"></script>
+  <script src="woe.js" type="text/javascript"></script>
+  <style> body { padding: 0; margin: 0; }</style>
+</head>
+
+<body>
+</body>
+
+</html>
+
+* Connection #0 to host 192.168.99.102 left intact
+~~~
+
+#### Verify Internal HTTP access
+The WOE Twin and WOE Sim microservices communicate with each other via HTTP. Each
+microservie needs to know the host name of the other service. Use the following to
+verify the hostname of this service.
+
+First, get the IP assigned to the load balancer.
+~~~bash
+$ kubectl get service woe-twin-service
+~~~
+~~~
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
+woe-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   16h~~~
+~~~
+In this example, the internal load balancer IP is 10.106.225.172.
+
+Next, run a shell that can be used to look around the Kubernetes network.
+~~~bash
+$ kubectl run -i --tty --image busybox:1.28 dns-test --restart=Never --rm
+~~~
+Use the nslookup command to see the DNS names assigned to the load balancer IP.
+~~~
+/ # nslookup 10.106.25.172
+Server:    10.96.0.10
+Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      10.106.25.172
+Address 1: 10.106.25.172 woe-twin-service.woe-twin-1.svc.cluster.local
+~~~
+Note that the load balancer host name is `woe-twin-service.woe-twin-1.svc.cluster.local`.
+
+Verify that the WOE Twin HTTP server is accessible via the host name.
+~~~
+/ # wget -qO- http://woe-twin-service.woe-twin-1.svc.cluster.local:8080
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Of Things Internet</title>
+  <script src="p5.js" type="text/javascript"></script>
+  <script src="mappa.js" type="text/javascript"></script>
+  <script src="woe.js" type="text/javascript"></script>
+  <style> body { padding: 0; margin: 0; }</style>
+</head>
+
+<body>
+</body>
+
+</html>
+~~~
+Leave the shell using the `exit` command.
+~~~
+/ # exit
+pod "dns-test" deleted
+~~~
+
 
 ### Build and Deploy to Google Cloud Container Registry
 
@@ -398,7 +558,13 @@ root@woe-twin-658d9878d9-7zsmv:/# ll maven/woe-twin-1.0-SNAPSHOT.jar
 root@woe-twin-658d9878d9-7zsmv:/# exit
 exit
 ~~~
-### Enable External Access
+#### Scale Running Akka Nodes/K8 pods
+
+~~~bash
+$ kubectl scale --replicas=10 deployment/woe-twin
+~~~
+
+#### Enable External Access
 
 Create a load balancer to enable access to the WOE Twin microservice HTTP endpoint.
 
@@ -407,127 +573,4 @@ $ kubectl expose deployment woe-twin --type=LoadBalancer --name=woe-twin-service
 ~~~
 ~~~
 service/woe-twin-service exposed
-~~~
-
-Next, view to external port assignments.
-
-~~~bash
-$ kubectl get services woe-twin-service
-~~~
-~~~
-NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-woe-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   5h4m
-~~~
-
-Note that in this example, the Kubernetes internal port 8080 external port assignment of 32171.
-
-For MiniKube deployments, the full URL to access the HTTP endpoint is constructed using the MiniKube IP and the external port.
-
-~~~bash
-$ minikube ip       
-~~~
-In this example the MiniKube IP is:
-~~~
-192.168.99.102
-~~~
-Try accessing this endpoint using the curl command or from a browser.
-~~~bash
-$ curl -v http://$(minikube ip):32171
-~~~
-~~~
-*   Trying 192.168.99.102:32171...
-* Connected to 192.168.99.102 (192.168.99.102) port 32171 (#0)
-> GET / HTTP/1.1
-> Host: 192.168.99.102:32171
-> User-Agent: curl/7.70.0
-> Accept: */*
->
-* Mark bundle as not supporting multiuse
-< HTTP/1.1 200 OK
-< Last-Modified: Thu, 18 Jun 2020 14:31:18 GMT
-< ETag: "52800172c7d756f0"
-< Accept-Ranges: bytes
-< Server: akka-http/10.1.12
-< Date: Fri, 19 Jun 2020 00:26:36 GMT
-< Content-Type: text/html; charset=UTF-8
-< Content-Length: 330
-<
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <title>Of Things Internet</title>
-  <script src="p5.js" type="text/javascript"></script>
-  <script src="mappa.js" type="text/javascript"></script>
-  <script src="woe.js" type="text/javascript"></script>
-  <style> body { padding: 0; margin: 0; }</style>
-</head>
-
-<body>
-</body>
-
-</html>
-
-* Connection #0 to host 192.168.99.102 left intact
-~~~
-
-### Verify Internal HTTP access
-The WOE Twin and WOE Sim microservices communicate with each other via HTTP. Each
-microservie needs to know the host name of the other service. Use the following to
-verify the hostname of this service.
-
-First, get the IP assigned to the load balancer.
-~~~bash
-$ kubectl get service woe-twin-service
-~~~
-~~~
-NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-woe-twin-service   LoadBalancer   10.106.25.172   <pending>     2552:31029/TCP,8558:32559/TCP,8080:32171/TCP   16h~~~
-~~~
-In this example, the internal load balancer IP is 10.106.225.172.
-
-Next, run a shell that can be used to look around the Kubernetes network.
-~~~bash
-$ kubectl run -i --tty --image busybox:1.28 dns-test --restart=Never --rm
-~~~
-Use the nslookup command to see the DNS names assigned to the load balancer IP.
-~~~
-/ # nslookup 10.106.25.172
-Server:    10.96.0.10
-Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
-
-Name:      10.106.25.172
-Address 1: 10.106.25.172 woe-twin-service.woe-twin-1.svc.cluster.local
-~~~
-Note that the load balancer host name is `woe-twin-service.woe-twin-1.svc.cluster.local`.
-
-Verify that the WOE Twin HTTP server is accessible via the host name.
-~~~
-/ # wget -qO- http://woe-twin-service.woe-twin-1.svc.cluster.local:8080
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <title>Of Things Internet</title>
-  <script src="p5.js" type="text/javascript"></script>
-  <script src="mappa.js" type="text/javascript"></script>
-  <script src="woe.js" type="text/javascript"></script>
-  <style> body { padding: 0; margin: 0; }</style>
-</head>
-
-<body>
-</body>
-
-</html>
-~~~
-Leave the shell using the `exit` command.
-~~~
-/ # exit
-pod "dns-test" deleted
-~~~
-
-### Scale Running Akka Nodes/K8 pods
-
-~~~bash
-$ kubectl scale --replicas=10 deployment/woe-twin
 ~~~
