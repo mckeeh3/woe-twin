@@ -452,7 +452,7 @@ documentation TODO for creating a cluster and a project.
 Use the [Quickstart for Container Registry](https://cloud.google.com/container-registry/docs/quickstart)
 to create a Docker image container registry.
 
-Deploy [Yugabyte](https://download.yugabyte.com/#kubernetes) to the GKE cluster.
+Deploy [Yugabyte](https://docs.yugabyte.com/latest/deploy/kubernetes/single-zone/gke/helm-chart/) to the GKE cluster.
 
 Build the project, which will create a new Docker image.
 ~~~bash
@@ -511,17 +511,15 @@ Only listing images in gcr.io/akka-yuga. Use --repository to list images in othe
 
 Create the Kubernetes namespace. The namespace only needs to be created once.
 ~~~bash
-$ kubectl apply -f kubernetes/namespace.json     
+$ kubectl create namespace woe-twin-1                       
 ~~~
 ~~~
 namespace/woe-twin-1 created
 ~~~
 
-Context "gke_akka-yuga_us-central1-c_yugadb" modified.
-
 Set this namespace as the default for subsequent `kubectl` commands.
 ~~~bash
-kubectl config set-context --current --namespace=woe-twin-1
+$ kubectl config set-context --current --namespace=woe-twin-1
 ~~~
 ~~~
 Context "gke_akka-yuga_us-central1-c_yugadb" modified.
@@ -573,4 +571,21 @@ $ kubectl expose deployment woe-twin --type=LoadBalancer --name=woe-twin-service
 ~~~
 ~~~
 service/woe-twin-service exposed
+~~~
+
+~~~bash
+$ kubectl get services woe-twin-service                                         
+~~~
+~~~
+NAME               TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                                        AGE
+woe-twin-service   LoadBalancer   10.89.15.220   <pending>     2552:30818/TCP,8558:32548/TCP,8080:30812/TCP   20s
+~~~
+
+It takes a few minutes for an external IP to be assigned. Note the `EXTERNAL-IP` above eventually changes from `<pending>` to the assigned external IP, shown below.
+~~~bash
+kubectl get services woe-twin-service
+~~~
+~~
+NAME               TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                                        AGE
+woe-twin-service   LoadBalancer   10.89.15.220   34.70.176.161   2552:30818/TCP,8558:32548/TCP,8080:30812/TCP   2m24s
 ~~~
