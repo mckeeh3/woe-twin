@@ -327,7 +327,7 @@ function mouseClicked(event) {
         "json",
         {
           action: areaSelectionAction,
-          rate: areaSelectionRate,
+          // rate: areaSelectionRate,
           zoom: worldMap.zoom(),
           topLeftLat: loc.map.topLeft.lat,
           topLeftLng: loc.map.topLeft.lng,

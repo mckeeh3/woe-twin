@@ -1,5 +1,6 @@
 package woe.twin;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.DispatcherSelector;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
@@ -7,7 +8,8 @@ import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.model.*;
+import akka.http.javadsl.model.ContentTypes;
+import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -18,10 +20,15 @@ import org.slf4j.Logger;
 
 import javax.sql.DataSource;
 import java.io.Serializable;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static akka.http.javadsl.server.Directives.*;
 import static woe.twin.WorldMap.entityIdOf;
@@ -74,22 +81,24 @@ public class HttpServer {
               if (!telemetryRequest.action.equals("ping")) {
                 log().debug("POST {}", telemetryRequest);
               }
-              try {
-                submitTelemetryToDevice(telemetryRequest);
-                return complete(StatusCodes.OK, TelemetryResponse.ok(StatusCodes.OK.intValue(), telemetryRequest), Jackson.marshaller());
-              } catch (IllegalArgumentException e) {
-                return complete(StatusCodes.BAD_REQUEST, TelemetryResponse.failed(e.getMessage(), StatusCodes.BAD_REQUEST.intValue(), telemetryRequest), Jackson.marshaller());
-              }
+              return onSuccess(submitTelemetryToDevice(telemetryRequest),
+                  telemetryResponse -> complete(StatusCodes.get(telemetryResponse.httpStatusCode), telemetryResponse, Jackson.marshaller()));
             }
         )
     );
   }
 
-  private void submitTelemetryToDevice(TelemetryRequest telemetryRequest) {
-    Device.TelemetryCommand telemetryCommand = telemetryRequest.asTelemetryCommand();
-    String entityId = entityIdOf(telemetryCommand.region);
+  private CompletionStage<TelemetryResponse> submitTelemetryToDevice(TelemetryRequest telemetryRequest) {
+    String entityId = entityIdOf(telemetryRequest.region);
     EntityRef<Device.Command> entityRef = clusterSharding.entityRefFor(Device.entityTypeKey, entityId);
-    entityRef.tell(telemetryCommand);
+    return entityRef.ask(telemetryRequest::asTelemetryCommand, Duration.ofSeconds(30))
+        .handle((reply, e) -> {
+          if (reply instanceof Device.TelemetryResponseSuccess) {
+            return HttpServer.TelemetryResponse.ok(StatusCodes.OK.intValue(), telemetryRequest);
+          } else {
+            return HttpServer.TelemetryResponse.failed(e.getMessage(), StatusCodes.INTERNAL_SERVER_ERROR.intValue(), telemetryRequest);
+          }
+        });
   }
 
   private Route handleSelectionRequest() {
@@ -137,6 +146,7 @@ public class HttpServer {
     public final double topLeftLng;
     public final double botRightLat;
     public final double botRightLng;
+    public final WorldMap.Region region;
 
     @JsonCreator
     public TelemetryRequest(
@@ -152,21 +162,21 @@ public class HttpServer {
       this.topLeftLng = topLeftLng;
       this.botRightLat = botRightLat;
       this.botRightLng = botRightLng;
+      region = new WorldMap.Region(zoom, WorldMap.topLeft(topLeftLat, topLeftLng), WorldMap.botRight(botRightLat, botRightLng));
     }
 
-    Device.TelemetryCommand asTelemetryCommand() {
-      WorldMap.Region region = new WorldMap.Region(zoom, WorldMap.topLeft(topLeftLat, topLeftLng), WorldMap.botRight(botRightLat, botRightLng));
+    Device.TelemetryCommand asTelemetryCommand(ActorRef<Device.TelemetryResponse> replyTo) {
       switch (action) {
         case "create":
-          return new Device.TelemetryCreateCommand(region);
+          return new Device.TelemetryCreateCommand(region, replyTo);
         case "delete":
-          return new Device.TelemetryDeleteCommand(region);
+          return new Device.TelemetryDeleteCommand(region, replyTo);
         case "happy":
-          return new Device.TelemetryHappyCommand(region);
+          return new Device.TelemetryHappyCommand(region, replyTo);
         case "sad":
-          return new Device.TelemetrySadCommand(region);
+          return new Device.TelemetrySadCommand(region, replyTo);
         case "ping":
-          return new Device.TelemetryPingCommand(region);
+          return new Device.TelemetryPingCommand(region, replyTo);
         default:
           throw new IllegalArgumentException(String.format("Action '%s' illegal, must be one of: 'create', 'delete', 'happy', or 'sad'.", action));
       }

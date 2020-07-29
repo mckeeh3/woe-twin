@@ -60,9 +60,9 @@ spec:
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
             - name: cassandra_host_port_1
-              value: "yb-tservers.yugabyte.svc.cluster.local:9042"
+              value: "yb-tservers.yugabyte-db.svc.cluster.local:9042"
             - name: postgresql_url
-              value: "jdbc:postgresql://yb-tservers.yugabyte.svc.cluster.local:5433/"
+              value: "jdbc:postgresql://yb-tservers.yugabyte-db.svc.cluster.local:5433/"
             - name: postgresql_username
               value: "yugabyte"
             - name: postgresql_password

@@ -1,5 +1,6 @@
 package woe.twin;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -60,7 +61,8 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   private Effect<Event, State> onCreateCommand(State state, TelemetryCreateCommand telemetryCreateCommand) {
     if (state.isInactive()) {
       log().info("{}", telemetryCreateCommand);
-      return Effect().persist(new DeviceActivated(telemetryCreateCommand.region));
+      return Effect().persist(new DeviceActivated(telemetryCreateCommand.region))
+          .thenReply(telemetryCreateCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryCreateCommand));
     }
     return Effect().none();
   }
@@ -68,9 +70,11 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   private Effect<Event, State> onDeleteCommand(State state, TelemetryDeleteCommand telemetryDeleteCommand) {
     if (state.isActive()) {
       if (state.isHappy()) {
-        return Effect().persist(new DeviceDeactivatedHappy(telemetryDeleteCommand.region));
+        return Effect().persist(new DeviceDeactivatedHappy(telemetryDeleteCommand.region))
+            .thenReply(telemetryDeleteCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryDeleteCommand));
       } else {
-        return Effect().persist(new DeviceDeactivatedSad(telemetryDeleteCommand.region));
+        return Effect().persist(new DeviceDeactivatedSad(telemetryDeleteCommand.region))
+            .thenReply(telemetryDeleteCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryDeleteCommand));
       }
     }
     return Effect().none();
@@ -78,14 +82,16 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
 
   private Effect<Event, State> onHappyCommand(State state, TelemetryHappyCommand telemetryHappyCommand) {
     if (state.isActive() && state.isSad()) {
-      return Effect().persist(new DeviceMadeHappy(telemetryHappyCommand.region));
+      return Effect().persist(new DeviceMadeHappy(telemetryHappyCommand.region))
+          .thenReply(telemetryHappyCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryHappyCommand));
     }
     return Effect().none();
   }
 
   private Effect<Event, State> onSadCommand(State state, TelemetrySadCommand telemetrySadCommand) {
     if (state.isActive() && state.isHappy()) {
-      return Effect().persist(new DeviceMadeSad(telemetrySadCommand.region));
+      return Effect().persist(new DeviceMadeSad(telemetrySadCommand.region))
+          .thenReply(telemetrySadCommand.replyTo, s -> new TelemetryResponseSuccess(telemetrySadCommand));
     }
     return Effect().none();
   }
@@ -93,7 +99,8 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   private Effect<Event, State> onPingCommand(State state, TelemetryPingCommand telemetryPingCommand) {
     if (state.isInactive()) {
       log().info("Ping create inactive device {}", telemetryPingCommand);
-      return Effect().persist(new DeviceActivated(telemetryPingCommand.region));
+      return Effect().persist(new DeviceActivated(telemetryPingCommand.region))
+          .thenReply(telemetryPingCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryPingCommand));
     }
     return Effect().none();
   }
@@ -120,9 +127,11 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
 
   public abstract static class TelemetryCommand implements Command {
     public final WorldMap.Region region;
+    public final ActorRef<TelemetryResponse> replyTo;
 
-    public TelemetryCommand(WorldMap.Region region) {
+    public TelemetryCommand(WorldMap.Region region, ActorRef<TelemetryResponse> replyTo) {
       this.region = region;
+      this.replyTo = replyTo;
     }
 
     @Override
@@ -146,36 +155,36 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
 
   public static class TelemetryCreateCommand extends TelemetryCommand {
     @JsonCreator
-    public TelemetryCreateCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(region);
+    public TelemetryCreateCommand(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<TelemetryResponse> replyTo) {
+      super(region, replyTo);
     }
   }
 
   public static class TelemetryDeleteCommand extends TelemetryCommand {
     @JsonCreator
-    public TelemetryDeleteCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(region);
+    public TelemetryDeleteCommand(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<TelemetryResponse> replyTo) {
+      super(region, replyTo);
     }
   }
 
   public static class TelemetryHappyCommand extends TelemetryCommand {
     @JsonCreator
-    public TelemetryHappyCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(region);
+    public TelemetryHappyCommand(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<TelemetryResponse> replyTo) {
+      super(region, replyTo);
     }
   }
 
   public static class TelemetrySadCommand extends TelemetryCommand {
     @JsonCreator
-    public TelemetrySadCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(region);
+    public TelemetrySadCommand(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<TelemetryResponse> replyTo) {
+      super(region, replyTo);
     }
   }
 
   public static class TelemetryPingCommand extends TelemetryCommand {
     @JsonCreator
-    public TelemetryPingCommand(@JsonProperty("region") WorldMap.Region region) {
-      super(region);
+    public TelemetryPingCommand(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<TelemetryResponse> replyTo) {
+      super(region, replyTo);
     }
   }
 
@@ -310,6 +319,27 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
         makeHappy();
       }
       return this;
+    }
+  }
+
+  interface TelemetryResponse extends CborSerializable {
+  }
+
+  public static class TelemetryResponseSuccess implements TelemetryResponse {
+    public final Command command;
+
+    @JsonCreator
+    public TelemetryResponseSuccess(Command command) {
+      this.command = command;
+    }
+  }
+
+  public static class TelemetryResponseFailed implements TelemetryResponse {
+    public final String message;
+
+    @JsonCreator
+    public TelemetryResponseFailed(String message) {
+      this.message = message;
     }
   }
 

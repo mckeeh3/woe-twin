@@ -1,6 +1,9 @@
 package woe.twin;
 
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
+import akka.actor.typed.ActorRef;
+import akka.actor.typed.Behavior;
+import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
@@ -21,9 +24,9 @@ import org.junit.Test;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static woe.twin.WorldMap.latLng;
 import static woe.twin.WorldMap.regionAtLatLng;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class HttpServerTest {
   private static HttpServer httpServer;
@@ -85,6 +88,29 @@ public class HttpServerTest {
     final String sql = HttpServer.sqlInRegions(area);
     testKit.system().log().info("{}", sql);
     assertNotNull(sql);
+  }
+
+  private static class MaybeRespond {
+    static Behavior<Object> create() {
+      return Behaviors.setup(ctx -> new MaybeRespond().behavior());
+    }
+
+    private Behavior<Object> behavior() {
+      return Behaviors.receive(Object.class)
+          .onMessage(ActorRef.class, this::onActorRef)
+          .onAnyMessage(this::onMessage)
+          .build();
+    }
+
+    private Behavior<Object> onActorRef(ActorRef<Object> actorRef) {
+      actorRef.tell("Success!");
+      return Behaviors.same();
+    }
+
+    private Behavior<Object> onMessage(Object message) {
+      testKit.system().log().info("Message '{}', not sending response message.", message);
+      return Behaviors.same();
+    }
   }
 
   private static HttpEntity.Strict toHttpEntity(Object pojo) {

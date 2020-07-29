@@ -2,6 +2,7 @@ package woe.twin;
 
 import akka.actor.testkit.typed.javadsl.LoggingTestKit;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
+import akka.actor.testkit.typed.javadsl.TestProbe;
 import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
@@ -61,6 +62,7 @@ public class DeviceProjectorTest {
   @Ignore
   @Test
   public void createDevice() {
+    final TestProbe<Device.TelemetryResponse> probe = testKit.createTestProbe();
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(18, new WorldMap.LatLng(51.50079211, -0.11682093));
 
@@ -70,7 +72,7 @@ public class DeviceProjectorTest {
         .expect(
             testKit.system(),
             () -> {
-              entityRef.tell(new Device.TelemetryCreateCommand(region));
+              entityRef.tell(new Device.TelemetryCreateCommand(region, probe.ref()));
               return null;
             }
         );
