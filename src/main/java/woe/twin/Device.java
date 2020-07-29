@@ -63,8 +63,10 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
       log().info("{}", telemetryCreateCommand);
       return Effect().persist(new DeviceActivated(telemetryCreateCommand.region))
           .thenReply(telemetryCreateCommand.replyTo, s -> new TelemetryCreateResponse(telemetryCreateCommand));
+    } else {
+      telemetryCreateCommand.replyTo.tell(new TelemetryCreateResponse(telemetryCreateCommand));
+      return Effect().none();
     }
-    return Effect().none();
   }
 
   private Effect<Event, State> onDeleteCommand(State state, TelemetryDeleteCommand telemetryDeleteCommand) {
@@ -76,24 +78,30 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
         return Effect().persist(new DeviceDeactivatedSad(telemetryDeleteCommand.region))
             .thenReply(telemetryDeleteCommand.replyTo, s -> new TelemetryDeleteResponse(telemetryDeleteCommand));
       }
+    } else {
+      telemetryDeleteCommand.replyTo.tell(new TelemetryDeleteResponse(telemetryDeleteCommand));
+      return Effect().none();
     }
-    return Effect().none();
   }
 
   private Effect<Event, State> onHappyCommand(State state, TelemetryHappyCommand telemetryHappyCommand) {
     if (state.isActive() && state.isSad()) {
       return Effect().persist(new DeviceMadeHappy(telemetryHappyCommand.region))
           .thenReply(telemetryHappyCommand.replyTo, s -> new TelemetryHappyResponse(telemetryHappyCommand));
+    } else {
+      telemetryHappyCommand.replyTo.tell(new TelemetryHappyResponse(telemetryHappyCommand));
+      return Effect().none();
     }
-    return Effect().none();
   }
 
   private Effect<Event, State> onSadCommand(State state, TelemetrySadCommand telemetrySadCommand) {
     if (state.isActive() && state.isHappy()) {
       return Effect().persist(new DeviceMadeSad(telemetrySadCommand.region))
           .thenReply(telemetrySadCommand.replyTo, s -> new TelemetrySadResponse(telemetrySadCommand));
+    } else {
+      telemetrySadCommand.replyTo.tell(new TelemetrySadResponse(telemetrySadCommand));
+      return Effect().none();
     }
-    return Effect().none();
   }
 
   private Effect<Event, State> onPingCommand(State state, TelemetryPingCommand telemetryPingCommand) {
@@ -101,8 +109,10 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
       log().info("Ping create inactive device {}", telemetryPingCommand);
       return Effect().persist(new DeviceActivated(telemetryPingCommand.region))
           .thenReply(telemetryPingCommand.replyTo, s -> new TelemetryPingResponse(telemetryPingCommand));
+    } else {
+      telemetryPingCommand.replyTo.tell(new TelemetryPingResponse(telemetryPingCommand));
+      return Effect().none();
     }
-    return Effect().none();
   }
 
   @Override
@@ -122,10 +132,6 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     return tags;
   }
 
-  //  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-//  @JsonSubTypes({
-//      @JsonSubTypes.Type(value = TelemetryCreateCommand.class, name = "telemetryCreateCommand")
-//  })
   interface Command extends CborSerializable {
   }
 
