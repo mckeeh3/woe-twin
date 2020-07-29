@@ -62,7 +62,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     if (state.isInactive()) {
       log().info("{}", telemetryCreateCommand);
       return Effect().persist(new DeviceActivated(telemetryCreateCommand.region))
-          .thenReply(telemetryCreateCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryCreateCommand));
+          .thenReply(telemetryCreateCommand.replyTo, s -> new TelemetryCreateResponse(telemetryCreateCommand));
     }
     return Effect().none();
   }
@@ -71,10 +71,10 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     if (state.isActive()) {
       if (state.isHappy()) {
         return Effect().persist(new DeviceDeactivatedHappy(telemetryDeleteCommand.region))
-            .thenReply(telemetryDeleteCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryDeleteCommand));
+            .thenReply(telemetryDeleteCommand.replyTo, s -> new TelemetryDeleteResponse(telemetryDeleteCommand));
       } else {
         return Effect().persist(new DeviceDeactivatedSad(telemetryDeleteCommand.region))
-            .thenReply(telemetryDeleteCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryDeleteCommand));
+            .thenReply(telemetryDeleteCommand.replyTo, s -> new TelemetryDeleteResponse(telemetryDeleteCommand));
       }
     }
     return Effect().none();
@@ -83,7 +83,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   private Effect<Event, State> onHappyCommand(State state, TelemetryHappyCommand telemetryHappyCommand) {
     if (state.isActive() && state.isSad()) {
       return Effect().persist(new DeviceMadeHappy(telemetryHappyCommand.region))
-          .thenReply(telemetryHappyCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryHappyCommand));
+          .thenReply(telemetryHappyCommand.replyTo, s -> new TelemetryHappyResponse(telemetryHappyCommand));
     }
     return Effect().none();
   }
@@ -91,7 +91,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   private Effect<Event, State> onSadCommand(State state, TelemetrySadCommand telemetrySadCommand) {
     if (state.isActive() && state.isHappy()) {
       return Effect().persist(new DeviceMadeSad(telemetrySadCommand.region))
-          .thenReply(telemetrySadCommand.replyTo, s -> new TelemetryResponseSuccess(telemetrySadCommand));
+          .thenReply(telemetrySadCommand.replyTo, s -> new TelemetrySadResponse(telemetrySadCommand));
     }
     return Effect().none();
   }
@@ -100,7 +100,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     if (state.isInactive()) {
       log().info("Ping create inactive device {}", telemetryPingCommand);
       return Effect().persist(new DeviceActivated(telemetryPingCommand.region))
-          .thenReply(telemetryPingCommand.replyTo, s -> new TelemetryResponseSuccess(telemetryPingCommand));
+          .thenReply(telemetryPingCommand.replyTo, s -> new TelemetryPingResponse(telemetryPingCommand));
     }
     return Effect().none();
   }
@@ -122,6 +122,10 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     return tags;
   }
 
+  //  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+//  @JsonSubTypes({
+//      @JsonSubTypes.Type(value = TelemetryCreateCommand.class, name = "telemetryCreateCommand")
+//  })
   interface Command extends CborSerializable {
   }
 
@@ -322,24 +326,62 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     }
   }
 
-  interface TelemetryResponse extends CborSerializable {
+  interface Response extends CborSerializable {
   }
 
-  public static class TelemetryResponseSuccess implements TelemetryResponse {
-    public final Command command;
+  public abstract static class TelemetryResponse implements Response {
+    public final TelemetryCommand telemetryCommand;
 
-    @JsonCreator
-    public TelemetryResponseSuccess(Command command) {
-      this.command = command;
+    protected TelemetryResponse(TelemetryCommand telemetryCommand) {
+      this.telemetryCommand = telemetryCommand;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      TelemetryResponse that = (TelemetryResponse) o;
+      return telemetryCommand.equals(that.telemetryCommand);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(telemetryCommand);
     }
   }
 
-  public static class TelemetryResponseFailed implements TelemetryResponse {
-    public final String message;
-
+  public static class TelemetryCreateResponse extends TelemetryResponse {
     @JsonCreator
-    public TelemetryResponseFailed(String message) {
-      this.message = message;
+    protected TelemetryCreateResponse(TelemetryCreateCommand telemetryCommand) {
+      super(telemetryCommand);
+    }
+  }
+
+  public static class TelemetryDeleteResponse extends TelemetryResponse {
+    @JsonCreator
+    protected TelemetryDeleteResponse(TelemetryDeleteCommand telemetryCommand) {
+      super(telemetryCommand);
+    }
+  }
+
+  public static class TelemetryHappyResponse extends TelemetryResponse {
+    @JsonCreator
+    protected TelemetryHappyResponse(TelemetryHappyCommand telemetryCommand) {
+      super(telemetryCommand);
+    }
+  }
+
+  public static class TelemetrySadResponse extends TelemetryResponse {
+    @JsonCreator
+    protected TelemetrySadResponse(TelemetrySadCommand telemetryCommand) {
+      super(telemetryCommand);
+    }
+  }
+
+  public static class TelemetryPingResponse extends TelemetryResponse {
+    @JsonCreator
+    protected TelemetryPingResponse(TelemetryPingCommand telemetryCommand) {
+      super(telemetryCommand);
     }
   }
 

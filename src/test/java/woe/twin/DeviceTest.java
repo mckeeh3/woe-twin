@@ -1,8 +1,7 @@
 package woe.twin;
 
-import akka.actor.testkit.typed.javadsl.LoggingTestKit;
-import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
-import akka.actor.testkit.typed.javadsl.TestProbe;
+import akka.actor.testkit.typed.javadsl.*;
+import akka.actor.typed.ActorRef;
 import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
@@ -89,36 +88,45 @@ public class DeviceTest {
     assertTrue(tags.stream().anyMatch(t -> t.startsWith("zoom-18-tag-" + (numberOfShards - 1))));
   }
 
-  @Ignore
   @Test
   public void serializerDeserializeTelemetryCommands() throws IOException {
+    final SerializationTestKit serializationTestKit = ActorTestKit.create(testKit.system()).serializationTestKit();
     final TestProbe<Device.TelemetryResponse> probe = testKit.createTestProbe();
-    CBORFactory cborFactory = new CBORFactory();
-    ObjectMapper objectMapper = new ObjectMapper(cborFactory);
 
     final Device.TelemetryCommand telemetryCreateCommand = new Device.TelemetryCreateCommand(regionForZoom0(), probe.ref());
-    final byte[] cborTelemetryCreate = objectMapper.writeValueAsBytes(telemetryCreateCommand);
-    final Device.TelemetryCommand telemetryCreateCommand1 = objectMapper.readValue(cborTelemetryCreate, Device.TelemetryCreateCommand.class);
-    assertEquals(telemetryCreateCommand, telemetryCreateCommand1);
+    serializationTestKit.verifySerialization(telemetryCreateCommand, true);
 
     final Device.TelemetryCommand telemetryDeleteCommand = new Device.TelemetryDeleteCommand(regionForZoom0(), probe.ref());
-    final byte[] cborTelemetryDelete = objectMapper.writeValueAsBytes(telemetryDeleteCommand);
-    final Device.TelemetryCommand telemetryDeleteCommand1 = objectMapper.readValue(cborTelemetryDelete, Device.TelemetryDeleteCommand.class);
-    assertEquals(telemetryDeleteCommand, telemetryDeleteCommand1);
+    serializationTestKit.verifySerialization(telemetryDeleteCommand, true);
 
     final Device.TelemetryCommand telemetryHappyCommand = new Device.TelemetryHappyCommand(regionForZoom0(), probe.ref());
-    final byte[] cborTelemetryHappy = objectMapper.writeValueAsBytes(telemetryHappyCommand);
-    final Device.TelemetryCommand telemetryHappyCommand1 = objectMapper.readValue(cborTelemetryHappy, Device.TelemetryHappyCommand.class);
-    assertEquals(telemetryHappyCommand, telemetryHappyCommand1);
+    serializationTestKit.verifySerialization(telemetryHappyCommand, true);
 
     final Device.TelemetryCommand telemetrySadCommand = new Device.TelemetrySadCommand(regionForZoom0(), probe.ref());
-    final byte[] cborTelemetrySad = objectMapper.writeValueAsBytes(telemetrySadCommand);
-    final Device.TelemetryCommand telemetrySadCommand1 = objectMapper.readValue(cborTelemetrySad, Device.TelemetrySadCommand.class);
-    assertEquals(telemetrySadCommand, telemetrySadCommand1);
+    serializationTestKit.verifySerialization(telemetrySadCommand, true);
 
     final Device.TelemetryCommand telemetryPingCommand = new Device.TelemetryPingCommand(regionForZoom0(), probe.ref());
-    final byte[] cborTelemetryPing = objectMapper.writeValueAsBytes(telemetryPingCommand);
-    final Device.TelemetryCommand telemetryPingCommand1 = objectMapper.readValue(cborTelemetryPing, Device.TelemetryPingCommand.class);
-    assertEquals(telemetryPingCommand, telemetryPingCommand1);
+    serializationTestKit.verifySerialization(telemetryPingCommand, true);
+  }
+
+  @Test
+  public void serializationDeserializationTelemetryResponse() {
+    final SerializationTestKit serializationTestKit = ActorTestKit.create(testKit.system()).serializationTestKit();
+    final TestProbe<Device.TelemetryResponse> probe = testKit.createTestProbe();
+
+    final Device.TelemetryCreateCommand telemetryCreateCommand = new Device.TelemetryCreateCommand(regionForZoom0(), probe.ref());
+    serializationTestKit.verifySerialization(new Device.TelemetryCreateResponse(telemetryCreateCommand), true);
+
+    final Device.TelemetryDeleteCommand telemetryDeleteCommand = new Device.TelemetryDeleteCommand(regionForZoom0(), probe.ref());
+    serializationTestKit.verifySerialization(new Device.TelemetryDeleteResponse(telemetryDeleteCommand), true);
+
+    final Device.TelemetryHappyCommand telemetryHappyCommand = new Device.TelemetryHappyCommand(regionForZoom0(), probe.ref());
+    serializationTestKit.verifySerialization(new Device.TelemetryHappyResponse(telemetryHappyCommand), true);
+
+    final Device.TelemetrySadCommand telemetrySadCommand = new Device.TelemetrySadCommand(regionForZoom0(), probe.ref());
+    serializationTestKit.verifySerialization(new Device.TelemetrySadResponse(telemetrySadCommand), true);
+
+    final Device.TelemetryPingCommand telemetryPingCommand = new Device.TelemetryPingCommand(regionForZoom0(), probe.ref());
+    serializationTestKit.verifySerialization(new Device.TelemetryPingResponse(telemetryPingCommand), true);
   }
 }

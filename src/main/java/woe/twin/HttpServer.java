@@ -93,7 +93,7 @@ public class HttpServer {
     EntityRef<Device.Command> entityRef = clusterSharding.entityRefFor(Device.entityTypeKey, entityId);
     return entityRef.ask(telemetryRequest::asTelemetryCommand, Duration.ofSeconds(30))
         .handle((reply, e) -> {
-          if (reply instanceof Device.TelemetryResponseSuccess) {
+          if (reply != null) {
             return HttpServer.TelemetryResponse.ok(StatusCodes.OK.intValue(), telemetryRequest);
           } else {
             return HttpServer.TelemetryResponse.failed(e.getMessage(), StatusCodes.INTERNAL_SERVER_ERROR.intValue(), telemetryRequest);
