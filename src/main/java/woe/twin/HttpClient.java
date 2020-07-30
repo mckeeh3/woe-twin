@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -51,27 +52,20 @@ class HttpClient {
         });
   }
 
-  public static class SelectionActionRequest {
+  public static class SelectionActionRequest implements CborSerializable {
     public final String action;
-    public final int zoom;
     public final int rate;
+    public final int zoom;
     public final double topLeftLat;
     public final double topLeftLng;
     public final double botRightLat;
     public final double botRightLng;
 
     @JsonCreator
-    public SelectionActionRequest(
-        @JsonProperty("action") String action,
-        @JsonProperty("zoom") int zoom,
-        @JsonProperty("rate") int rate,
-        @JsonProperty("topLeftLat") double topLeftLat,
-        @JsonProperty("topLeftLng") double topLeftLng,
-        @JsonProperty("botRightLat") double botRightLat,
-        @JsonProperty("botRightLng") double botRightLng) {
+    public SelectionActionRequest(String action, int rate, int zoom, double topLeftLat, double topLeftLng, double botRightLat, double botRightLng) {
       this.action = action;
-      this.zoom = zoom;
       this.rate = rate;
+      this.zoom = zoom;
       this.topLeftLat = topLeftLat;
       this.topLeftLng = topLeftLng;
       this.botRightLat = botRightLat;
@@ -79,8 +73,27 @@ class HttpClient {
     }
 
     @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      SelectionActionRequest that = (SelectionActionRequest) o;
+      return rate == that.rate &&
+          zoom == that.zoom &&
+          Double.compare(that.topLeftLat, topLeftLat) == 0 &&
+          Double.compare(that.topLeftLng, topLeftLng) == 0 &&
+          Double.compare(that.botRightLat, botRightLat) == 0 &&
+          Double.compare(that.botRightLng, botRightLng) == 0 &&
+          action.equals(that.action);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(action, rate, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
+    }
+
+    @Override
     public String toString() {
-      return String.format("%s[%s, %d, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, rate, topLeftLat, topLeftLng, botRightLat, botRightLng);
+      return String.format("%s[%s, %d, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, rate, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
     }
   }
 
