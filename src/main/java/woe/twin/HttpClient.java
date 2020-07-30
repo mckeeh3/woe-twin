@@ -54,6 +54,7 @@ class HttpClient {
   public static class SelectionActionRequest {
     public final String action;
     public final int zoom;
+    public final int rate;
     public final double topLeftLat;
     public final double topLeftLng;
     public final double botRightLat;
@@ -63,12 +64,14 @@ class HttpClient {
     public SelectionActionRequest(
         @JsonProperty("action") String action,
         @JsonProperty("zoom") int zoom,
+        @JsonProperty("rate") int rate,
         @JsonProperty("topLeftLat") double topLeftLat,
         @JsonProperty("topLeftLng") double topLeftLng,
         @JsonProperty("botRightLat") double botRightLat,
         @JsonProperty("botRightLng") double botRightLng) {
       this.action = action;
       this.zoom = zoom;
+      this.rate = rate;
       this.topLeftLat = topLeftLat;
       this.topLeftLng = topLeftLng;
       this.botRightLat = botRightLat;
@@ -77,7 +80,7 @@ class HttpClient {
 
     @Override
     public String toString() {
-      return String.format("%s[%s, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
+      return String.format("%s[%s, %d, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, rate, topLeftLat, topLeftLng, botRightLat, botRightLng);
     }
   }
 

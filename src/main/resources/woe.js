@@ -327,7 +327,7 @@ function mouseClicked(event) {
         "json",
         {
           action: areaSelectionAction,
-          // rate: areaSelectionRate,
+          rate: areaSelectionRate,
           zoom: worldMap.zoom(),
           topLeftLat: loc.map.topLeft.lat,
           topLeftLng: loc.map.topLeft.lng,
@@ -341,34 +341,6 @@ function mouseClicked(event) {
           console.log(error);
         }
       );
-    }
-    areaSelectionOn = false;
-  }
-}
-
-function mouseClickedOLD(event) {
-  if (areaSelectionOn) {
-    const loc = mouseGridLocation();
-    if (loc.inGrid) {
-      const selection = {
-        action: areaSelectionAction,
-        zoom: worldMap.zoom(),
-        topLeftLat: loc.map.topLeft.lat,
-        topLeftLng: loc.map.topLeft.lng,
-        botRightLat: loc.map.botRight.lat,
-        botRightLng: loc.map.botRight.lng
-      };
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", location + "selection");
-      xhr.setRequestHeader("Content-Type", "application/json");
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          const json = JSON.parse(xhr.responseText);
-          console.log(json);
-        }
-      };
-      const entity = JSON.stringify(selection);
-      xhr.send(entity);
     }
     areaSelectionOn = false;
   }
