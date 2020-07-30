@@ -62,7 +62,14 @@ class HttpClient {
     public final double botRightLng;
 
     @JsonCreator
-    public SelectionActionRequest(String action, int rate, int zoom, double topLeftLat, double topLeftLng, double botRightLat, double botRightLng) {
+    public SelectionActionRequest(
+        @JsonProperty("action") String action,
+        @JsonProperty("rate") int rate,
+        @JsonProperty("zoom") int zoom,
+        @JsonProperty("topLeftLat") double topLeftLat,
+        @JsonProperty("topLeftLng") double topLeftLng,
+        @JsonProperty("botRightLat") double botRightLat,
+        @JsonProperty("botRightLng") double botRightLng) {
       this.action = action;
       this.rate = rate;
       this.zoom = zoom;
