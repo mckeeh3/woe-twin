@@ -5,13 +5,11 @@ import akka.actor.typed.ActorSystem;
 import akka.actor.typed.DispatcherSelector;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
-import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.model.ContentTypes;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
-import akka.stream.Materializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zaxxer.hikari.HikariConfig;
@@ -51,11 +49,12 @@ public class HttpServer {
   }
 
   private void start(String host, int port) {
-    Materializer materializer = Materializer.matFromSystem(actorSystem);
+//    Materializer materializer = Materializer.matFromSystem(actorSystem);
 
-    Http.get(actorSystem.classicSystem())
-        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer),
-            ConnectHttp.toHost(host, port), materializer);
+    Http.get(actorSystem).newServerAt(host, port).bind(route());
+//    Http.get(actorSystem.classicSystem())
+//        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer),
+//            ConnectHttp.toHost(host, port), materializer);
 
     log().info("HTTP Server started on {}:{}", host, "" + port);
   }

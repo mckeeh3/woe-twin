@@ -7,10 +7,8 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
-import akka.http.javadsl.model.ContentTypes;
-import akka.http.javadsl.model.HttpEntities;
-import akka.http.javadsl.model.HttpEntity;
-import akka.http.javadsl.model.HttpResponse;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.model.*;
 import akka.stream.Materializer;
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,12 +22,13 @@ import org.junit.Test;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static woe.twin.WorldMap.latLng;
 import static woe.twin.WorldMap.regionAtLatLng;
 
 public class HttpServerTest {
   private static HttpServer httpServer;
+  private static String selectionUrl;
 
   @ClassRule
   public static final TestKitJunitResource testKit = new TestKitJunitResource(config());
@@ -60,7 +59,8 @@ public class HttpServerTest {
 
     String host = testKit.system().settings().config().getString("woe.twin.http.server.host");
     int port = testKit.system().settings().config().getInt("woe.twin.http.server.port");
-    //httpServer = HttpServer.start(host, port, testKit.system());
+    HttpServer.start(host, port, testKit.system());
+    selectionUrl = String.format("http://%s:%d/selection", host, port);
   }
 
   @Test
@@ -88,6 +88,20 @@ public class HttpServerTest {
     final String sql = HttpServer.sqlInRegions(area);
     testKit.system().log().info("{}", sql);
     assertNotNull(sql);
+  }
+
+  @Test
+  public void selectionActionRequestPostWorks() {
+    WorldMap.Region region = WorldMap.regionAtLatLng(16, new WorldMap.LatLng(51.50079211, -0.11682093));
+    HttpClient.SelectionActionRequest selectionActionRequest =
+        new HttpClient.SelectionActionRequest("create", 100, region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
+
+    HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
+        .singleRequest(HttpRequest.POST(selectionUrl)
+            .withEntity(toHttpEntity(selectionActionRequest)))
+        .toCompletableFuture().join();
+
+    assertEquals(200, httpResponse.status().intValue());
   }
 
   private static class MaybeRespond {
