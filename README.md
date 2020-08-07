@@ -44,6 +44,27 @@ to zoom level 18.
 The `kubectl` CLI provides a nice Kubectl Autocomplete feature for `bash` and `zsh`.
 See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-autocomplete) for instructions.
 
+Also, consider installing [`kubectx`](https://github.com/ahmetb/kubectx), which also includes `kubens`.
+Mac:
+~~~bash
+$ brew install kubectx
+~~~
+Arch Linux:
+~~~bash
+$ yay kubectx
+~~~
+
+#### Enable Access to Google Kubernetes Engine - GKE
+
+TODO
+
+#### Enable Access to Amazon Elastic Kubernetes Service - EKS
+
+Go to [Getting started with eksctl](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html)
+for directions on setting up EKS and Kubernetes CLI tools.
+
+See AWS EKS sections below for specific instructions on setting up Cassandra and deploying the woe-sim microserivce to an EKS cluster.
+
 #### Yugabyte on Kubernetes or MiniKube
 
 Follow the documentation for installing Kubernetes,
@@ -583,9 +604,34 @@ woe-twin-service   LoadBalancer   10.89.15.220   <pending>     2552:30818/TCP,85
 
 It takes a few minutes for an external IP to be assigned. Note the `EXTERNAL-IP` above eventually changes from `<pending>` to the assigned external IP, shown below.
 ~~~bash
-kubectl get services woe-twin-service
+$ kubectl get services woe-twin-service
 ~~~
-~~
+~~~
 NAME               TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                                        AGE
 woe-twin-service   LoadBalancer   10.89.15.220   34.70.176.161   2552:30818/TCP,8558:32548/TCP,8080:30812/TCP   2m24s
 ~~~
+
+### Deploy to AWS GKE
+
+At this point a GKE cluster has been created and is ready for deployment. See section *Enable Access to Amazon Elastic Kubernetes Service - EKS* above on how to get started.
+
+Ensure that you have access to the GKE cluster.
+~~~bash
+$ kubectl get svc
+~~~
+~~~
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   8d
+~~~
+
+#### Create Keyspaces Cassandra tables
+
+Go to the [Akazon Keyspaces](https://console.aws.amazon.com/keyspaces/home?region=us-east-1#keyspaces) and click `Create keyspace` at top right.
+
+Keyspace name: `woe_simulator` then click `Create keyspace`.
+
+Use the [CQL editor](https://console.aws.amazon.com/keyspaces/home?region=us-east-1#cql-editor)
+or follow the steps for installing the `cqlsh` at
+[Using cqlsh to connect to Amazon Keyspaces (for Apache Cassandra)](https://docs.aws.amazon.com/keyspaces/latest/devguide/programmatic.cqlsh.html).
+
+The DDL file used to create the tables is located in the woe-twin project at `src/main/resources/akka-persistence-journal-create-twin.cql`.
