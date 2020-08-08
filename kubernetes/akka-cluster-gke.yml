@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: woe-twin
-          image: gcr.io/akka-yuga/woe-twin
+          image: mckeeh3/woe-twin
           imagePullPolicy: Always
           readinessProbe:
             httpGet:
@@ -77,8 +77,8 @@ spec:
               value: "8080"
             - name: device_projection_jdbc_pool_size
               value: "50"
-            - name: projection_shards_per_zoom
-              value: "1"
+            - name: projection_shards
+              value: "2"
             - name: projection_group_after_envelopes
               value: "1000"
             - name: projection_group_after_duration

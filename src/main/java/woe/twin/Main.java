@@ -17,6 +17,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 public class Main {
   static Behavior<Void> create() {
@@ -32,7 +33,7 @@ public class Main {
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
     startClusterSharding(actorSystem);
-    startProjectionSharding(actorSystem);
+    IntStream.rangeClosed(3, 18).forEach(zoom -> startProjectionSharding(actorSystem, zoom));
   }
 
   private static void startClusterBootstrap(ActorSystem<?> actorSystem) {
@@ -61,15 +62,15 @@ public class Main {
     );
   }
 
-  static void startProjectionSharding(ActorSystem<?> actorSystem) {
+  static void startProjectionSharding(ActorSystem<?> actorSystem, int zoom) {
     final DeviceProjector.DbSessionFactory dbSessionFactory = new DeviceProjector.DbSessionFactory(actorSystem);
     final List<String> tags = Device.tagsAll(actorSystem);
 
     ShardedDaemonProcess.get(actorSystem).init(
         ProjectionBehavior.Command.class,
-        "region-summary",
+        String.format("region-summary-%d", zoom),
         tags.size(),
-        id -> ProjectionBehavior.create(DeviceProjector.start(actorSystem, dbSessionFactory, tags.get(id))),
+        id -> ProjectionBehavior.create(DeviceProjector.start(actorSystem, dbSessionFactory, tags.get(id), zoom)),
         ShardedDaemonProcessSettings.create(actorSystem),
         Optional.of(ProjectionBehavior.stopMessage())
     );

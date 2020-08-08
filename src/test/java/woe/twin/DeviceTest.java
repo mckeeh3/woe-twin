@@ -1,18 +1,14 @@
 package woe.twin;
 
 import akka.actor.testkit.typed.javadsl.*;
-import akka.actor.typed.ActorRef;
 import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -73,19 +69,17 @@ public class DeviceTest {
     final WorldMap.Region region = regionAtLatLng(18, latLng(51.5007541, -0.11688530));
     final Set<String> tags = Device.tagsFor(region, 100);
 
-    assertEquals(16, tags.size());
-    assertTrue(tags.stream().anyMatch(t -> t.startsWith("zoom-3-tag-")));
-    assertTrue(tags.stream().anyMatch(t -> t.startsWith("zoom-18-tag-")));
+    assertEquals(1, tags.size());
   }
 
   @Test
   public void tagsAllBasedOnConfigSettings() {
-    final int numberOfShards = testKit.system().settings().config().getInt(Device.projectionShardsPerZoom);
+    final int numberOfShards = testKit.system().settings().config().getInt(Device.projectionShards);
     final List<String> tags = Device.tagsAll(testKit.system());
 
-    assertEquals(numberOfShards * 16, tags.size());
-    assertTrue(tags.stream().anyMatch(t -> t.equals("zoom-3-tag-0")));
-    assertTrue(tags.stream().anyMatch(t -> t.startsWith("zoom-18-tag-" + (numberOfShards - 1))));
+    assertEquals(numberOfShards, tags.size());
+    assertTrue(tags.stream().anyMatch(t -> t.equals("0")));
+    assertTrue(tags.stream().anyMatch(t -> t.startsWith("" + (numberOfShards - 1))));
   }
 
   @Test

@@ -391,29 +391,23 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     }
   }
 
-  static final String projectionShardsPerZoom = "woe.twin.projection-shards-per-zoom";
-  private static final String tagFormat = "zoom-%d-tag-%d";
+  static final String projectionShards = "woe.twin.projection-shards";
 
   private Set<String> tagsForEntity() {
-    int numberOfShards = actorContext.getSystem().settings().config().getInt(projectionShardsPerZoom);
+    int numberOfShards = actorContext.getSystem().settings().config().getInt(projectionShards);
     return tagsFor(region, numberOfShards);
   }
 
   static Set<String> tagsFor(WorldMap.Region region, int numberOfShards) {
-    final HashSet<String> tags = new HashSet<>();
-    IntStream.rangeClosed(3, region.zoom).forEach(zoom -> {
-      final String entityId = entityIdOf(regionAtLatLng(zoom, atCenter(region)));
-      tags.add(String.format(tagFormat, zoom, Math.abs(entityId.hashCode()) % numberOfShards));
-    });
-    return tags;
+    final String entityId = entityIdOf(region);
+    return Collections.singleton("" + Math.abs(entityId.hashCode()) % numberOfShards);
   }
 
   static List<String> tagsAll(ActorSystem<?> actorSystem) {
     final List<String> tags = new ArrayList<>();
-    final int numberOfShards = actorSystem.settings().config().getInt(projectionShardsPerZoom);
-    IntStream.rangeClosed(3, 18).forEach(zoom ->
-        IntStream.range(0, numberOfShards).forEach(tagId ->
-            tags.add(String.format(tagFormat, zoom, tagId))));
+    final int numberOfShards = actorSystem.settings().config().getInt(projectionShards);
+    IntStream.range(0, numberOfShards).forEach(tagId ->
+        tags.add(String.format("%d", tagId)));
     return tags;
   }
 

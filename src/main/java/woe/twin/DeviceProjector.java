@@ -32,11 +32,14 @@ class DeviceProjector {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final String tag;
     private final int zoom;
+    private final String zoomTag;
 
-    DeviceEventHandler(String tag) {
+    DeviceEventHandler(String tag, int zoom) {
       this.tag = tag;
-      this.zoom = tagToZoom(tag);
-      log.debug("Initialized {}", tag);
+      this.zoom = zoom;
+      zoomTag = String.format("%d-%s", zoom, tag);
+
+      log.debug("Initialized {}", zoomTag);
     }
 
     @Override
@@ -45,30 +48,30 @@ class DeviceProjector {
       final Connection connection = session.connection;
 
       try (Statement statement = connection.createStatement()) {
-        final String sql = sql(summarize(eventEnvelopes));
-        log.info("{} {}", tag, sql);
+        final String sql = sql(summarize(eventEnvelopes, zoom));
+        log.info("{} {}", zoomTag, sql);
         statement.executeUpdate(sql);
       } catch (SQLException e) {
-        log.error(tag, e);
-        throw new RuntimeException(String.format("Event handler failure %s", tag), e);
+        log.error(zoomTag, e);
+        throw new RuntimeException(String.format("Event handler failure %s", zoomTag), e);
       }
 
-      log.debug("{} processed {}, {}ns", tag, eventEnvelopes.size(), String.format("%,d", System.nanoTime() - start));
+      log.debug("{} processed {}, {}ns", zoomTag, eventEnvelopes.size(), String.format("%,d", System.nanoTime() - start));
     }
 
     @Override
     public void start() {
-      log.debug("Start {}", tag);
+      log.debug("Start {}", zoomTag);
       super.start();
     }
 
     @Override
     public void stop() {
-      log.debug("Stop {}", tag);
+      log.debug("Stop {}", zoomTag);
       super.stop();
     }
 
-    private List<RegionSummary> summarize(List<EventEnvelope<Device.Event>> eventEnvelopes) {
+    private List<RegionSummary> summarize(List<EventEnvelope<Device.Event>> eventEnvelopes, int zoom) {
       final RegionSummaries regionSummaries = new RegionSummaries(zoom);
 
       eventEnvelopes.forEach(eventEventEnvelope -> regionSummaries.add(eventEventEnvelope.event()));
@@ -100,10 +103,6 @@ class DeviceProjector {
       sql.append(" sad_count = region.sad_count + excluded.sad_count");
 
       return sql.toString();
-    }
-
-    private static int tagToZoom(String tag) {
-      return Integer.parseInt(tag.split("-")[1]);
     }
   }
 
@@ -164,16 +163,16 @@ class DeviceProjector {
     }
   }
 
-  static GroupedProjection<Offset, EventEnvelope<Device.Event>> start(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, String tag) {
+  static GroupedProjection<Offset, EventEnvelope<Device.Event>> start(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, String tag, int zoom) {
     final int groupAfterEnvelopes = actorSystem.settings().config().getInt("woe.twin.projection.group-after-envelopes");
     final Duration groupAfterDuration = actorSystem.settings().config().getDuration("woe.twin.projection.group-after-duration");
     final SourceProvider<Offset, EventEnvelope<Device.Event>> sourceProvider =
         EventSourcedProvider.eventsByTag(actorSystem, CassandraReadJournal.Identifier(), tag);
     return JdbcProjection.groupedWithin(
-        ProjectionId.of("region", tag),
+        ProjectionId.of(String.format("region-zoom-%d", zoom), tag),
         sourceProvider,
         dbSessionFactory::newInstance,
-        () -> new DeviceEventHandler(tag),
+        () -> new DeviceEventHandler(tag, zoom),
         actorSystem
     ).withGroup(groupAfterEnvelopes, groupAfterDuration);
   }
