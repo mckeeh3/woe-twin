@@ -253,9 +253,9 @@ public class HttpServer {
     }
   }
 
-  private List<DeviceProjector.RegionSummary> query(Connection connection, WorldMap.Region regionQuery) throws SQLException {
+  private List<DeviceProjectorSingleZoom.RegionSummary> query(Connection connection, WorldMap.Region regionQuery) throws SQLException {
     //final long start = System.nanoTime();
-    final List<DeviceProjector.RegionSummary> regionSummaries = new ArrayList<>();
+    final List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries = new ArrayList<>();
     try (final Statement statement = connection.createStatement()) {
       final ResultSet resultSet = statement.executeQuery(sqlInRange(regionQuery));
       while (resultSet.next()) {
@@ -263,7 +263,7 @@ public class HttpServer {
         final WorldMap.LatLng botRight = new WorldMap.LatLng(resultSet.getFloat("bot_right_lat"), resultSet.getFloat("bot_right_lng"));
         final WorldMap.Region region = new WorldMap.Region(resultSet.getInt("zoom"), topLeft, botRight);
         regionSummaries
-            .add(new DeviceProjector.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count")));
+            .add(new DeviceProjectorSingleZoom.RegionSummary(region, resultSet.getInt("device_count"), resultSet.getInt("happy_count"), resultSet.getInt("sad_count")));
       }
       //log().debug("UI query {}, zoom {}, regions {}", String.format("%,dns", System.nanoTime() - start), regionQuery.zoom, regionSummaries.size());
       return regionSummaries;
@@ -308,7 +308,7 @@ public class HttpServer {
     public final int deviceCount;
     public final int happyCount;
     public final int sadCount;
-    public List<DeviceProjector.RegionSummary> regionSummaries;
+    public List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries;
 
     public QueryResponse(int deviceCount, int happyCount, int sadCount) {
       this.deviceCount = deviceCount;

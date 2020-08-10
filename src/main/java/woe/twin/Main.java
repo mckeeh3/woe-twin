@@ -33,7 +33,8 @@ public class Main {
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
     startClusterSharding(actorSystem);
-    IntStream.rangeClosed(3, 18).forEach(zoom -> startProjectionSharding(actorSystem, zoom));
+    startProjectionSharding(actorSystem);
+    //IntStream.rangeClosed(3, 18).forEach(zoom -> startProjectionSharding(actorSystem, zoom));
   }
 
   private static void startClusterBootstrap(ActorSystem<?> actorSystem) {
@@ -62,15 +63,29 @@ public class Main {
     );
   }
 
+  static void startProjectionSharding(ActorSystem<?> actorSystem) {
+    final DeviceProjectorAllZooms.DbSessionFactory dbSessionFactory = new DeviceProjectorAllZooms.DbSessionFactory(actorSystem);
+    final List<String> tags = Device.tagsAll(actorSystem);
+
+    ShardedDaemonProcess.get(actorSystem).init(
+        ProjectionBehavior.Command.class,
+        "region-summary",
+        tags.size(),
+        id -> ProjectionBehavior.create(DeviceProjectorAllZooms.start(actorSystem, dbSessionFactory, tags.get(id))),
+        ShardedDaemonProcessSettings.create(actorSystem),
+        Optional.of(ProjectionBehavior.stopMessage())
+    );
+  }
+
   static void startProjectionSharding(ActorSystem<?> actorSystem, int zoom) {
-    final DeviceProjector.DbSessionFactory dbSessionFactory = new DeviceProjector.DbSessionFactory(actorSystem);
+    final DeviceProjectorSingleZoom.DbSessionFactory dbSessionFactory = new DeviceProjectorSingleZoom.DbSessionFactory(actorSystem);
     final List<String> tags = Device.tagsAll(actorSystem);
 
     ShardedDaemonProcess.get(actorSystem).init(
         ProjectionBehavior.Command.class,
         String.format("region-summary-%d", zoom),
         tags.size(),
-        id -> ProjectionBehavior.create(DeviceProjector.start(actorSystem, dbSessionFactory, tags.get(id), zoom)),
+        id -> ProjectionBehavior.create(DeviceProjectorSingleZoom.start(actorSystem, dbSessionFactory, tags.get(id), zoom)),
         ShardedDaemonProcessSettings.create(actorSystem),
         Optional.of(ProjectionBehavior.stopMessage())
     );

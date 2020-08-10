@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class DeviceProjector {
+class DeviceProjectorSingleZoom {
   static class DeviceEventHandler extends JdbcHandler<List<EventEnvelope<Device.Event>>, DbSession> {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final String tag;

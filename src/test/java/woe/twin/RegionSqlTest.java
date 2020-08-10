@@ -38,7 +38,7 @@ public class RegionSqlTest {
     final int zoom = 8;
     final long devicesPerZoom = Math.round(Math.pow(4, 18 - zoom));
     final DataSource dataSource = dataSource(testKit.system());
-    final List<DeviceProjector.RegionSummary> regionSummaries = regionSummaries(regionAtLatLng(zoom, new WorldMap.LatLng(48.85, 2.35)));
+    final List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries = regionSummaries(regionAtLatLng(zoom, new WorldMap.LatLng(48.85, 2.35)));
 
     testKit.system().log().info("{} rows created", String.format("%,d", regionSummaries.size()));
     assertTrue(regionSummaries.size() > devicesPerZoom);
@@ -52,7 +52,7 @@ public class RegionSqlTest {
     final int zoom = 8;
     final long devicesPerZoom = Math.round(Math.pow(4, 18 - zoom));
     final DataSource dataSource = dataSource(testKit.system());
-    final List<DeviceProjector.RegionSummary> regionSummaries = regionSummaries(regionAtLatLng(zoom, new WorldMap.LatLng(33.75, -82.39)));
+    final List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries = regionSummaries(regionAtLatLng(zoom, new WorldMap.LatLng(33.75, -82.39)));
 
     testKit.system().log().info("{} rows created", String.format("%,d", regionSummaries.size()));
     assertTrue(regionSummaries.size() > devicesPerZoom);
@@ -144,19 +144,19 @@ public class RegionSqlTest {
     return new HikariDataSource(config);
   }
 
-  private static List<DeviceProjector.RegionSummary> regionSummaries(WorldMap.Region region) {
-    List<DeviceProjector.RegionSummary> regionSummaries = new ArrayList<>();
-    final Map<Integer, DeviceProjector.RegionSummaries> regionSummariesMap = regionSummariesFor(region);
+  private static List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries(WorldMap.Region region) {
+    List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries = new ArrayList<>();
+    final Map<Integer, DeviceProjectorSingleZoom.RegionSummaries> regionSummariesMap = regionSummariesFor(region);
     regionSummariesMap
         .forEach((zoom, summaries) -> regionSummaries.addAll(summaries.asList()));
     return regionSummaries;
   }
 
-  private static Map<Integer, DeviceProjector.RegionSummaries> regionSummariesFor(WorldMap.Region region) {
-    final Map<Integer, DeviceProjector.RegionSummaries> regionSummariesMap = new HashMap<>();
+  private static Map<Integer, DeviceProjectorSingleZoom.RegionSummaries> regionSummariesFor(WorldMap.Region region) {
+    final Map<Integer, DeviceProjectorSingleZoom.RegionSummaries> regionSummariesMap = new HashMap<>();
     final List<Device.DeviceActivated> devicesActivated = devicesFor(region);
 
-    IntStream.rangeClosed(3, 18).forEach(zoom -> regionSummariesMap.put(zoom, new DeviceProjector.RegionSummaries(zoom)));
+    IntStream.rangeClosed(3, 18).forEach(zoom -> regionSummariesMap.put(zoom, new DeviceProjectorSingleZoom.RegionSummaries(zoom)));
     devicesActivated
         .forEach(device -> IntStream.rangeClosed(3, 18)
             .forEach(zoom -> regionSummariesMap.get(zoom).add(device)));
@@ -174,17 +174,17 @@ public class RegionSqlTest {
     }
   }
 
-  private static void insertUpdate(DataSource dataSource, int increment, List<DeviceProjector.RegionSummary> regionSummaries) throws SQLException {
+  private static void insertUpdate(DataSource dataSource, int increment, List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries) throws SQLException {
     for (int i = 0; i < regionSummaries.size(); i += increment) {
       insertUpdate(dataSource, regionSummaries.subList(i, Math.min(i + increment, regionSummaries.size())));
       testKit.system().log().info("{}", String.format("commit %,d", i + increment));
     }
   }
 
-  private static void insertUpdate(DataSource dataSource, List<DeviceProjector.RegionSummary> regionSummaries) throws SQLException {
+  private static void insertUpdate(DataSource dataSource, List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries) throws SQLException {
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement()) {
-      final String sql = DeviceProjector.DeviceEventHandler.sql(regionSummaries);
+      final String sql = DeviceProjectorSingleZoom.DeviceEventHandler.sql(regionSummaries);
       statement.executeUpdate(sql);
       connection.commit();
     }
@@ -194,13 +194,13 @@ public class RegionSqlTest {
     return Math.round(Math.pow(4, 18 - zoomSelection) / Math.pow(4, 18 - Math.max(zoomSelection, zoomRegion)));
   }
 
-  private long regionsForZoom(int zoom, List<DeviceProjector.RegionSummary> regionSummaries) {
+  private long regionsForZoom(int zoom, List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries) {
     return regionSummaries.stream()
         .filter(r -> r.region.zoom == zoom)
         .count();
   }
 
-  private long devicesForZoom(int zoom, List<DeviceProjector.RegionSummary> regionSummaries) {
+  private long devicesForZoom(int zoom, List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries) {
     return regionSummaries.stream()
         .filter(r -> r.region.zoom == zoom)
         .map(rs -> rs.deviceCount)

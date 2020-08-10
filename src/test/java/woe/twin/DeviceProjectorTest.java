@@ -77,9 +77,9 @@ public class DeviceProjectorTest {
             }
         );
 
-    final DeviceProjector.DbSessionFactory dbSessionFactory = new DeviceProjector.DbSessionFactory(testKit.system());
+    final DeviceProjectorSingleZoom.DbSessionFactory dbSessionFactory = new DeviceProjectorSingleZoom.DbSessionFactory(testKit.system());
     final RegionSummaryReader regionSummaryReader = new RegionSummaryReader();
-    projectionTestKit.run(DeviceProjector.start(testKit.system(), dbSessionFactory, "entity-12", 3), () ->
+    projectionTestKit.run(DeviceProjectorSingleZoom.start(testKit.system(), dbSessionFactory, "entity-12", 3), () ->
         regionSummaryReader.read("No-op")
             .toCompletableFuture().get(1, TimeUnit.SECONDS)
     );
