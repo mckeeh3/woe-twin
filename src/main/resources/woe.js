@@ -24,7 +24,7 @@ const areaSelectionColorDelete = [64, 64, 64, 100];
 const areaSelectionColorHappy = [0, 255, 0, 100];
 const areaSelectionColorSad = [255, 0, 0, 100];
 const selectedMarkerColor = [33, 183, 0];
-const minSelectableZoom = 9; // up to 262,144 devices, Math.pow(4, 9)
+const minSelectableZoom = 8; // up to 1,048,576 devices, Math.pow(4, 18 - 8)
 const mappa = new Mappa('Leaflet');
 const mapOptions = {
   lat: 0,
@@ -144,65 +144,96 @@ function drawSelectionInstructions() {
   const valueColor = color(255);
   const bgColor = color(0, 0, 75, 125);
 
-  Label().setX(grid.ticksHorizontal - 6).setY(0.1).setW(1.7).setH(height)
+  Label().setX(grid.ticksHorizontal - 10.2).setY(offsetY(0)).setW(5.2).setH(height)
+          .setBorder(border)
+          .setKey("Rate +'R' -'r'")
+          .setBgColor(color(0, 0, 204, 100))
+          .setKeyColor(valueColor)
+          .draw();
+  Label().setX(grid.ticksHorizontal - 5).setY(offsetY(0)).setW(5).setH(height)
+          .setBorder(border)
+          .setValue(areaSelectionRate.toLocaleString())
+          .setBgColor(bgColor)
+          .setValueColor(valueColor)
+          .draw();
+  Label().setX(grid.ticksHorizontal - 6).setY(offsetY(1)).setW(1.7).setH(height)
           .setBorder(border)
           .setKey("'c'")
           .setBgColor(areaSelectionColorCreate)
           .setKeyColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 4.3).setY(0.1).setW(4.3).setH(height)
+  Label().setX(grid.ticksHorizontal - 4.3).setY(offsetY(1)).setW(4.3).setH(height)
           .setBorder(border)
           .setValue("create")
           .setBgColor(bgColor)
           .setValueColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(1.4).setW(1.7).setH(height)
+  Label().setX(grid.ticksHorizontal - 6).setY(offsetY(2)).setW(1.7).setH(height)
           .setBorder(border)
           .setKey("'d'")
           .setBgColor(areaSelectionColorDelete)
           .setKeyColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 4.3).setY(1.4).setW(4.3).setH(height)
+  Label().setX(grid.ticksHorizontal - 4.3).setY(offsetY(2)).setW(4.3).setH(height)
           .setBorder(border)
           .setValue("delete")
           .setBgColor(bgColor)
           .setValueColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(2.7).setW(1.7).setH(height)
+  Label().setX(grid.ticksHorizontal - 6).setY(offsetY(3)).setW(1.7).setH(height)
           .setBorder(border)
           .setKey("'h'")
           .setBgColor(areaSelectionColorHappy)
           .setKeyColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 4.3).setY(2.7).setW(4.3).setH(height)
+  Label().setX(grid.ticksHorizontal - 4.3).setY(offsetY(3)).setW(4.3).setH(height)
           .setBorder(border)
           .setValue("happy")
           .setBgColor(bgColor)
           .setValueColor(valueColor)
           .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(4).setW(1.7).setH(height)
+  Label().setX(grid.ticksHorizontal - 6).setY(offsetY(4)).setW(1.7).setH(height)
           .setBorder(border)
           .setKey("'s'")
           .setBgColor(areaSelectionColorSad)
           .setKeyColor(color(255))
           .draw();
-  Label().setX(grid.ticksHorizontal - 4.3).setY(4).setW(4.3).setH(height)
+  Label().setX(grid.ticksHorizontal - 4.3).setY(offsetY(4)).setW(4.3).setH(height)
           .setBorder(border)
           .setValue("sad")
           .setBgColor(bgColor)
           .setValueColor(valueColor)
           .draw();
 
-  if (areaSelectionOn && areaSelectionAction == "create") {
+  if (areaSelectionOn) {
     const devicesAtZoom = Math.pow(4, 18 - zoom);
     const msg = `${devicesAtZoom.toLocaleString()} devices`
 
-    Label().setX(grid.ticksHorizontal - 17).setY(0.1).setW(10).setH(height)
+    let offset = 1;
+    switch (areaSelectionAction) {
+      case "create":
+        offset = 1;
+        break;
+      case "delete":
+        offset = 2;
+        break;
+      case "happy":
+        offset = 3;
+        break;
+      case "sad":
+        offset = 4;
+        break;
+    }
+    Label().setX(grid.ticksHorizontal - 16.1).setY(offsetY(offset)).setW(10).setH(height)
             .setBorder(border)
             .setValue(msg)
             .setBgColor(bgColor)
             .setValueColor(color(255))
             .draw();
+  }
+
+  function offsetY(line) {
+    return 0.1 + line * 1.3;
   }
 }
 
@@ -499,7 +530,7 @@ function keyTyped() {
     } else if (areaSelectionRate >= 100) {
       areaSelectionRate += 100;
     }
-    areaSelectionRate = Math.min(Math.pow(10, 9), areaSelectionRate);
+    areaSelectionRate = Math.min(Math.pow(10, 7), areaSelectionRate);
     console.log("Increase " + areaSelectionRate.toLocaleString());
   }
 }
