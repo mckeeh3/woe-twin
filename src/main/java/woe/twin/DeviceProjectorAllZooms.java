@@ -2,6 +2,7 @@ package woe.twin;
 
 import akka.actor.typed.ActorSystem;
 import akka.japi.function.Function;
+import akka.parboiled2.RuleTrace;
 import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
 import akka.persistence.query.Offset;
 import akka.projection.ProjectionId;
@@ -41,6 +42,7 @@ class DeviceProjectorAllZooms {
 
     @Override
     public void process(DbSession session, List<EventEnvelope<Device.Event>> eventEnvelopes) {
+      //lockTable(session);
       IntStream.rangeClosed(3, 18).forEach(zoom -> process(session, eventEnvelopes, zoom));
     }
 
@@ -70,6 +72,16 @@ class DeviceProjectorAllZooms {
     public void stop() {
       log.debug("Stop {}", tag);
       super.stop();
+    }
+
+    private void lockTable(DbSession session) {
+      final Connection connection = session.connection;
+      try (Statement statement = connection.createStatement()) {
+        statement.execute("lock table region in exclusive mode");
+      } catch (SQLException e) {
+        log.error(String.format("%s, lock table region", tag), e);
+        throw new RuntimeException(String.format("Lock table region failed, %s", tag), e);
+      }
     }
 
     private List<RegionSummary> summarize(List<EventEnvelope<Device.Event>> eventEnvelopes, int zoom) {

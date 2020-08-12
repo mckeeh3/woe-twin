@@ -300,7 +300,7 @@ woe-twin:latest
 
 Create the Kubernetes namespace. The namespace only needs to be created once.
 ~~~bash
-$ kubectl apply -f kubernetes/namespace.json     
+$ kubectl create namespace woe-twin-1     
 ~~~
 ~~~
 namespace/woe-twin-1 created

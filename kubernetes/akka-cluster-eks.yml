@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: woe-twin
+  name: woe-twin
+  namespace: woe-twin-1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: woe-twin
+  template:
+    metadata:
+      labels:
+        app: woe-twin
+        actorSystemName: woe-twin
+    spec:
+      containers:
+        - name: woe-twin
+          image: mckeeh3/woe-twin
+          imagePullPolicy: Always
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: management
+            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              path: "/alive"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 5
+            initialDelaySeconds: 20
+          ports:
+            # akka-management and bootstrap
+            # This needs to be first. AWS EKS uses this for load balancer health check.
+            - name: management
+              containerPort: 8558
+              protocol: TCP
+            # akka remoting
+            - name: remoting
+              containerPort: 2552
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              memory: 8Gi
+            requests:
+              memory: 1Gi
+              cpu: 1
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: "2"
+            - name: cassandra_host_port
+              value: "cassandra.us-east-1.amazonaws.com:9142"
+            - name: postgresql_url
+              value: "jdbc:postgresql://yb-tservers.yugabyte-db.svc.cluster.local:5433/"
+            - name: postgresql_username
+              value: "yugabyte"
+            - name: postgresql_password
+              value: "yugabyte"
+            - name: woe_simulator_http_server_host
+              value: "woe-sim-service.woe-sim-1.svc.cluster.local"
+            - name: woe_simulator_http_server_port
+              value: "8080"
+            - name: woe_twin_http_server_host
+              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+            - name: woe_twin_http_server_port
+              value: "8080"
+            - name: device_projection_jdbc_pool_size
+              value: "50"
+            - name: projection_shards
+              value: "10"
+            - name: projection_group_after_envelopes
+              value: "1000"
+            - name: projection_group_after_duration
+              value: "1s"
+            - name: AWS_ACCESS_KEY
+              valueFrom: { secretKeyRef: { name: aws-access-key, key: AWS_ACCESS_KEY } }
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom: { secretKeyRef: { name: aws-access-key, key: AWS_SECRET_ACCESS_KEY } }
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reader
+  namespace: woe-twin-1
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["pods"]
+    verbs: ["get", "watch", "list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-pods
+  namespace: woe-twin-1
+subjects:
+  # Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
+  # For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
+  - kind: User
+    name: system:serviceaccount:woe-twin-1:default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
