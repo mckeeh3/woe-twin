@@ -30,12 +30,10 @@ import java.util.Map;
 class DeviceProjectorSingleZoom {
   static class DeviceEventHandler extends JdbcHandler<List<EventEnvelope<Device.Event>>, DbSession> {
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final String tag;
     private final int zoom;
     private final String zoomTag;
 
     DeviceEventHandler(String tag, int zoom) {
-      this.tag = tag;
       this.zoom = zoom;
       zoomTag = String.format("%d-%s", zoom, tag);
 

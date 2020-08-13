@@ -77,7 +77,7 @@ spec:
             - name: woe_twin_http_server_port
               value: "8080"
             - name: device_projection_jdbc_pool_size
-              value: "50"
+              value: "10"
             - name: projection_shards
               value: "10"
             - name: projection_group_after_envelopes
