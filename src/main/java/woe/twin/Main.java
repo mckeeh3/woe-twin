@@ -13,8 +13,13 @@ import akka.management.cluster.bootstrap.ClusterBootstrap;
 import akka.management.javadsl.AkkaManagement;
 import akka.projection.ProjectionBehavior;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -30,11 +35,27 @@ public class Main {
 
   public static void main(String[] args) {
     ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "woe-twin");
+    awsCassandraTruststoreHack(actorSystem);
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
     startClusterSharding(actorSystem);
-    startProjectionSharding(actorSystem);
-    //IntStream.rangeClosed(3, 18).forEach(zoom -> startProjectionSharding(actorSystem, zoom));
+    //startProjectionSharding(actorSystem);
+    IntStream.rangeClosed(3, 18).forEach(zoom -> startProjectionSharding(actorSystem, zoom));
+  }
+
+  // Copies the truststore file to the local container file system.
+  // Cassandra code does not read from classpath resource.
+  private static void awsCassandraTruststoreHack(ActorSystem<?> actorSystem) {
+    final String filename = "cassandra-truststore.jks";
+    final InputStream inputStream = actorSystem.getClass().getClassLoader().getResourceAsStream(filename);
+    final Path target = Paths.get(filename);
+    if (inputStream != null) {
+      try {
+        Files.copy(inputStream, target);
+      } catch (IOException e) {
+        actorSystem.log().error(String.format("Unable to copy '%s'", filename), e);
+      }
+    }
   }
 
   private static void startClusterBootstrap(ActorSystem<?> actorSystem) {
