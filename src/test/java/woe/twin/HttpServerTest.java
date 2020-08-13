@@ -18,6 +18,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -59,7 +60,7 @@ public class HttpServerTest {
 
     String host = testKit.system().settings().config().getString("woe.twin.http.server.host");
     int port = testKit.system().settings().config().getInt("woe.twin.http.server.port");
-    HttpServer.start(host, port, testKit.system());
+    //HttpServer.start(host, port, testKit.system());
     selectionUrl = String.format("http://%s:%d/selection", host, port);
   }
 
@@ -90,6 +91,7 @@ public class HttpServerTest {
     assertNotNull(sql);
   }
 
+  @Ignore
   @Test
   public void selectionActionRequestPostWorks() {
     WorldMap.Region region = WorldMap.regionAtLatLng(16, new WorldMap.LatLng(51.50079211, -0.11682093));
