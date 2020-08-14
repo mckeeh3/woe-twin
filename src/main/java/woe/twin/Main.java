@@ -38,6 +38,7 @@ public class Main {
     awsCassandraTruststoreHack(actorSystem);
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
+    startGrpcServer(actorSystem);
     startClusterSharding(actorSystem);
     //startProjectionSharding(actorSystem);
     IntStream.rangeClosed(3, 18).forEach(zoom -> startProjectionSharding(actorSystem, zoom));
@@ -65,11 +66,21 @@ public class Main {
 
   static void startHttpServer(ActorSystem<?> actorSystem) {
     try {
-      String host = InetAddress.getLocalHost().getHostName();
-      int port = actorSystem.settings().config().getInt("woe.twin.http.server.port");
+      final String host = InetAddress.getLocalHost().getHostName();
+      final int port = actorSystem.settings().config().getInt("woe.twin.http.server.port");
       HttpServer.start(host, port, actorSystem);
     } catch (UnknownHostException e) {
       actorSystem.log().error("Http server start failure.", e);
+    }
+  }
+
+  static void startGrpcServer(ActorSystem<?> actorSystem) {
+    try {
+      final String host = InetAddress.getLocalHost().getHostName();
+      final int port = actorSystem.settings().config().getInt("woe.twin.grpc.server.port");
+      GrpcServer.start(host, port, actorSystem);
+    } catch (UnknownHostException e) {
+      actorSystem.log().error("gRPC server start failure.", e);
     }
   }
 

@@ -1,6 +1,5 @@
 package woe.twin;
 
-import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.DispatcherSelector;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
@@ -10,8 +9,6 @@ import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.model.ContentTypes;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
@@ -49,13 +46,7 @@ public class HttpServer {
   }
 
   private void start(String host, int port) {
-//    Materializer materializer = Materializer.matFromSystem(actorSystem);
-
     Http.get(actorSystem).newServerAt(host, port).bind(route());
-//    Http.get(actorSystem.classicSystem())
-//        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer),
-//            ConnectHttp.toHost(host, port), materializer);
-
     log().info("HTTP Server started on {}:{}", host, "" + port);
   }
 
@@ -75,7 +66,7 @@ public class HttpServer {
   private Route handleTelemetryActionPost() {
     return post(
         () -> entity(
-            Jackson.unmarshaller(TelemetryRequest.class),
+            Jackson.unmarshaller(Telemetry.TelemetryRequest.class),
             telemetryRequest -> {
               if (!telemetryRequest.action.equals("ping")) {
                 log().debug("POST {}", telemetryRequest);
@@ -87,15 +78,15 @@ public class HttpServer {
     );
   }
 
-  private CompletionStage<TelemetryResponse> submitTelemetryToDevice(TelemetryRequest telemetryRequest) {
+  private CompletionStage<Telemetry.TelemetryResponse> submitTelemetryToDevice(Telemetry.TelemetryRequest telemetryRequest) {
     String entityId = entityIdOf(telemetryRequest.region);
     EntityRef<Device.Command> entityRef = clusterSharding.entityRefFor(Device.entityTypeKey, entityId);
     return entityRef.ask(telemetryRequest::asTelemetryCommand, Duration.ofSeconds(30))
         .handle((reply, e) -> {
           if (reply != null) {
-            return HttpServer.TelemetryResponse.ok(StatusCodes.OK.intValue(), telemetryRequest);
+            return Telemetry.TelemetryResponse.ok(StatusCodes.OK.intValue(), telemetryRequest);
           } else {
-            return HttpServer.TelemetryResponse.failed(e.getMessage(), StatusCodes.INTERNAL_SERVER_ERROR.intValue(), telemetryRequest);
+            return Telemetry.TelemetryResponse.failed(e.getMessage(), StatusCodes.INTERNAL_SERVER_ERROR.intValue(), telemetryRequest);
           }
         });
   }
@@ -136,84 +127,6 @@ public class HttpServer {
             )
         )
     );
-  }
-
-  public static class TelemetryRequest {
-    public final String action;
-    public final int zoom;
-    public final double topLeftLat;
-    public final double topLeftLng;
-    public final double botRightLat;
-    public final double botRightLng;
-    public final WorldMap.Region region;
-
-    @JsonCreator
-    public TelemetryRequest(
-        @JsonProperty("action") String action,
-        @JsonProperty("zoom") int zoom,
-        @JsonProperty("topLeftLat") double topLeftLat,
-        @JsonProperty("topLeftLng") double topLeftLng,
-        @JsonProperty("botRightLat") double botRightLat,
-        @JsonProperty("botRightLng") double botRightLng) {
-      this.action = action;
-      this.zoom = zoom;
-      this.topLeftLat = topLeftLat;
-      this.topLeftLng = topLeftLng;
-      this.botRightLat = botRightLat;
-      this.botRightLng = botRightLng;
-      region = new WorldMap.Region(zoom, WorldMap.topLeft(topLeftLat, topLeftLng), WorldMap.botRight(botRightLat, botRightLng));
-    }
-
-    Device.TelemetryCommand asTelemetryCommand(ActorRef<Device.TelemetryResponse> replyTo) {
-      switch (action) {
-        case "create":
-          return new Device.TelemetryCreateCommand(region, replyTo);
-        case "delete":
-          return new Device.TelemetryDeleteCommand(region, replyTo);
-        case "happy":
-          return new Device.TelemetryHappyCommand(region, replyTo);
-        case "sad":
-          return new Device.TelemetrySadCommand(region, replyTo);
-        case "ping":
-          return new Device.TelemetryPingCommand(region, replyTo);
-        default:
-          throw new IllegalArgumentException(String.format("Action '%s' illegal, must be one of: 'create', 'delete', 'happy', or 'sad'.", action));
-      }
-    }
-
-    @Override
-    public String toString() {
-      return String.format("%s[%s, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
-    }
-  }
-
-  public static class TelemetryResponse {
-    public final String message;
-    public final int httpStatusCode;
-    public final TelemetryRequest telemetryRequest;
-
-    @JsonCreator
-    public TelemetryResponse(
-        @JsonProperty("message") String message,
-        @JsonProperty("httpStatusCode") int httpStatusCode,
-        @JsonProperty("deviceTelemetryRequest") TelemetryRequest telemetryRequest) {
-      this.message = message;
-      this.httpStatusCode = httpStatusCode;
-      this.telemetryRequest = telemetryRequest;
-    }
-
-    static TelemetryResponse ok(int httpStatusCode, TelemetryRequest telemetryRequest) {
-      return new TelemetryResponse("Accepted", httpStatusCode, telemetryRequest);
-    }
-
-    static TelemetryResponse failed(String message, int httpStatusCode, TelemetryRequest telemetryRequest) {
-      return new TelemetryResponse(message, httpStatusCode, telemetryRequest);
-    }
-
-    @Override
-    public String toString() {
-      return String.format("%s[%d, %s, %s]", getClass().getSimpleName(), httpStatusCode, message, telemetryRequest);
-    }
   }
 
   private static DataSource dataSource(ActorSystem<?> actorSystem) {

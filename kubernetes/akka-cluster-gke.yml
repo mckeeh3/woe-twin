@@ -35,16 +35,19 @@ spec:
             failureThreshold: 5
             initialDelaySeconds: 20
           ports:
-            # akka remoting
-            - name: remoting
-              containerPort: 2552
-              protocol: TCP
             # akka-management and bootstrap
             - name: management
               containerPort: 8558
               protocol: TCP
             - name: http
               containerPort: 8080
+              protocol: TCP
+            - name: grpc
+              containerPort: 8081
+              protocol: TCP
+            # akka remoting
+            - name: remoting
+              containerPort: 2552
               protocol: TCP
           resources:
             limits:
@@ -75,6 +78,10 @@ spec:
               value: "woe-twin-service.woe-twin-1.svc.cluster.local"
             - name: woe_twin_http_server_port
               value: "8080"
+            - name: woe_twin_grpc_server_host
+              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+            - name: woe_twin_grpc_server_port
+              value: "8081"
             - name: device_projection_jdbc_pool_size
               value: "50"
             - name: projection_shards

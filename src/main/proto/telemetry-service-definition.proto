@@ -3,15 +3,15 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "woe.twin.grpc";
-option java_outer_classname = "WoeTwinProto";
+option java_outer_classname = "TelemetryServiceProto";
 
 package woe.twin.grpc;
 
-service WoeTwinService {
-  rpc Telemetry (TelemetryRequest) returns (TelemetryResponse) {}
+service TelemetryService {
+  rpc Telemetry (TelemetryRequestGrpc) returns (TelemetryResponseGrpc) {}
 }
 
-message TelemetryRequest {
+message TelemetryRequestGrpc {
   string action = 1;
   int32 zoom = 2;
   double topLeftLat = 3;
@@ -20,8 +20,8 @@ message TelemetryRequest {
   double botRightLng = 6;
 }
 
-message TelemetryResponse {
+message TelemetryResponseGrpc {
   string message = 1;
   int32 httpStatusCode = 2;
-  TelemetryRequest telemetryRequest = 3;
+  TelemetryRequestGrpc telemetryRequest = 3;
 }
