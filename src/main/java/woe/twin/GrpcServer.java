@@ -30,7 +30,7 @@ public class GrpcServer {
     clusterSharding = ClusterSharding.get(actorSystem);
 
     start(host, port).thenAccept(binding -> {
-      actorSystem.log().info("Start gRPC server {}", binding);
+      actorSystem.log().info("gRPC server started on {}", binding.localAddress());
     });
   }
 
