@@ -41,7 +41,7 @@ public class Main {
     startGrpcServer(actorSystem);
     startClusterSharding(actorSystem);
     //startProjectionSharding(actorSystem);
-    IntStream.rangeClosed(3, 18).forEach(zoom -> startProjectionSharding(actorSystem, zoom));
+    startProjectionShardingSingleZoom(actorSystem);
   }
 
   // Copies the truststore file to the local container file system.
@@ -95,7 +95,7 @@ public class Main {
     );
   }
 
-  static void startProjectionSharding(ActorSystem<?> actorSystem) {
+  static void startProjectionShardingAllZooms(ActorSystem<?> actorSystem) {
     final DeviceProjectorAllZooms.DbSessionFactory dbSessionFactory = new DeviceProjectorAllZooms.DbSessionFactory(actorSystem);
     final List<String> tags = Device.tagsAll(actorSystem);
 
@@ -109,17 +109,19 @@ public class Main {
     );
   }
 
-  static void startProjectionSharding(ActorSystem<?> actorSystem, int zoom) {
+  static void startProjectionShardingSingleZoom(ActorSystem<?> actorSystem) {
     final DeviceProjectorSingleZoom.DbSessionFactory dbSessionFactory = new DeviceProjectorSingleZoom.DbSessionFactory(actorSystem);
     final List<String> tags = Device.tagsAll(actorSystem);
 
-    ShardedDaemonProcess.get(actorSystem).init(
-        ProjectionBehavior.Command.class,
-        String.format("region-summary-%d", zoom),
-        tags.size(),
-        id -> ProjectionBehavior.create(DeviceProjectorSingleZoom.start(actorSystem, dbSessionFactory, tags.get(id), zoom)),
-        ShardedDaemonProcessSettings.create(actorSystem),
-        Optional.of(ProjectionBehavior.stopMessage())
-    );
+    IntStream.rangeClosed(3, 18).forEach(zoom -> {
+      ShardedDaemonProcess.get(actorSystem).init(
+          ProjectionBehavior.Command.class,
+          String.format("region-summary-%d", zoom),
+          tags.size(),
+          id -> ProjectionBehavior.create(DeviceProjectorSingleZoom.start(actorSystem, dbSessionFactory, tags.get(id), zoom)),
+          ShardedDaemonProcessSettings.create(actorSystem),
+          Optional.of(ProjectionBehavior.stopMessage())
+      );
+    });
   }
 }
