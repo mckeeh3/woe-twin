@@ -28,6 +28,7 @@
     <logger name="akka.actor.LocalActorRefProvider.Deserialization" level="INFO"/>
     <logger name="woe.twin.grpc" level="INFO"/>
     <logger name="akka.stream.impl.io.TcpConnectionStage" level="INFO"/>
+    <logger name="akka.persistence.cassandra.query" level="DEBUG"/>
 
     <root level="DEBUG">
         <appender-ref ref="ASYNC"/>
