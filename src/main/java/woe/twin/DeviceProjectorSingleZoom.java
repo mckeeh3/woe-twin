@@ -36,8 +36,6 @@ class DeviceProjectorSingleZoom {
     DeviceEventHandler(String tag, int zoom) {
       this.zoom = zoom;
       zoomTag = String.format("%d-%s", zoom, tag);
-
-      log.debug("Initialized {}", zoomTag);
     }
 
     @Override

@@ -109,19 +109,23 @@ public class Main {
     );
   }
 
+  // For every tag there are 16 projection event handlers
+  // One event handler per zoom from zoom 3 to 18
   static void startProjectionShardingSingleZoom(ActorSystem<?> actorSystem) {
     final DeviceProjectorSingleZoom.DbSessionFactory dbSessionFactory = new DeviceProjectorSingleZoom.DbSessionFactory(actorSystem);
     final List<String> tags = Device.tagsAll(actorSystem);
 
-    IntStream.rangeClosed(3, 18).forEach(zoom -> {
-      ShardedDaemonProcess.get(actorSystem).init(
-          ProjectionBehavior.Command.class,
-          String.format("region-summary-%d", zoom),
-          tags.size(),
-          id -> ProjectionBehavior.create(DeviceProjectorSingleZoom.start(actorSystem, dbSessionFactory, tags.get(id), zoom)),
-          ShardedDaemonProcessSettings.create(actorSystem),
-          Optional.of(ProjectionBehavior.stopMessage())
-      );
-    });
+    ShardedDaemonProcess.get(actorSystem).init(
+        ProjectionBehavior.Command.class,
+        "region-summary",
+        tags.size() * 16,
+        id -> {
+          final String tag = tags.get(id % tags.size());
+          final int zoom = 3 + id % 16;
+          return ProjectionBehavior.create(DeviceProjectorSingleZoom.start(actorSystem, dbSessionFactory, tag, zoom));
+        },
+        ShardedDaemonProcessSettings.create(actorSystem),
+        Optional.of(ProjectionBehavior.stopMessage())
+    );
   }
 }
