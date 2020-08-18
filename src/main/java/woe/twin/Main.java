@@ -120,7 +120,7 @@ public class Main {
         "region-summary",
         tags.size() * 16,
         id -> {
-          final String tag = tags.get(id % tags.size());
+          final String tag = tags.get(id / 16);
           final int zoom = 3 + id % 16;
           return ProjectionBehavior.create(DeviceProjectorSingleZoom.start(actorSystem, dbSessionFactory, tag, zoom));
         },

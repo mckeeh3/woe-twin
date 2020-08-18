@@ -17,9 +17,11 @@ import org.junit.Test;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.IntStream;
 
 import static woe.twin.WorldMap.*;
 
@@ -100,5 +102,16 @@ public class RegionProjectionTest {
         }
       }
     }
+  }
+
+  @Ignore
+  @Test
+  public void projectorDaemonStartUp() {
+    final List<String> tags = Device.tagsAll(testKit.system());
+    IntStream.rangeClosed(0, 31).forEach(id -> {
+      final String tag = tags.get(id / 16);
+      final int zoom = 3 + id % 16;
+      System.out.printf("%2d %s-%d%n", id, tag, zoom);
+    });
   }
 }
