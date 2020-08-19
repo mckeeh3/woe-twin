@@ -10,8 +10,8 @@ import akka.http.javadsl.model.StatusCodes;
 import akka.stream.Materializer;
 import woe.twin.grpc.TelemetryRequestGrpc;
 import woe.twin.grpc.TelemetryResponseGrpc;
-import woe.twin.grpc.TelemetryService;
-import woe.twin.grpc.TelemetryServiceHandlerFactory;
+import woe.twin.grpc.TwinDeviceService;
+import woe.twin.grpc.TwinDeviceServiceHandlerFactory;
 
 import java.time.Duration;
 import java.util.concurrent.CompletionStage;
@@ -37,7 +37,7 @@ public class GrpcServer {
   CompletionStage<ServerBinding> start(String host, int port) {
     final TelemetryServiceImpl telemetryServiceImpl = new TelemetryServiceImpl(clusterSharding);
     return Http.get(actorSystem.classicSystem()).bindAndHandleAsync(
-        TelemetryServiceHandlerFactory.create(telemetryServiceImpl, actorSystem),
+        TwinDeviceServiceHandlerFactory.create(telemetryServiceImpl, actorSystem),
         ConnectHttp.toHost(host, port),
         Materializer.matFromSystem(actorSystem)
     );
@@ -67,7 +67,7 @@ public class GrpcServer {
         .build();
   }
 
-  static class TelemetryServiceImpl implements TelemetryService {
+  static class TelemetryServiceImpl implements TwinDeviceService {
     private final ClusterSharding clusterSharding;
 
     TelemetryServiceImpl(ClusterSharding clusterSharding) {
