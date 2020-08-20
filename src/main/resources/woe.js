@@ -124,7 +124,7 @@ function drawZoomAndMouseLocation() {
           .setKeyColor(keyColor)
           .setValueColor(valueColor)
           .draw();
-  Label().setX(2).setY(1.4).setW(9).setH(height - 0.2)
+  Label().setX(2).setY(1.4).setW(9.5).setH(height - 0.15)
           .setBorder(border)
           .setKey("Device density")
           .setValue((Math.pow(4, 18 - worldMap.zoom()).toLocaleString()))
@@ -152,7 +152,7 @@ function drawSelectionInstructions() {
           .draw();
   Label().setX(grid.ticksHorizontal - 5).setY(offsetY(0)).setW(5).setH(height)
           .setBorder(border)
-          .setValue(areaSelectionRate.toLocaleString())
+          .setValue(areaSelectionRate.toLocaleString() + "/s")
           .setBgColor(bgColor)
           .setValueColor(valueColor)
           .draw();
