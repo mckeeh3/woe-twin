@@ -14,17 +14,17 @@ interface WorldMap {
   int zoomMax = 18;
 
   static String entityIdOf(Region region) {
-    return String.format("region:%d:%1.13f:%1.13f:%1.13f:%1.13f", region.zoom,
+    return String.format("%d:%1.13f:%1.13f:%1.13f:%1.13f", region.zoom,
         region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
   }
 
   static Region regionForEntityId(String entityId) {
-    String[] fields = entityId.split(":");
-    int zoom = Integer.parseInt(fields[1]);
-    double topLeftLat = Double.parseDouble(fields[2]);
-    double topLeftLng = Double.parseDouble(fields[3]);
-    double botRightLat = Double.parseDouble(fields[4]);
-    double botRightLng = Double.parseDouble(fields[5]);
+    final String[] fields = entityId.split(":");
+    final int zoom = Integer.parseInt(fields[0]);
+    final double topLeftLat = Double.parseDouble(fields[1]);
+    final double topLeftLng = Double.parseDouble(fields[2]);
+    final double botRightLat = Double.parseDouble(fields[3]);
+    final double botRightLng = Double.parseDouble(fields[4]);
     return new WorldMap.Region(zoom, topLeft(topLeftLat, topLeftLng), botRight(botRightLat, botRightLng));
   }
 
@@ -64,7 +64,7 @@ interface WorldMap {
   }
 
   private static List<Region> subRegionsForZoom0() {
-    List<Region> regions = new ArrayList<>();
+    final List<Region> regions = new ArrayList<>();
     regions.add(region(1, topLeft(90, -180), botRight(-90, 0)));
     regions.add(region(1, topLeft(90, 0), botRight(-90, 180)));
     return regions;
@@ -92,8 +92,8 @@ interface WorldMap {
     if (zoom == region.zoom) {
       return region;
     }
-    List<Region> subRegions = subRegionsFor(region);
-    Optional<Region> subRegionOpt = subRegions.stream().filter(r -> r.contains(latLng)).findFirst();
+    final List<Region> subRegions = subRegionsFor(region);
+    final Optional<Region> subRegionOpt = subRegions.stream().filter(r -> r.contains(latLng)).findFirst();
     return subRegionOpt.map(subRegion -> regionAtLatLng(zoom, latLng, subRegion)).orElse(null);
   }
 
@@ -114,7 +114,7 @@ interface WorldMap {
   }
 
   private static List<Region> regionsInRow(Region area, Region start) {
-    List<Region> regions = new ArrayList<>();
+    final List<Region> regions = new ArrayList<>();
     regions.add(start);
     Region next = start.cloneRight();
     while (area.overlaps(next)) {
@@ -125,7 +125,7 @@ interface WorldMap {
   }
 
   private static List<Region> regionsInCol(Region area, Region start) {
-    List<Region> regions = new ArrayList<>();
+    final List<Region> regions = new ArrayList<>();
     Region next = start.cloneBelow();
     while (area.overlaps(next)) {
       regions.add(next);
@@ -148,7 +148,7 @@ interface WorldMap {
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      LatLng latLng = (LatLng) o;
+      final LatLng latLng = (LatLng) o;
       return Double.compare(latLng.lat, lat) == 0 &&
           Double.compare(latLng.lng, lng) == 0;
     }

@@ -1,13 +1,14 @@
 package woe.twin;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.stream.IntStream;
 
 public class MapZoomLevelsTest {
-
+  @Ignore
   @Test
-  public void t() {
+  public void zoomInfo() {
     IntStream.range(0, 19).forEach(this::zoom);
   }
 
