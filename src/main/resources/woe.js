@@ -72,6 +72,8 @@ function drawMouseLocation() {
     } else {
       areaSelectionOn = false;
     }
+  } else {
+    drawMouseCounts();
   }
 }
 
@@ -81,6 +83,64 @@ function drawMouseSectors() {
     fill(color(areaSelectionColor));
     strokeWeight(0);
     rect(loc.rect.x, loc.rect.y, loc.rect.w, loc.rect.h);
+  }
+}
+
+function drawMouseCounts() {
+  const loc = mouseGridLocation();
+  if (loc.inGrid) {
+    const counts = deviceCounts(findSelectionsUnderMouse(loc));
+    if (counts.deviceCount > 0) {
+      Label().setX(grid.toGridX(loc.rect.x))
+              .setBorder(0.15)
+              .setY(grid.toGridY(loc.rect.y))
+              .setW(grid.toGridLength(loc.rect.w))
+              .setH(1)
+              .setKey(counts.deviceCount.toLocaleString())
+              .setKeyColor(color(75, 75, 125))
+              .setBgColor(color(225, 225, 225, 150))
+              .draw();
+    }
+  }
+
+  function deviceCounts(selectionsUnderMouse) {
+    const counts = { deviceCount: 0, happyCount: 0, sadCount: 0 };
+    selectionsUnderMouse.forEach(s => {
+      counts.deviceCount += s.deviceCount;
+      counts.happyCount += s.happyCount;
+      counts.sadCount += s.sadCount;
+    });
+    return counts;
+  }
+
+  function findSelectionsUnderMouse(loc) {
+    const selections = [];
+    queryResponse.regionSummaries.forEach(r => {
+      if (overlaps(loc.map, r.region)) {
+         selections.push(r);
+      }
+    });
+    return selections;
+  }
+
+  function overlaps(mouse, region) {
+    return !isMouseAbove(mouse, region) && !isMouseBelow(mouse, region) && !isMouseLeft(mouse, region) && !isMouseRight(mouse, region);
+  }
+
+  function isMouseAbove(mouse, region) {
+    return mouse.botRight.lat >= region.topLeft.lat;
+  }
+
+  function isMouseBelow(mouse, region) {
+    return mouse.topLeft.lat <= region.botRight.lat;
+  }
+
+  function isMouseLeft(mouse, region) {
+    return mouse.botRight.lng <= region.topLeft.lng;
+  }
+
+  function isMouseRight(mouse, region) {
+    return mouse.topLeft.lng >= region.botRight.lng;
   }
 }
 
@@ -787,6 +847,15 @@ const grid = {
   },
   toLength: function (gridLength) {
     return gridLength * this.tickWidth
+  },
+  toGridX: function(x) {
+    return (x - this.borderWidth) / this.tickWidth;
+  },
+  toGridY: function(y) {
+    return (y - this.borderWidth) / this.tickWidth;
+  },
+  toGridLength: function(length) {
+    return length / this.tickWidth;
   },
   line: function (x1, y1, x2, y2) {
     line(grid.toX(x1), grid.toY(y1), grid.toX(x2), grid.toY(y2));
