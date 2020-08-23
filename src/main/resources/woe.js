@@ -701,6 +701,7 @@ function deviceQueryInterval() {
 
 function initActivityMonitor() {
   activityMonitor.size = 180;
+  activityMonitor.firstQueryUpdate = true;
   activityMonitor.lastUpdate = Date.now();
   activityMonitor.counts = [];
   for (let i = 0; i < activityMonitor.size; i++) {
@@ -810,6 +811,12 @@ function drawActivityMonitor() {
     const timeDelta = timeNow - activityMonitor.lastUpdate;
     if (timeDelta > 1000) {
       const last = activityMonitor.counts[activityMonitor.counts.length - 1];
+      if (activityMonitor.firstQueryUpdate && queryResponse.deviceCount > 0) {
+        activityMonitor.firstQueryUpdate = false;
+        last.deviceCount = queryResponse.deviceCount;
+        last.happyCount = queryResponse.happyCount;
+        last.sadCount = queryResponse.sadCount;
+      }
       activityMonitor.counts.shift();
       activityMonitor.counts.push({
         deviceCount: queryResponse.deviceCount,
