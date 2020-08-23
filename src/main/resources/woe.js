@@ -73,7 +73,7 @@ function drawMouseLocation() {
       areaSelectionOn = false;
     }
   } else {
-    drawMouseCounts();
+    drawDeviceCountWithinMouseRegion();
   }
 }
 
@@ -83,19 +83,46 @@ function drawMouseSectors() {
     fill(color(areaSelectionColor));
     strokeWeight(0);
     rect(loc.rect.x, loc.rect.y, loc.rect.w, loc.rect.h);
-  }
-}
+    const deviceDensity = Math.pow(4, 18 - worldMap.zoom());
+    const durationSec = Math.round(deviceDensity / areaSelectionRate);
 
-function drawMouseCounts() {
-  const loc = mouseGridLocation();
-  if (loc.inGrid) {
-    const counts = deviceCounts(findSelectionsUnderMouse(loc));
-    if (counts.deviceCount > 0) {
+    if (durationSec > 0) {
       Label().setX(grid.toGridX(loc.rect.x))
               .setBorder(0.15)
               .setY(grid.toGridY(loc.rect.y))
               .setW(grid.toGridLength(loc.rect.w))
               .setH(1)
+              .setKey(durationFormat(durationSec))
+              .setKeyColor(color(75, 75, 125))
+              .setBgColor(color(225, 225, 225, 150))
+              .draw();
+    }
+  }
+
+  function durationFormat(seconds) {
+    const d = new Date(0);
+    d.setSeconds(seconds);
+    const h = d.getUTCHours();
+    const m = d.getUTCMinutes();
+    const s = d.getSeconds();
+    return "PT" + (h > 0 ? h + "H" : "") + (m > 0 ? m + "M" : "") + (s > 0 ? s + "S" : "");
+  }
+}
+
+function drawDeviceCountWithinMouseRegion() {
+  const loc = mouseGridLocation();
+  if (loc.inGrid) {
+    const counts = deviceCounts(findSelectionsUnderMouse(loc));
+    if (counts.deviceCount > 0) {
+      stroke(255);
+      strokeWeight(1.5);
+      noFill();
+      rect(loc.rect.x, loc.rect.y, loc.rect.w, loc.rect.h);
+      Label().setX(grid.toGridX(loc.rect.x))
+              .setY(grid.toGridY(loc.rect.y))
+              .setW(grid.toGridLength(loc.rect.w))
+              .setH(1)
+              .setBorder(0.15)
               .setKey(counts.deviceCount.toLocaleString())
               .setKeyColor(color(75, 75, 125))
               .setBgColor(color(225, 225, 225, 150))
