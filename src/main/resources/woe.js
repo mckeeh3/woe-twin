@@ -114,8 +114,8 @@ function drawDeviceCountWithinMouseRegion() {
   if (loc.inGrid) {
     const counts = deviceCounts(findSelectionsUnderMouse(loc));
     if (counts.deviceCount > 0) {
-      stroke(255);
-      strokeWeight(1.5);
+      stroke(255, 251, 51);
+      strokeWeight(2);
       noFill();
       rect(loc.rect.x, loc.rect.y, loc.rect.w, loc.rect.h);
       Label().setX(grid.toGridX(loc.rect.x))
@@ -125,7 +125,7 @@ function drawDeviceCountWithinMouseRegion() {
               .setBorder(0.15)
               .setKey(counts.deviceCount.toLocaleString())
               .setKeyColor(color(75, 75, 125))
-              .setBgColor(color(225, 225, 225, 150))
+              .setBgColor(color(255, 251, 51, 100))
               .draw();
     }
   }
