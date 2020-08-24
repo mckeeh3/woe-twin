@@ -114,20 +114,38 @@ function drawDeviceCountWithinMouseRegion() {
   if (loc.inGrid) {
     const counts = deviceCounts(findSelectionsUnderMouse(loc));
     if (counts.deviceCount > 0) {
-      stroke(255, 251, 51);
-      strokeWeight(2);
-      noFill();
-      rect(loc.rect.x, loc.rect.y, loc.rect.w, loc.rect.h);
-      Label().setX(grid.toGridX(loc.rect.x))
-              .setY(grid.toGridY(loc.rect.y))
-              .setW(grid.toGridLength(loc.rect.w))
-              .setH(1)
-              .setBorder(0.15)
-              .setKey(counts.deviceCount.toLocaleString())
-              .setKeyColor(color(75, 75, 125))
-              .setBgColor(color(255, 251, 51, 100))
-              .draw();
+      const x = grid.toGridX(loc.rect.x);
+      const y = grid.toGridY(loc.rect.y);
+      const w = grid.toGridLength(loc.rect.w);
+      const h = 1;
+      let yOffset = y;
+      outlineRegion();
+      drawCount(counts.deviceCount.toLocaleString(), x, y, w, h, color(75, 75, 125));
+      if (counts.happyCount > 0 && counts.happyCount != counts.deviceCount) {
+        yOffset += h + 0.05;
+        drawCount(counts.happyCount.toLocaleString() + "-H", x, yOffset, w, h, color(28, 98, 0));
+      }
+      if (counts.sadCount > 0 && counts.sadCount != counts.deviceCount) {
+        yOffset += h + 0.05;
+        drawCount(counts.sadCount.toLocaleString() + "-S", x, yOffset, w, h, color(210, 42, 42));
+      }
     }
+  }
+
+  function outlineRegion() {
+    stroke(255, 251, 51);
+    strokeWeight(2);
+    noFill();
+    rect(loc.rect.x, loc.rect.y, loc.rect.w, loc.rect.h);
+  }
+
+  function drawCount(count, x, y, w, h, countColor) {
+    Label().setX(x).setY(y).setW(w).setH(h)
+            .setBorder(0.1)
+            .setKey(count)
+            .setKeyColor(countColor)
+            .setBgColor(color(255, 251, 51, 100))
+            .draw();
   }
 
   function deviceCounts(selectionsUnderMouse) {
