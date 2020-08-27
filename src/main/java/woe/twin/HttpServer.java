@@ -7,6 +7,7 @@ import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.model.ContentTypes;
+import akka.http.javadsl.model.MediaTypes;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
 import com.zaxxer.hikari.HikariConfig;
@@ -57,6 +58,7 @@ public class HttpServer {
         path("woe.js", () -> getFromResource("woe.js", ContentTypes.APPLICATION_JSON)),
         path("p5.js", () -> getFromResource("p5.js", ContentTypes.APPLICATION_JSON)),
         path("mappa.js", () -> getFromResource("mappa.js", ContentTypes.APPLICATION_JSON)),
+        path("favicon.ico", () -> getFromResource("favicon.ico", MediaTypes.IMAGE_X_ICON.toContentType())),
         path("telemetry", this::handleTelemetryActionPost),
         path("selection", this::handleSelectionRequest),
         path("query-devices", this::queryDevices)

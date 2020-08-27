@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 public class Main {
   static Behavior<Void> create() {
