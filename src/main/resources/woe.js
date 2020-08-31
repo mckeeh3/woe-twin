@@ -93,7 +93,7 @@ function drawMouseSectors() {
               .setW(grid.toGridLength(loc.rect.w))
               .setH(1)
               .setKey(durationFormat(durationSec))
-              .setKeyColor(color(75, 75, 125))
+              .setKeyColor(color(35, 35, 125))
               .setBgColor(color(225, 225, 225, 150))
               .draw();
     }
@@ -105,7 +105,7 @@ function drawMouseSectors() {
     const h = d.getUTCHours();
     const m = d.getUTCMinutes();
     const s = d.getSeconds();
-    return "PT" + (h > 0 ? h + "H" : "") + (m > 0 ? m + "M" : "") + (s > 0 ? s + "S" : "");
+    return " " + (h > 0 ? h + "h" : "") + (m > 0 ? m + "m" : "") + (s > 0 ? s + "s" : "");
   }
 }
 
@@ -618,8 +618,12 @@ function keyTyped() {
       areaSelectionRate -= 1000;
     } else if (areaSelectionRate > 100) {
       areaSelectionRate -= 100;
+    } else if (areaSelectionRate == 100) {
+      areaSelectionRate -= 50;
+    } else if (areaSelectionRate == 50) {
+      areaSelectionRate -= 25;
     }
-    areaSelectionRate = Math.max(100, areaSelectionRate);
+    areaSelectionRate = Math.max(25, areaSelectionRate);
     console.log("Decrease " + areaSelectionRate.toLocaleString());
   } else if (keyCode == 'R'.charCodeAt(0)) {
     if (areaSelectionRate >= 10000000) {
@@ -634,6 +638,10 @@ function keyTyped() {
       areaSelectionRate += 1000;
     } else if (areaSelectionRate >= 100) {
       areaSelectionRate += 100;
+    } else if (areaSelectionRate == 50) {
+      areaSelectionRate += 50;
+    } else if (areaSelectionRate == 25) {
+      areaSelectionRate += 25;
     }
     areaSelectionRate = Math.min(Math.pow(10, 7), areaSelectionRate);
     console.log("Increase " + areaSelectionRate.toLocaleString());
