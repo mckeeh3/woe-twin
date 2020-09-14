@@ -12,11 +12,11 @@
         <git.commit.version>${git.commit.time}.${git.commit.id.abbrev}</git.commit.version>
         <java.version>11</java.version>
         <scala.version>2.13</scala.version>
-        <akka.version>2.6.8</akka.version>
+        <akka.version>2.6.9</akka.version>
         <aka.management.version>1.0.8</aka.management.version>
         <akka.http.version>10.2.0</akka.http.version>
         <akka.management.version>1.0.8</akka.management.version>
-        <akka.projection.version>1.0.0-RC1</akka.projection.version>
+        <akka.projection.version>1.0.0</akka.projection.version>
         <akka.persistence.cassandra.version>1.0.1</akka.persistence.cassandra.version>
         <akka.grpc.version>1.0.1</akka.grpc.version>
         <grpc.version>1.30.2</grpc.version>

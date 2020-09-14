@@ -2,7 +2,6 @@ package woe.twin;
 
 import akka.actor.typed.ActorSystem;
 import akka.japi.function.Function;
-import akka.parboiled2.RuleTrace;
 import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
 import akka.persistence.query.Offset;
 import akka.projection.ProjectionId;

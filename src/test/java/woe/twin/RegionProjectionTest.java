@@ -28,7 +28,7 @@ import static woe.twin.WorldMap.*;
 public class RegionProjectionTest {
   @ClassRule
   public static final TestKitJunitResource testKit = new TestKitJunitResource(config());
-  ProjectionTestKit projectionTestKit = ProjectionTestKit.create(testKit.testKit());
+  ProjectionTestKit projectionTestKit = ProjectionTestKit.create(testKit.system());
 
   private static Config config() {
     return ConfigFactory.parseString(
