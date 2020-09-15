@@ -36,6 +36,8 @@ public class GrpcServer {
 
   CompletionStage<ServerBinding> start(String host, int port) {
     final TelemetryServiceImpl telemetryServiceImpl = new TelemetryServiceImpl(clusterSharding);
+//    Http.get(actorSystem).newServerAt(host, port).bind(TwinDeviceServiceHandlerFactory.create(telemetryServiceImpl, actorSystem));
+
     return Http.get(actorSystem.classicSystem()).bindAndHandleAsync(
         TwinDeviceServiceHandlerFactory.create(telemetryServiceImpl, actorSystem),
         ConnectHttp.toHost(host, port),

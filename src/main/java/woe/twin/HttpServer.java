@@ -220,6 +220,7 @@ public class HttpServer {
   }
 
   public static class QueryResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
     public final int deviceCount;
     public final int happyCount;
     public final int sadCount;

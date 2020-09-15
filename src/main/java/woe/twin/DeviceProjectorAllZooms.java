@@ -72,7 +72,7 @@ class DeviceProjectorAllZooms {
       log.debug("Stop {}", tag);
       super.stop();
     }
-
+/*
     private void lockTable(DbSession session) {
       final Connection connection = session.connection;
       try (Statement statement = connection.createStatement()) {
@@ -82,7 +82,7 @@ class DeviceProjectorAllZooms {
         throw new RuntimeException(String.format("Lock table region failed, %s", tag), e);
       }
     }
-
+*/
     private List<RegionSummary> summarize(List<EventEnvelope<Device.Event>> eventEnvelopes, int zoom) {
       final RegionSummaries regionSummaries = new RegionSummaries(zoom);
 

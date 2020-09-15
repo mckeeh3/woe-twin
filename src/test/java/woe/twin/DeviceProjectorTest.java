@@ -132,7 +132,7 @@ public class DeviceProjectorTest {
   private static Connection getConnection() throws SQLException {
     return DriverManager.getConnection("jdbc:hsqldb:mem:test");
   }
-
+/*
   private static void insert(WorldMap.Region region, int deviceCount, int happyCount, int sadCount) throws SQLException {
     try (Connection connection = getConnection();
          Statement statement = connection.createStatement()) {
@@ -150,7 +150,7 @@ public class DeviceProjectorTest {
       statement.executeUpdate(sql);
     }
   }
-
+*/
   private static class RegionSummaryReader {
     CompletionStage<String> read(String id) {
       assertEquals("TODO", id);

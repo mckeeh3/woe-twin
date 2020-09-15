@@ -189,7 +189,7 @@ public class RegionSqlTest {
       connection.commit();
     }
   }
-
+/*
   private long expectedRegionsForZoom(int zoomSelection, int zoomRegion) {
     return Math.round(Math.pow(4, 18 - zoomSelection) / Math.pow(4, 18 - Math.max(zoomSelection, zoomRegion)));
   }
@@ -206,4 +206,5 @@ public class RegionSqlTest {
         .map(rs -> rs.deviceCount)
         .reduce(0, Integer::sum);
   }
+*/
 }
