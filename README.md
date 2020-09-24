@@ -1,10 +1,12 @@
-# What On Earth Twin - woe-twin microservice
+
+# Where On Earth Twin (woe-twin) Microservice
 
 TODO
 
 ### Design notes
 
 #### Map Regions
+
 Map regions are a rectangular area on a global map. Regions are bounded
 by a top left corner, and a bottom right corner. Corners are defined by latitude
 and longitude values.
@@ -18,6 +20,7 @@ and 360 degrees from left to right. Top to bottom degrees are the latitudes
 and left to right degrees are longitudes.
 
 #### Map Region Selections
+
 Map selections are rectangular areas that are bounded by a top left
 corner, and a bottom left corner. Each new map selection is submitted to
 a map at the top zoom level.
@@ -39,7 +42,20 @@ the map selection on to map sub regions. Typically, each map region
 contains 4 sub regions. This recursion starts at zoom level 0 and continues
 to zoom level 18.
 
-### Deploy the WOE Twin Microservice
+### How to Deploy the WoE Simulator Microservice
+
+- [Minikube with Yugabyte DB](README-minikube-yugabyte.md)
+- Gooke Kubernetes Engine with Yugabyte DB (TODO)
+- AWS Elastic Kubernetes Service (TODO)
+---
+
+**Note**
+
+The following documentation is being replaced with environment specific README documents.
+
+---
+
+### How to Deploy the WOE Twin Microservice
 
 The `kubectl` CLI provides a nice Kubectl Autocomplete feature for `bash` and `zsh`.
 See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-autocomplete) for instructions.
