@@ -20,7 +20,7 @@ spec:
         - name: woe-twin
           image: woe-twin:latest
           # remove for real clusters, useful for minikube
-          imagePullPolicy: Never
+          imagePullPolicy: Always
           readinessProbe:
             httpGet:
               path: /ready
@@ -61,9 +61,11 @@ spec:
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
             - name: cassandra_host_port_1
-              value: "yb-tservers.yb-demo.svc.cluster.local:9042"
+            # value: "yb-tservers.yb-demo.svc.cluster.local:9042"
+              value: "192.168.7.98:9042"
             - name: postgresql_url
-              value: "jdbc:postgresql://localhost:5433/"
+            # value: "jdbc:postgresql://yb-tservers.yb-demo.svc.cluster.local:5433"
+              value: "jdbc:postgresql://192.168.7.98:5433/"
             - name: postgresql_username
               value: "yugabyte"
             - name: postgresql_password
