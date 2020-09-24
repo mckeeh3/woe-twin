@@ -233,7 +233,7 @@ In this example the MiniKube IP is:
 ~~~
 Try accessing this endpoint using the curl command or from a browser.
 ~~~bash
-$ curl -v http://$(minikube ip):32171
+$ curl -v http://$(minikube ip):32171/cluster/members | python -m json.tool
 ~~~
 ~~~
 *   Trying 192.168.99.102:32171...
