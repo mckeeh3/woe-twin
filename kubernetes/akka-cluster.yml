@@ -20,7 +20,7 @@ spec:
         - name: woe-twin
           image: woe-twin:latest
           # remove for real clusters, useful for minikube
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           readinessProbe:
             httpGet:
               path: /ready
