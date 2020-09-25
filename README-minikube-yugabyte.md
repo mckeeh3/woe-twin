@@ -194,9 +194,30 @@ $ kubectl get pods
 ~~~
 ~~~
 NAME                      READY   STATUS    RESTARTS   AGE
-woe-twin-746587fbf4-2zth5   1/1     Running   0          33s
-woe-twin-746587fbf4-trkdt   1/1     Running   0          33s
-woe-twin-746587fbf4-zzk7f   1/1     Running   0          33s
+woe-twin-786f7bb8dc-6cpp7   1/1     Running   0          3m7s
+woe-twin-786f7bb8dc-98v26   1/1     Running   0          3m7s
+woe-twin-786f7bb8dc-hmxlx   1/1     Running   0          3m7s
+~~~
+
+If there are configuration issues or if you want to check something in a container, start a `bash` shell in one of the pods using the following command. For example, start a `bash` shell on the 3rd pod listed above.
+
+~~~bash
+$ kubectl exec -it woe-twin-786f7bb8dc-hmxlx -- /bin/bash                        
+root@woe-twin-786f7bb8dc-hmxlx:/# 
+~~~
+~~~
+root@woe-twin-786f7bb8dc-hmxlx:/# env | grep woe
+HOSTNAME=woe-twin-786f7bb8dc-hmxlx
+woe_twin_http_server_port=8080
+NAMESPACE=woe-twin-1
+woe_simulator_http_server_port=8080
+woe_twin_grpc_server_port=8081
+woe_simulator_http_server_host=woe-sim-service.woe-sim-1.svc.cluster.local
+woe_twin_http_server_host=woe-twin-service.woe-twin-1.svc.cluster.local
+woe_twin_grpc_server_host=woe-twin-service.woe-twin-1.svc.cluster.local
+root@woe-twin-786f7bb8dc-hmxlx:/# exit
+exit
+command terminated with exit code 127
 ~~~
 
 #### Enable External Access
@@ -231,9 +252,10 @@ In this example the MiniKube IP is:
 ~~~
 192.168.99.102
 ~~~
-Try accessing this endpoint using the curl command or from a browser.
+Try accessing this endpoint using the curl command or from a browser. Use the external port defined for port 8080. In the example above the external port for port 8080 is 32171.
+
 ~~~bash
-$ curl -v http://$(minikube ip):32171/cluster/members | python -m json.tool
+$ curl -v http://$(minikube ip):32171
 ~~~
 ~~~
 *   Trying 192.168.99.102:32171...
