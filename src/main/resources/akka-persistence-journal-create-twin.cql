@@ -1,5 +1,8 @@
 
-CREATE KEYSPACE IF NOT EXISTS woe_twin WITH replication = {'class': 'NetworkTopologyStrategy', '<your_dc_name>' : 3 };
+// https://doc.akka.io/docs/akka-persistence-cassandra/current/journal.html#schema
+
+//CREATE KEYSPACE IF NOT EXISTS woe_twin WITH replication = {'class': 'NetworkTopologyStrategy', 'woe_twin' : 3 };
+CREATE KEYSPACE IF NOT EXISTS woe_twin WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
 CREATE TABLE IF NOT EXISTS woe_twin.messages (
   persistence_id text,
@@ -81,4 +84,3 @@ CREATE TABLE IF NOT EXISTS woe_twin.metadata (
 
 CREATE TABLE IF NOT EXISTS woe_twin.all_persistence_ids (
   persistence_id text PRIMARY KEY);
-

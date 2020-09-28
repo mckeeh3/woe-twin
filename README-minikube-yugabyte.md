@@ -111,13 +111,13 @@ yugabyte=# quit
 You may want to allocate more CPU and memory capacity to run the WoW application than the defaults. There are two `minikube` command options available for adjusting the CPU and memory allocation settings.
 
 ~~~bash
-$ minikube start --cpus=C --memory=M
+$ minikube start --driver=virtualbox --cpus=C --memory=M
 ~~~
 
 For example, allocate 4 CPUs and 10 gig of memory.
 
 ~~~bash
-$ minikube start --cpus=4 --memory=10g
+$ minikube start --driver=virtualbox --cpus=4 --memory=10g
 ~~~
 
 ### Build and Deploy to MiniKube
@@ -181,7 +181,7 @@ Context "minikube" modified.
 
 Deploy the Docker images to the Kubernetes cluster.
 ~~~bash
-$ kubectl apply -f kubernetes/akka-cluster.yml
+$ kubectl apply -f kubernetes/akka-cluster-minikube.yml
 ~~~
 ~~~
 deployment.apps/woe-twin created
@@ -293,3 +293,7 @@ $ curl -v http://$(minikube ip):32171
 
 * Connection #0 to host 192.168.99.102 left intact
 ~~~
+
+### Access the WoE world Map UI
+
+With Minikube, the URL used to access the world map user interface is composed of the Minikube IP and the woe-twin load balancer port assigned to port 8081.
