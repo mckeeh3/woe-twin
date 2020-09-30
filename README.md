@@ -55,7 +55,7 @@ The following documentation is being replaced with environment specific README d
 
 ---
 
-### How to Deploy the WOE Twin Microservice
+### How to Deploy the WoE Twin Microservice
 
 The `kubectl` CLI provides a nice Kubectl Autocomplete feature for `bash` and `zsh`.
 See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-autocomplete) for instructions.
@@ -352,7 +352,7 @@ woe-twin-746587fbf4-zzk7f   1/1     Running   0          33s
 
 #### Enable External Access
 
-Create a load balancer to enable access to the WOE Twin microservice HTTP endpoint.
+Create a load balancer to enable access to the WoE Twin microservice HTTP endpoint.
 
 ~~~bash
 $ kubectl expose deployment woe-twin --type=LoadBalancer --name=woe-twin-service
@@ -424,7 +424,7 @@ $ curl -v http://$(minikube ip):32171
 ~~~
 
 #### Verify Internal HTTP access
-The WOE Twin and WOE Sim microservices communicate with each other via HTTP. Each
+The WoE Twin and WoE Sim microservices communicate with each other via HTTP. Each
 microservie needs to know the host name of the other service. Use the following to
 verify the hostname of this service.
 
@@ -453,7 +453,7 @@ Address 1: 10.106.25.172 woe-twin-service.woe-twin-1.svc.cluster.local
 ~~~
 Note that the load balancer host name is `woe-twin-service.woe-twin-1.svc.cluster.local`.
 
-Verify that the WOE Twin HTTP server is accessible via the host name.
+Verify that the WoE Twin HTTP server is accessible via the host name.
 ~~~
 / # wget -qO- http://woe-twin-service.woe-twin-1.svc.cluster.local:8080
 <!DOCTYPE html>
@@ -601,7 +601,7 @@ $ kubectl scale --replicas=10 deployment/woe-twin
 
 #### Enable External Access
 
-Create a load balancer to enable access to the WOE Twin microservice HTTP endpoint.
+Create a load balancer to enable access to the WoE Twin microservice HTTP endpoint.
 
 ~~~bash
 $ kubectl expose deployment woe-twin --type=LoadBalancer --name=woe-twin-service
