@@ -7,6 +7,7 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
+import akka.persistence.typed.SnapshotSelectionCriteria;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.javadsl.CommandHandler;
 import akka.persistence.typed.javadsl.Effect;
@@ -126,7 +127,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   @Override
   public Recovery recovery() {
     log().info("Start entity {}", entityId);
-    return super.recovery();
+    return Recovery.withSnapshotSelectionCriteria(SnapshotSelectionCriteria.none());
   }
 
   @Override
