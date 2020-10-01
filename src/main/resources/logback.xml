@@ -11,24 +11,25 @@
         <appender-ref ref="STDOUT" />
     </appender>
 
+    <logger name="woe.twin.grpc" level="INFO"/>
+    <logger name="woe.twin.Device" level="INFO"/>
     <logger name="akka.cluster.sharding" level="INFO"/>
     <logger name="akka.cluster.ddata" level="INFO"/>
-    <logger name="com.datastax.oss" level="INFO"/>
     <logger name="akka.actor.TimerScheduler" level="INFO"/>
     <logger name="akka.persistence.typed" level="INFO"/>
     <logger name="akka.persistence.cassandra" level="INFO"/>
-    <logger name="io.netty.util.internal" level="INFO"/>
     <logger name="akka.remote.artery" level="INFO"/>
     <logger name="akka.io" level="INFO"/>
     <logger name="akka.http" level="INFO"/>
-    <logger name="com.zaxxer.hikari" level="INFO"/>
     <logger name="akka.projection" level="DEBUG"/>
     <logger name="akka.projection.jdbc" level="DEBUG"/>
-    <logger name="woe.twin.Device" level="INFO"/>
     <logger name="akka.actor.LocalActorRefProvider.Deserialization" level="INFO"/>
-    <logger name="woe.twin.grpc" level="INFO"/>
     <logger name="akka.stream.impl.io.TcpConnectionStage" level="INFO"/>
     <logger name="akka.persistence.cassandra.query" level="INFO"/>
+    <logger name="com.datastax.oss" level="INFO"/>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="io.netty.util.internal" level="INFO"/>
+    <logger name="io.netty.channel.nio" level="INFO"/>
 
     <root level="DEBUG">
         <appender-ref ref="ASYNC"/>
