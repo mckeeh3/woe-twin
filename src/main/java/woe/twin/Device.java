@@ -12,6 +12,8 @@ import akka.persistence.typed.javadsl.CommandHandler;
 import akka.persistence.typed.javadsl.Effect;
 import akka.persistence.typed.javadsl.EventHandler;
 import akka.persistence.typed.javadsl.EventSourcedBehavior;
+import akka.persistence.typed.javadsl.Recovery;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
@@ -55,6 +57,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
         .onCommand(TelemetryHappyCommand.class, this::onHappyCommand)
         .onCommand(TelemetrySadCommand.class, this::onSadCommand)
         .onCommand(TelemetryPingCommand.class, this::onPingCommand)
+        .onCommand(Passivate.class, this::onPassivate)
         .build();
   }
 
@@ -113,6 +116,17 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
       telemetryPingCommand.replyTo.tell(new TelemetryPingResponse(telemetryPingCommand));
       return Effect().none();
     }
+  }
+
+  private Effect<Event, State> onPassivate(State state, Passivate passivate) {
+    log().info("Stop entity {}", entityId);
+    return Effect().none();
+  }
+
+  @Override
+  public Recovery recovery() {
+    log().info("Start entity {}", entityId);
+    return super.recovery();
   }
 
   @Override
@@ -196,6 +210,10 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     public TelemetryPingCommand(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<TelemetryResponse> replyTo) {
       super(region, replyTo);
     }
+  }
+
+  public enum Passivate implements Command {
+    INSTANCE
   }
 
   interface Event extends CborSerializable {
@@ -406,8 +424,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
   static List<String> tagsAll(ActorSystem<?> actorSystem) {
     final List<String> tags = new ArrayList<>();
     final int numberOfShards = actorSystem.settings().config().getInt(projectionShards);
-    IntStream.range(0, numberOfShards).forEach(tagId ->
-        tags.add(String.format("%d", tagId)));
+    IntStream.range(0, numberOfShards).forEach(tagId -> tags.add(String.format("%d", tagId)));
     return tags;
   }
 
