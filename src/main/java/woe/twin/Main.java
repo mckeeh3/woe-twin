@@ -90,7 +90,9 @@ public class Main {
             Device.entityTypeKey,
             entityContext ->
                 Device.create(entityContext.getEntityId(), clusterSharding)
-        ).withEntityProps(DispatcherSelector.fromConfig("woe.twin.device-entity-dispatcher"))
+        )
+        .withEntityProps(DispatcherSelector.fromConfig("woe.twin.device-entity-dispatcher"))
+        .withStopMessage(Device.Passivate.INSTANCE)
     );
   }
 
