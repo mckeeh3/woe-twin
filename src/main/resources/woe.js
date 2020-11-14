@@ -87,15 +87,16 @@ function drawMouseSectors() {
     const durationSec = Math.round(deviceDensity / areaSelectionRate);
 
     if (durationSec > 0) {
-      Label().setX(grid.toGridX(loc.rect.x))
-              .setBorder(0.15)
-              .setY(grid.toGridY(loc.rect.y))
-              .setW(grid.toGridLength(loc.rect.w))
-              .setH(1)
-              .setKey(durationFormat(durationSec))
-              .setKeyColor(color(35, 35, 125))
-              .setBgColor(color(225, 225, 225, 150))
-              .draw();
+      Label()
+        .setX(grid.toGridX(loc.rect.x))
+        .setY(grid.toGridY(loc.rect.y))
+        .setW(grid.toGridLength(loc.rect.w))
+        .setH(1)
+        .setBorder(0.15)
+        .setKey(durationFormat(durationSec))
+        .setKeyColor(color(35, 35, 125))
+        .setBgColor(color(225, 225, 225, 150))
+        .draw();
     }
   }
 
@@ -140,12 +141,13 @@ function drawDeviceCountWithinMouseRegion() {
   }
 
   function drawCount(count, x, y, w, h, countColor) {
-    Label().setX(x).setY(y).setW(w).setH(h)
-            .setBorder(0.1)
-            .setKey(count)
-            .setKeyColor(countColor)
-            .setBgColor(color(255, 251, 51, 100))
-            .draw();
+    Label()
+      .setX(x).setY(y).setW(w).setH(h)
+      .setBorder(0.1)
+      .setKey(count)
+      .setKeyColor(countColor)
+      .setBgColor(color(255, 251, 51, 100))
+      .draw();
   }
 
   function deviceCounts(selectionsUnderMouse) {
@@ -162,7 +164,7 @@ function drawDeviceCountWithinMouseRegion() {
     const selections = [];
     queryResponse.regionSummaries.forEach(r => {
       if (overlaps(loc.map, r.region)) {
-         selections.push(r);
+        selections.push(r);
       }
     });
     return selections;
@@ -205,38 +207,42 @@ function drawZoomAndMouseLocation() {
   const valueColor = color(255);
   const bgColor = color(0, 0, 75, 125);
 
-  Label().setX(2).setY(0.1).setW(5).setH(height)
-          .setBorder(border)
-          .setKey("Zoom")
-          .setValue(19 - worldMap.zoom())
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(7.05).setY(0.1).setW(8).setH(height)
-          .setBorder(border)
-          .setKey("Lat")
-          .setValue(lat)
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(15.1).setY(0.1).setW(8).setH(height)
-          .setBorder(border)
-          .setKey("Lng")
-          .setValue(lng)
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(2).setY(1.4).setW(9.75).setH(height - 0.1)
-          .setBorder(border)
-          .setKey("Device density")
-          .setValue((Math.pow(4, 18 - worldMap.zoom()).toLocaleString()))
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
+  Label()
+    .setX(2).setY(0.1).setW(5).setH(height)
+    .setBorder(border)
+    .setKey("Zoom")
+    .setValue(19 - worldMap.zoom())
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(7.05).setY(0.1).setW(8).setH(height)
+    .setBorder(border)
+    .setKey("Lat")
+    .setValue(lat)
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(15.1).setY(0.1).setW(8).setH(height)
+    .setBorder(border)
+    .setKey("Lng")
+    .setValue(lng)
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(2).setY(1.4).setW(9.75).setH(height - 0.1)
+    .setBorder(border)
+    .setKey("Device density")
+    .setValue((Math.pow(4, 18 - worldMap.zoom()).toLocaleString()))
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
 }
 
 function drawSelectionInstructions() {
@@ -249,92 +255,106 @@ function drawSelectionInstructions() {
   const valueColor = color(255);
   const bgColor = color(0, 0, 75, 125);
 
-  Label().setX(grid.ticksHorizontal - 10.2).setY(offsetY(0)).setW(5.2).setH(height)
-          .setBorder(border)
-          .setKey("Rate +'R' -'r'")
-          .setBgColor(color(0, 0, 204, 100))
-          .setKeyColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 5).setY(offsetY(0)).setW(5).setH(height)
-          .setBorder(border)
-          .setValue(areaSelectionRate.toLocaleString() + "/s")
-          .setBgColor(bgColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(offsetY(1)).setW(1.7).setH(height)
-          .setBorder(border)
-          .setKey("'c'")
-          .setBgColor(areaSelectionColorCreate)
-          .setKeyColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 4.3).setY(offsetY(1)).setW(4.3).setH(height)
-          .setBorder(border)
-          .setValue("create")
-          .setBgColor(bgColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(offsetY(2)).setW(1.7).setH(height)
-          .setBorder(border)
-          .setKey("'d'")
-          .setBgColor(areaSelectionColorDelete)
-          .setKeyColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 4.3).setY(offsetY(2)).setW(4.3).setH(height)
-          .setBorder(border)
-          .setValue("delete")
-          .setBgColor(bgColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(offsetY(3)).setW(1.7).setH(height)
-          .setBorder(border)
-          .setKey("'h'")
-          .setBgColor(areaSelectionColorHappy)
-          .setKeyColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 4.3).setY(offsetY(3)).setW(4.3).setH(height)
-          .setBorder(border)
-          .setValue("happy")
-          .setBgColor(bgColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 6).setY(offsetY(4)).setW(1.7).setH(height)
-          .setBorder(border)
-          .setKey("'s'")
-          .setBgColor(areaSelectionColorSad)
-          .setKeyColor(color(255))
-          .draw();
-  Label().setX(grid.ticksHorizontal - 4.3).setY(offsetY(4)).setW(4.3).setH(height)
-          .setBorder(border)
-          .setValue("sad")
-          .setBgColor(bgColor)
-          .setValueColor(valueColor)
-          .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 10.2).setY(offsetY(0)).setW(5.2).setH(height)
+    .setBorder(border)
+    .setKey("Rate +'R' -'r'")
+    .setBgColor(color(0, 0, 204, 100))
+    .setKeyColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 5).setY(offsetY(0)).setW(5).setH(height)
+    .setBorder(border)
+    .setValue(areaSelectionRate.toLocaleString() + '/s')
+    .setBgColor(bgColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 6).setY(offsetY(1)).setW(1.7).setH(height)
+    .setBorder(border)
+    .setKey("'c'")
+    .setBgColor(areaSelectionColorCreate)
+    .setKeyColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 4.3).setY(offsetY(1)).setW(4.3).setH(height)
+    .setBorder(border)
+    .setValue('create')
+    .setBgColor(bgColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 6).setY(offsetY(2)).setW(1.7).setH(height)
+    .setBorder(border)
+    .setKey("'d'")
+    .setBgColor(areaSelectionColorDelete)
+    .setKeyColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 4.3).setY(offsetY(2)).setW(4.3).setH(height)
+    .setBorder(border)
+    .setValue('delete')
+    .setBgColor(bgColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 6).setY(offsetY(3)).setW(1.7).setH(height)
+    .setBorder(border)
+    .setKey("'h'")
+    .setBgColor(areaSelectionColorHappy)
+    .setKeyColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 4.3).setY(offsetY(3)).setW(4.3).setH(height)
+    .setBorder(border)
+    .setValue('happy')
+    .setBgColor(bgColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 6).setY(offsetY(4)).setW(1.7).setH(height)
+    .setBorder(border)
+    .setKey("'s'")
+    .setBgColor(areaSelectionColorSad)
+    .setKeyColor(color(255))
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 4.3).setY(offsetY(4)).setW(4.3).setH(height)
+    .setBorder(border)
+    .setValue('sad')
+    .setBgColor(bgColor)
+    .setValueColor(valueColor)
+    .draw();
 
   if (areaSelectionOn) {
     const devicesAtZoom = Math.pow(4, 18 - zoom);
-    const msg = `${devicesAtZoom.toLocaleString()} devices`
+    const msg = `${devicesAtZoom.toLocaleString()} devices`;
 
     let offset = 1;
     switch (areaSelectionAction) {
-      case "create":
+      case 'create':
         offset = 1;
         break;
-      case "delete":
+      case 'delete':
         offset = 2;
         break;
-      case "happy":
+      case 'happy':
         offset = 3;
         break;
-      case "sad":
+      case 'sad':
         offset = 4;
         break;
     }
-    Label().setX(grid.ticksHorizontal - 16.1).setY(offsetY(offset)).setW(10).setH(height)
-            .setBorder(border)
-            .setValue(msg)
-            .setBgColor(bgColor)
-            .setValueColor(color(255))
-            .draw();
+    Label()
+      .setX(grid.ticksHorizontal - 16.1)
+      .setY(offsetY(offset))
+      .setW(10)
+      .setH(height)
+      .setBorder(border)
+      .setValue(msg)
+      .setBgColor(bgColor)
+      .setValueColor(color(255))
+      .draw();
   }
 
   function offsetY(line) {
@@ -355,55 +375,61 @@ function drawSelectionCounts() {
   const happyTotal = queryResponse.regionSummaries.reduce(happyCounter, 0);
   const sadTotal = queryResponse.regionSummaries.reduce(sadCounter, 0);
 
-  Label().setX(1).setY(grid.ticksVertical - 4.6).setW(20).setH(height)
-          .setBorder(border)
-          .setKey("Devices in view")
-          .setValue(deviceTotal.toLocaleString())
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(1).setY(grid.ticksVertical - 3.3).setW(20).setH(height)
-          .setBorder(border)
-          .setKey("Happy status")
-          .setValue(happyTotal.toLocaleString())
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(1).setY(grid.ticksVertical - 2).setW(20).setH(height)
-          .setBorder(border)
-          .setKey("Sad status")
-          .setValue(sadTotal.toLocaleString())
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
+  Label()
+    .setX(1).setY(grid.ticksVertical - 4.6).setW(20).setH(height)
+    .setBorder(border)
+    .setKey("Devices in view")
+    .setValue(deviceTotal.toLocaleString())
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(1).setY(grid.ticksVertical - 3.3).setW(20).setH(height)
+    .setBorder(border)
+    .setKey("Happy status")
+    .setValue(happyTotal.toLocaleString())
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(1).setY(grid.ticksVertical - 2).setW(20).setH(height)
+    .setBorder(border)
+    .setKey("Sad status")
+    .setValue(sadTotal.toLocaleString())
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
 
-  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 4.6).setW(20).setH(height)
-          .setBorder(border)
-          .setKey("Devices worldwide")
-          .setValue(queryResponse.deviceCount.toLocaleString())
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 3.3).setW(20).setH(height)
-          .setBorder(border)
-          .setKey("Happy status")
-          .setValue(queryResponse.happyCount.toLocaleString())
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
-  Label().setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 2).setW(20).setH(height)
-          .setBorder(border)
-          .setKey("Sad status")
-          .setValue(queryResponse.sadCount.toLocaleString())
-          .setBgColor(bgColor)
-          .setKeyColor(keyColor)
-          .setValueColor(valueColor)
-          .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 4.6).setW(20).setH(height)
+    .setBorder(border)
+    .setKey("Devices worldwide")
+    .setValue(queryResponse.deviceCount.toLocaleString())
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 3.3).setW(20).setH(height)
+    .setBorder(border)
+    .setKey("Happy status")
+    .setValue(queryResponse.happyCount.toLocaleString())
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
+  Label()
+    .setX(grid.ticksHorizontal - 21).setY(grid.ticksVertical - 2).setW(20).setH(height)
+    .setBorder(border)
+    .setKey("Sad status")
+    .setValue(queryResponse.sadCount.toLocaleString())
+    .setBgColor(bgColor)
+    .setKeyColor(keyColor)
+    .setValueColor(valueColor)
+    .draw();
 }
 
 function mouseGridLocation() {
@@ -765,19 +791,21 @@ function drawActivityMonitor() {
   function drawLabels(x, yTop, yBot, scale) {
     const valueBgColor = color(200, 200, 200, 200);
     const valueFontColor = color(50, 50, 200);
-    Label().setX(x).setY(yTop).setW(3).setH(0.8)
-            .setBorder(0.1)
-            .setKey(scale.pos.toLocaleString())
-            .setBgColor(valueBgColor)
-            .setKeyColor(valueFontColor)
-            .draw();
+    Label()
+      .setX(x).setY(yTop).setW(3).setH(0.8)
+      .setBorder(0.1)
+      .setKey(scale.pos.toLocaleString())
+      .setBgColor(valueBgColor)
+      .setKeyColor(valueFontColor)
+      .draw();
 
-    Label().setX(x).setY(yBot).setW(3).setH(0.8)
-            .setBorder(0.1)
-            .setKey(scale.neg.toLocaleString())
-            .setBgColor(valueBgColor)
-            .setKeyColor(valueFontColor)
-            .draw();
+    Label()
+      .setX(x).setY(yBot).setW(3).setH(0.8)
+      .setBorder(0.1)
+      .setKey(scale.neg.toLocaleString())
+      .setBgColor(valueBgColor)
+      .setKeyColor(valueFontColor)
+      .draw();
   }
 
   function drawAxis(x, y, width, height, scale) {
