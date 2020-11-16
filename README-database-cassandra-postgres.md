@@ -38,6 +38,13 @@ With Minikube you can use a local Cassandra installation. First,
 
 **Important:** change the `listen_address` setting in the `<install-dir>/conf/conf/cassandra.yaml` configuration file to an IP address that is accessible from within Minikube. This is usually the IP of your local system. Processes running within Minikube cannot access the default localhost that Cassandra is configured to use.
 
+**Important:** change the seed configuration setting. Open the configuration file as described above. Find the `seed_provider` property, then look for `seeds`. Change from localhost to the IP used above.
+
+**Important:** comment out the `rpc_address` line. Open the configuration file as described above. Find the `rpc_address` property, and comment out this line.
+
+~~~bash
+#rpc_address: localhost
+~~~
 ### Other Cassandra Providers
 
 We will update this document as we test with other Cassandra installations.
@@ -52,7 +59,8 @@ documentation for more details on what it is and how it works.
 
 ### PostgreSQL
 
-As with Cassandra, for PostgreSQL there are also a number of available database service to choose from.
+As with Cassandra, for PostgreSQL there are also a number of available database service to choose from. A good place to start is the
+[PostgreSQL download page](https://www.postgresql.org/download/).
 
 ### Install SQL Workbench
 
@@ -79,7 +87,7 @@ initdb -D <your-db-directory>
 
 Next, edit the configuration file and make the follow adjustments.
 
-Open the `<your-db-directory>/postgresql.conf` in an editor.
+Open `<your-db-directory>/postgresql.conf` in an editor.
 
 Search for `listen_addresses` and add this setting:
 
@@ -99,6 +107,15 @@ Search for `unix_socket_directories` and add this setting:
 unix_socket_directories = '<your-db-directory>'
 ~~~
 
+Open `<your-db-directory>/pg_hba.conf` in an editor.
+
+Append the following lines at the end of this file. Change the IP to your IP.
+
+~~~bash
+host    all             all             <your-IP>/32        trust
+host    replication     all             <your-IP>/32        trust
+~~~
+
 ### Run PostgreSQL
 
 Start the PostgreSQL process.
@@ -107,7 +124,36 @@ Start the PostgreSQL process.
 postgres -D <your-da-directory>
 ~~~
 
+### Create the Database
+
+~~~bash
+createdb --host=<your-IP> woe_twin
+~~~
+
 ### Create the SQL Projection Tables
+
+You can create the tables using the CLI tool `psql` or use SQL Workbench.
+
+#### Create Tables Using psql
+
+From the `woe_twin` project directory start `psql`.
+
+~~~bash
+psql --host=<your-IP> woe_twin
+~~~
+
+Next, create the required tables.
+
+~~~bash
+woe_twin=# \i src/main/resources/akka-projection-offset-store.sql
+CREATE TABLE
+CREATE INDEX
+woe_twin=# \i src/main/resources/region-projection.sql
+CREATE TABLE
+woe_twin=# \q
+~~~
+
+#### Create Tables Using SQL Workbench
 
 Start the SQL workbench tool, configure the connection, and login.
 
