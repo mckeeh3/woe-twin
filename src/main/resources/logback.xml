@@ -17,7 +17,7 @@
     <logger name="akka.cluster.ddata" level="INFO"/>
     <logger name="akka.actor.TimerScheduler" level="INFO"/>
     <logger name="akka.persistence.typed" level="INFO"/>
-    <logger name="akka.persistence.cassandra" level="INFO"/>
+    <logger name="akka.persistence.cassandra" level="DEGUB"/>
     <logger name="akka.remote.artery" level="INFO"/>
     <logger name="akka.io" level="INFO"/>
     <logger name="akka.http" level="INFO"/>
@@ -36,4 +36,3 @@
     </root>
 
 </configuration>
-
