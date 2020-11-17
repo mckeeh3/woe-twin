@@ -1,20 +1,30 @@
 
 # Where On Earth Twin (woe-twin) Microservice
 
-TODO
+This microservice simulates geographically distributed IoT devices. The microservice handles incoming IoT device telemetry messages. These messages create, delete, and change the state of individual IoT devices. A map UI is used to visualize devices' location and submit commands to manipulate IoT devices.
+
 ## Installation
 
 How you install this Akka microservice depends on your target environment. There are environment specific README documents for each of the tested Kubernetes environments. With each deployment you also have to select which database you want to use. There are also README documents for the tested databases.
 
 ### Kubernetes Environments
 
-TODO
+* [Minikube](https://github.com/mckeeh3/woe-twin/blob/master/README-minikube.md)
+* [Amazon EKS](https://github.com/mckeeh3/woe-twin/blob/master/README-amazon-eks.md)
+* [Google GKE](https://github.com/mckeeh3/woe-twin/blob/master/README-google-gks.md)
 
 ### Database Environments
 
-TODO
+* [Cassandra local](https://github.com/mckeeh3/woe-twin/blob/master/README-database-cassandra-local.md)
+* [Cassandra Amazon](https://github.com/mckeeh3/woe-twin/blob/master/README-database-cassandra-amazon.md)
+* [Yugabyte local](https://github.com/mckeeh3/woe-twin/blob/master/README-database-cassandra-amazon.md)
+* [Yugabyte Kubernetes](https://github.com/mckeeh3/woe-twin/blob/master/README-database-cassandra-amazon.md)
+* [PostGreSQL local](https://github.com/mckeeh3/woe-twin/blob/master/README-database-postgresql-local.md)
+* [PostgreSQL Amazon](https://github.com/mckeeh3/woe-twin/blob/master/README-database-postgresql-amazon.md)
 
 ## Design notes
+
+TODO
 
 ### Map Regions
 
