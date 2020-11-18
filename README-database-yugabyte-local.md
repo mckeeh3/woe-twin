@@ -1,7 +1,9 @@
 
 # Install Yugabyte for use with MiniKube
 
-Follow the [Yugabyte Quick Start](https://docs.yugabyte.com/latest/quick-start/) guide for instrucation on installing on your local system.
+Follow the [Yugabyte Quick Start](https://docs.yugabyte.com/latest/quick-start/) guide for instructions on installing on your local system.
+
+Yugabyte provides APIs for both Cassandra and PostgreSQL.
 
 ## Create Cassandra Tables - Yugabyte Cassandra
 

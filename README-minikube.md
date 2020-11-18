@@ -1,7 +1,7 @@
 
 # Minikube Installation and Setup
 
-Follow these instructions for installing and running the woe-twin microservice using Minikube and Yugabyte.
+Follow these instructions for installing and running the woe-twin microservice using Minikube.
 
 ## Prerequisites
 
@@ -35,8 +35,10 @@ yay kubectx
 
 There are a number of database options that you can use When running the demo app from Minikube. Please see the documentation provided that covers a few of those options.
 
-* [Use OSS Cassandra and PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandrapostgres.md)
-* [Use Yugabyte](https://github.com/mckeeh3/woe-sim/blob/master/README-database-yugabyte.md)
+* [Cassandra local](https://github.com/mckeeh3/woe-twin/blob/master/README-database-cassandra-local.md)
+* [Yugabyte local](https://github.com/mckeeh3/woe-twin/blob/master/README-database-cassandra-amazon.md)
+* [Yugabyte Kubernetes](https://github.com/mckeeh3/woe-twin/blob/master/README-database-cassandra-amazon.md)
+* [PostGreSQL local](https://github.com/mckeeh3/woe-twin/blob/master/README-database-postgresql-local.md)
 
 ## Start Minikube
 
