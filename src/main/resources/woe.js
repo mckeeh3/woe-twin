@@ -515,14 +515,19 @@ function drawDeviceSelections() {
 function drawDeviceSelection(deviceSelection) {
   const posTopLeft = worldMap.latLngToPixel(deviceSelection.region.topLeft);
   const posBotRight = worldMap.latLngToPixel(deviceSelection.region.botRight);
+  const zoom = worldMap.zoom();
 
-  if (isPartial(deviceSelection)) {
-    drawAsMarker(posTopLeft, posBotRight, markerColorFor(deviceSelection));
+  if (isPartial()) {
+    drawAsMarker();
   } else {
-    drawAsRegion(posTopLeft, posBotRight, regionColorFor(deviceSelection));
+    drawAsRegion();
   }
 
-  function drawAsMarker(posTopLeft, posBotRight, markerColor) {
+  if (zoom >= 17) {
+    drawDevice();
+  }
+
+  function drawAsMarker() {
     const w = posBotRight.x - posTopLeft.x;
     const h = posBotRight.y - posTopLeft.y;
     const x1 = posTopLeft.x + w / 2;
@@ -533,54 +538,76 @@ function drawDeviceSelection(deviceSelection) {
     const y3 = y1 - 30;
     const x4 = x1 + 10;
     const y4 = y2;
-    fill(color(markerColor));
+    fill(color(markerColor()));
     strokeWeight(0);
     quad(x1, y1, x2, y2, x3, y3, x4, y4);
   }
 
-  function drawAsRegion(posTopLeft, posBotRight, regionColor) {
+  function drawAsRegion() {
     const x = posTopLeft.x;
     const y = posTopLeft.y;
     const w = posBotRight.x - x;
     const h = posBotRight.y - y;
-    fill(color(regionColor));
+    fill(color(regionColor()));
     strokeWeight(0);
     rect(x, y, w, h);
   }
 
-  function markerColorFor(deviceSelection) {
-    if (isHappy(deviceSelection)) {
+  function drawDevice() {
+    const w = posBotRight.x - posTopLeft.x;
+    const h = posBotRight.y - posTopLeft.y;
+    const x = posTopLeft.x + pseudoRandomOffset(deviceSelection.region.topLeft.lat, deviceSelection.region.botRight.lng, w);
+    const y = posTopLeft.y + pseudoRandomOffset(deviceSelection.region.topLeft.lng, deviceSelection.region.botRight.lat, h);
+    const scale = Math.min(w, h) / 8;
+    stroke(color(0, 110, 255));
+    strokeWeight(scale / 8);
+    line(x, y - scale, x, y + scale);
+    line(x - scale, y, x + scale, y);
+    strokeWeight(scale / 1.5);
+    point(x, y);
+
+    function pseudoRandomOffset(m, n, size) {
+      //const r = Math.round(Math.abs(n + m) * 1000000000) % 10;
+      const s = (m + n).toString();
+      const r = parseInt(s.charAt(s.length - 4));
+      const segment = size / 20;
+      return segment + 2 * segment * r;
+    }
+  }
+
+  function markerColor() {
+    if (isHappy()) {
       return [0, 171, 23];
-    } else if (isSad(deviceSelection)) {
+    } else if (isSad()) {
       return [204, 10, 0];
     } else {
       return [209, 182, 0];
     }
   }
 
-  function regionColorFor(deviceSelection) {
-    if (isHappy(deviceSelection)) {
+  function regionColor() {
+    if (isHappy()) {
       return [0, 235, 6, 100];
-    } else if (isSad(deviceSelection)) {
+    } else if (isSad()) {
       return [240, 9, 0, 100];
     } else {
       return [250, 182, 13, 100];
     }
   }
 
-  function isHappy(deviceSelection) {
+  function isHappy() {
     return deviceSelection.happyCount > 0 && deviceSelection.sadCount == 0;
   }
 
-  function isSad(deviceSelection) {
+  function isSad() {
     return deviceSelection.happyCount == 0 && deviceSelection.sadCount > 0;
   }
 
-  function isPartial(deviceSelection) {
-    return 0.5 > deviceSelection.deviceCount / maxDevicesIn(deviceSelection);
+  function isPartial() {
+    return 0.5 > deviceSelection.deviceCount / maxDevices();
   }
 
-  function maxDevicesIn(deviceSelection) {
+  function maxDevices() {
     return Math.pow(4, 18 - deviceSelection.region.zoom);
   }
 }
@@ -923,7 +950,7 @@ const grid = {
   ticksVertical: 0,
   tickWidth: 0,
   resize: function () {
-    gridWidth = windowWidth - 2 * this.borderWidth;
+    const gridWidth = windowWidth - 2 * this.borderWidth;
     this.tickWidth = gridWidth / this.ticksHorizontal;
     this.ticksVertical = windowHeight / windowWidth * this.ticksHorizontal;
   },
