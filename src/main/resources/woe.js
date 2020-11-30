@@ -566,9 +566,10 @@ function drawDeviceSelection(deviceSelection) {
     point(x, y);
 
     function pseudoRandomOffset(m, n, size) {
-      //const r = Math.round(Math.abs(n + m) * 1000000000) % 10;
-      const s = (m + n).toString();
-      const r = parseInt(s.charAt(s.length - 4));
+      //const s = (m + n).toString();
+      //const r = parseInt(s.charAt(s.length - 4));
+      const s = (m + n).toString().split('').filter(d => d >= '0' && d <= '9');
+      const r = +s[+s.pop()];
       const segment = size / 20;
       return segment + 2 * segment * r;
     }
@@ -865,24 +866,23 @@ function drawActivityMonitor() {
       const deltas = activityMonitor.counts[i];
       const barWidth = width / activityMonitor.counts.length / 2;
       const barX = x + i * barWidth * 2;
-      drawActivityBar(barX, y, width, height, scale, deltas.happyDelta, color(0, 200, 0));
-      drawActivityBar(barX + barWidth, y, width, height, scale, deltas.sadDelta, color(200, 0, 0));
+      drawActivityBar(barX, y, deltas.happyDelta, color(0, 200, 0));
+      drawActivityBar(barX + barWidth, y, deltas.sadDelta, color(200, 0, 0));
     }
   }
 
-  function drawActivityBar(x, y, width, height, scale, delta, barColor) {
+  function drawActivityBar(barX, barY, delta, barColor) {
     if (delta != 0) {
       const range = scale.pos - scale.neg;
       const barWidth = width / activityMonitor.counts.length / 2;
       const rangeHeight = height / range;
       const barTop = Math.max(0, delta);
       const barBot = Math.min(0, delta);
-      const barX = x;
-      const barY = y + (scale.pos - barTop) * rangeHeight;
+      const barYAdjusted = barY + (scale.pos - barTop) * rangeHeight;
       const barHeight = height * ((scale.pos - barBot) - (scale.pos - barTop)) / range;
       fill(barColor);
       noStroke();
-      grid.rect(barX, barY, barWidth, barHeight);
+      grid.rect(barX, barYAdjusted, barWidth, barHeight);
     }
   }
 
