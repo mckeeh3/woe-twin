@@ -160,10 +160,10 @@ function drawDeviceCountWithinMouseRegion() {
     return counts;
   }
 
-  function findSelectionsUnderMouse(loc) {
+  function findSelectionsUnderMouse(mouseLocation) {
     const selections = [];
     queryResponse.regionSummaries.forEach(r => {
-      if (overlaps(loc.map, r.region)) {
+      if (overlaps(mouseLocation.map, r.region)) {
         selections.push(r);
       }
     });
@@ -251,7 +251,6 @@ function drawSelectionInstructions() {
   const zoom = worldMap.zoom();
   const height = 1.2;
   const border = 0.2;
-  const keyColor = color(255, 255, 0);
   const valueColor = color(255);
   const bgColor = color(0, 0, 75, 125);
 
@@ -803,39 +802,39 @@ function drawActivityMonitor() {
   const x = offsetLeftRight;
   const y = grid.ticksVertical - verticalOffset;
 
-  drawBackground(x, y, width, height);
-  drawAxis(x, y, width, height, scale);
-  drawTickLines(x, y, width, height, scale);
-  drawActivity(x, y, width, height, scale);
+  drawBackground();
+  drawAxis();
+  drawTickLines();
+  drawActivity();
   drawLabels(x, y, grid.ticksVertical - 1.3, scale);
 
-  function drawBackground(x, y, width, height) {
+  function drawBackground() {
     const bgColor = color(0, 0, 75, 125);
     fill(bgColor);
     grid.rect(x, y, width, height);
   }
 
-  function drawLabels(x, yTop, yBot, scale) {
+  function drawLabels(xLabel, yTop, yBot, scaleLabel) {
     const valueBgColor = color(200, 200, 200, 200);
     const valueFontColor = color(50, 50, 200);
     Label()
-      .setX(x).setY(yTop).setW(3).setH(0.8)
+      .setX(xLabel).setY(yTop).setW(3).setH(0.8)
       .setBorder(0.1)
-      .setKey(scale.pos.toLocaleString())
+      .setKey(scaleLabel.pos.toLocaleString())
       .setBgColor(valueBgColor)
       .setKeyColor(valueFontColor)
       .draw();
 
     Label()
-      .setX(x).setY(yBot).setW(3).setH(0.8)
+      .setX(xLabel).setY(yBot).setW(3).setH(0.8)
       .setBorder(0.1)
-      .setKey(scale.neg.toLocaleString())
+      .setKey(scaleLabel.neg.toLocaleString())
       .setBgColor(valueBgColor)
       .setKeyColor(valueFontColor)
       .draw();
   }
 
-  function drawAxis(x, y, width, height, scale) {
+  function drawAxis() {
     const range = scale.pos - scale.neg;
     const yAxis = y + height * scale.pos / range;
     stroke(color(200, 200, 0));
@@ -843,7 +842,7 @@ function drawActivityMonitor() {
     grid.line(x, yAxis, x + width, yAxis);
   }
 
-  function drawTickLines(x, y, width, height, scale) {
+  function drawTickLines() {
     const range = scale.pos - scale.neg;
     const yAxis = y + height * scale.pos / range;
     const tick = (scale.pos > -1 * scale.neg ? yAxis - y : y + height - yAxis) * 0.25;
@@ -861,7 +860,7 @@ function drawActivityMonitor() {
     }
   }
 
-  function drawActivity(x, y, width, height, scale) {
+  function drawActivity() {
     for (let i = 0; i < activityMonitor.counts.length; i++) {
       const deltas = activityMonitor.counts[i];
       const barWidth = width / activityMonitor.counts.length / 2;
@@ -927,20 +926,20 @@ function drawActivityMonitor() {
     return deltaMax;
   }
 
-  function scalePos(maxDelta) {
-    let scale = 10;
-    while (maxDelta / scale > 10) {
-      scale *= 10;
+  function scalePos(delta) {
+    let scaleUp = 10;
+    while (delta / scaleUp > 10) {
+      scaleUp *= 10;
     }
-    return Math.floor(maxDelta / scale) * scale + scale;
+    return Math.floor(delta / scaleUp) * scaleUp + scaleUp;
   }
 
-  function scaleNeg(minDelta) {
-    let scale = -10;
-    while (minDelta / scale > 10) {
-      scale *= 10;
+  function scaleNeg(delta) {
+    let scaleDown = -10;
+    while (delta / scaleDown > 10) {
+      scaleDown *= 10;
     }
-    return Math.floor(minDelta / scale) * scale + scale;
+    return Math.floor(delta / scaleDown) * scaleDown + scaleDown;
   }
 }
 
