@@ -566,8 +566,6 @@ function drawDeviceSelection(deviceSelection) {
     point(x, y);
 
     function pseudoRandomOffset(m, n, size) {
-      //const s = (m + n).toString();
-      //const r = parseInt(s.charAt(s.length - 4));
       const r = +(m * n).toString().split('').filter(d => d >= '0' && d <= '9').pop();
       const segment = size / 20;
       return segment + 2 * segment * r;

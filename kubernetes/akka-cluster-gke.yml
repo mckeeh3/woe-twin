@@ -83,9 +83,9 @@ spec:
             - name: woe_twin_grpc_server_port
               value: "8081"
             - name: device_projection_jdbc_pool_size
-              value: "50"
-            - name: projection_shards
               value: "10"
+            - name: projection_shards
+              value: "1"
             - name: projection_group_after_envelopes
               value: "1000"
             - name: projection_group_after_duration

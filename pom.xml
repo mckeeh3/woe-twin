@@ -14,7 +14,8 @@
     <akka.http.version>10.2.1</akka.http.version>
     <akka.management.version>1.0.9</akka.management.version>
     <akka.projection.version>1.0.0</akka.projection.version>
-    <akka.persistence.cassandra.version>1.0.4</akka.persistence.cassandra.version>
+    <akka.persistence.cassandra.version>1.0.3</akka.persistence.cassandra.version>
+    <akka.persistence.jdbc.version>4.0.0</akka.persistence.jdbc.version>
     <akka.grpc.version>1.0.1</akka.grpc.version>
     <datastax.core.version>4.6.1</datastax.core.version>
     <grpc.version>1.30.2</grpc.version>
@@ -79,6 +80,11 @@
       <groupId>software.aws.mcs</groupId>
       <artifactId>aws-sigv4-auth-cassandra-java-driver-plugin</artifactId>
       <version>4.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.lightbend.akka</groupId>
+      <artifactId>akka-persistence-jdbc_${scala.version}</artifactId>
+      <version>${akka.persistence.jdbc.version}</version>
     </dependency>
 
     <!-- Akka Cluster Bootstrap -->
