@@ -1,23 +1,5 @@
 package woe.twin;
 
-import akka.actor.typed.ActorSystem;
-import akka.japi.function.Function;
-import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
-import akka.persistence.query.Offset;
-import akka.projection.ProjectionId;
-import akka.projection.eventsourced.EventEnvelope;
-import akka.projection.eventsourced.javadsl.EventSourcedProvider;
-import akka.projection.javadsl.GroupedProjection;
-import akka.projection.javadsl.SourceProvider;
-import akka.projection.jdbc.JdbcSession;
-import akka.projection.jdbc.javadsl.JdbcHandler;
-import akka.projection.jdbc.javadsl.JdbcProjection;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -27,6 +9,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
+
+import javax.sql.DataSource;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import akka.actor.typed.ActorSystem;
+import akka.japi.function.Function;
+import akka.persistence.jdbc.query.javadsl.JdbcReadJournal;
+import akka.persistence.query.Offset;
+import akka.projection.ProjectionId;
+import akka.projection.eventsourced.EventEnvelope;
+import akka.projection.eventsourced.javadsl.EventSourcedProvider;
+import akka.projection.javadsl.GroupedProjection;
+import akka.projection.javadsl.SourceProvider;
+import akka.projection.jdbc.JdbcSession;
+import akka.projection.jdbc.javadsl.JdbcHandler;
+import akka.projection.jdbc.javadsl.JdbcProjection;
 
 class DeviceProjectorAllZooms {
   static class DeviceEventHandler extends JdbcHandler<List<EventEnvelope<Device.Event>>, DbSession> {
@@ -179,7 +182,8 @@ class DeviceProjectorAllZooms {
     final int groupAfterEnvelopes = actorSystem.settings().config().getInt("woe.twin.projection.group-after-envelopes");
     final Duration groupAfterDuration = actorSystem.settings().config().getDuration("woe.twin.projection.group-after-duration");
     final SourceProvider<Offset, EventEnvelope<Device.Event>> sourceProvider =
-        EventSourcedProvider.eventsByTag(actorSystem, CassandraReadJournal.Identifier(), tag);
+        //EventSourcedProvider.eventsByTag(actorSystem, CassandraReadJournal.Identifier(), tag);
+        EventSourcedProvider.eventsByTag(actorSystem, JdbcReadJournal.Identifier(), tag);
     return JdbcProjection.groupedWithin(
         ProjectionId.of("region", tag),
         sourceProvider,

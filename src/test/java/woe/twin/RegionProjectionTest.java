@@ -1,29 +1,38 @@
 package woe.twin;
 
-import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
-import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
-import akka.persistence.query.Offset;
-import akka.projection.eventsourced.EventEnvelope;
-import akka.projection.eventsourced.javadsl.EventSourcedProvider;
-import akka.projection.javadsl.SourceProvider;
-import akka.projection.testkit.javadsl.ProjectionTestKit;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import static woe.twin.WorldMap.latLng;
+import static woe.twin.WorldMap.regionAtLatLng;
+import static woe.twin.WorldMap.regionForZoom0;
 
-import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.IntStream;
 
-import static woe.twin.WorldMap.*;
+import javax.sql.DataSource;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
+import akka.persistence.jdbc.query.javadsl.JdbcReadJournal;
+import akka.persistence.query.Offset;
+import akka.projection.eventsourced.EventEnvelope;
+import akka.projection.eventsourced.javadsl.EventSourcedProvider;
+import akka.projection.javadsl.SourceProvider;
+import akka.projection.testkit.javadsl.ProjectionTestKit;
 
 public class RegionProjectionTest {
   @ClassRule
@@ -41,7 +50,8 @@ public class RegionProjectionTest {
   @Test
   public void t() {
     SourceProvider<Offset, EventEnvelope<Object>> sourceProvider =
-        EventSourcedProvider.eventsByTag(testKit.system(), CassandraReadJournal.Identifier(), "TODO");
+        //EventSourcedProvider.eventsByTag(testKit.system(), CassandraReadJournal.Identifier(), "TODO");
+        EventSourcedProvider.eventsByTag(testKit.system(), JdbcReadJournal.Identifier(), "TODO");
     sourceProvider.source(this::offset);
   }
 
@@ -62,7 +72,7 @@ public class RegionProjectionTest {
     //try (Connection connection = DriverManager.getConnection(jdbcUrl, "yugabyte", "yugabyte");
     //     Statement statement = connection.createStatement()
     try (final Connection connection = dataSource.getConnection();
-         final Statement statement = connection.createStatement()) {
+        final Statement statement = connection.createStatement()) {
       insert(statement, regionForZoom0());
       insert(statement, regionAtLatLng(18, latLng(51.50083552, -0.11656344)));
       insert(statement, regionAtLatLng(18, latLng(51.50036467, -0.11946023)));
@@ -94,7 +104,7 @@ public class RegionProjectionTest {
     //YBClusterAwareDataSource ds = new YBClusterAwareDataSource(jdbcUrl);
     //try (Connection connection = ds.getConnection();
     try (Connection connection = DriverManager.getConnection(jdbcUrl, "yugabyte", "yugabyte");
-         Statement statement = connection.createStatement()
+        Statement statement = connection.createStatement()
     ) {
       try (final ResultSet resultSet = statement.executeQuery("SELECT * FROM region")) {
         while (resultSet.next()) {

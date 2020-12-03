@@ -21,7 +21,7 @@
     <grpc.version>1.30.2</grpc.version>
     <project.encoding>UTF-8</project.encoding>
     <yugabyte.version>42.2.7-yb-3</yugabyte.version>
-    <postgresql.version>42.2.14</postgresql.version>
+    <postgresql.version>42.2.18</postgresql.version>
     <jackson.version>2.10.3</jackson.version>
     <logback.version>1.2.3</logback.version>
     <junit.jupiter.version>5.5.2</junit.jupiter.version>
@@ -58,33 +58,38 @@
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-persistence-cassandra_${scala.version}</artifactId>
-      <version>${akka.persistence.cassandra.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-persistence-query_${scala.version}</artifactId>
       <version>${akka.version}</version>
+    </dependency>
+    <!--dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-persistence-cassandra_${scala.version}</artifactId>
+      <version>${akka.persistence.cassandra.version}</version>
     </dependency>
     <dependency>
       <groupId>com.datastax.oss</groupId>
       <artifactId>java-driver-core</artifactId>
       <version>${datastax.core.version}</version>
     </dependency>
-    <!--dependency>
-            <groupId>com.yugabyte</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>${yugabyte.driver.version}</version>
-        </dependency-->
     <dependency>
       <groupId>software.aws.mcs</groupId>
       <artifactId>aws-sigv4-auth-cassandra-java-driver-plugin</artifactId>
       <version>4.0.2</version>
-    </dependency>
+    </dependency-->
+    <!--dependency>
+      <groupId>com.yugabyte</groupId>
+      <artifactId>cassandra-driver-core</artifactId>
+      <version>${yugabyte.driver.version}</version>
+    </dependency-->
     <dependency>
       <groupId>com.lightbend.akka</groupId>
       <artifactId>akka-persistence-jdbc_${scala.version}</artifactId>
       <version>${akka.persistence.jdbc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgresql.version}</version>
     </dependency>
 
     <!-- Akka Cluster Bootstrap -->
@@ -146,13 +151,6 @@
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
       <version>3.4.5</version>
-    </dependency>
-
-    <!-- Yugabyte -->
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${postgresql.version}</version>
     </dependency>
 
     <!-- Akka Http -->
