@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Supplier;
 
 import static akka.http.javadsl.server.Directives.*;
 import static woe.twin.WorldMap.entityIdOf;
@@ -33,6 +34,7 @@ public class HttpServer {
   private final ActorSystem<?> actorSystem;
   private final ClusterSharding clusterSharding;
   private final DataSource dataSource;
+  private final String homepageFilename;
 
   static void start(String host, int port, ActorSystem<?> actorSystem) {
     new HttpServer(host, port, actorSystem);
@@ -42,19 +44,20 @@ public class HttpServer {
     this.actorSystem = actorSystem;
     clusterSharding = ClusterSharding.get(actorSystem);
     dataSource = dataSource(actorSystem);
+    homepageFilename = actorSystem.settings().config().getString("woe.twin.homepage-filename");
 
     start(host, port);
   }
 
   private void start(String host, int port) {
     Http.get(actorSystem).newServerAt(host, port).bind(route());
-    log().info("HTTP Server started on {}:{}", host, "" + port);
+    log().info("HTTP Server started on {}:{}", host, port);
   }
 
   private Route route() {
     return concat(
-        path("", () -> getFromResource("woe.html", ContentTypes.TEXT_HTML_UTF8)),
-        path("woe.html", () -> getFromResource("woe.html", ContentTypes.TEXT_HTML_UTF8)),
+        path("", homePage()),
+        path("woe.html", homePage()),
         path("woe.js", () -> getFromResource("woe.js", ContentTypes.APPLICATION_JSON)),
         path("p5.js", () -> getFromResource("p5.js", ContentTypes.APPLICATION_JSON)),
         path("mappa.js", () -> getFromResource("mappa.js", ContentTypes.APPLICATION_JSON)),
@@ -63,6 +66,10 @@ public class HttpServer {
         path("selection", this::handleSelectionRequest),
         path("query-devices", this::queryDevices)
     );
+  }
+
+  private Supplier<Route> homePage() {
+    return () -> getFromResource(homepageFilename, ContentTypes.TEXT_HTML_UTF8);
   }
 
   private Route handleTelemetryActionPost() {
@@ -158,7 +165,7 @@ public class HttpServer {
   private QueryResponse queryDeviceTotals() throws SQLException {
     final String sql = "select sum(device_count), sum(happy_count), sum(sad_count) from region where zoom = 3";
     try (final Connection connection = dataSource.getConnection();
-         final Statement statement = connection.createStatement()) {
+          final Statement statement = connection.createStatement()) {
       final ResultSet resultSet = statement.executeQuery(sql);
       if (resultSet.next()) {
         return new QueryResponse(resultSet.getInt(1), resultSet.getInt(2), resultSet.getInt(3));
