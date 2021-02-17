@@ -1,22 +1,20 @@
 package woe.twin;
 
-import akka.actor.typed.ActorSystem;
-import akka.cluster.sharding.typed.javadsl.ClusterSharding;
-import akka.cluster.sharding.typed.javadsl.EntityRef;
-import akka.http.javadsl.ConnectHttp;
-import akka.http.javadsl.Http;
-import akka.http.javadsl.ServerBinding;
-import akka.http.javadsl.model.StatusCodes;
-import akka.stream.Materializer;
-import woe.twin.grpc.TelemetryRequestGrpc;
-import woe.twin.grpc.TelemetryResponseGrpc;
-import woe.twin.grpc.TwinDeviceService;
-import woe.twin.grpc.TwinDeviceServiceHandlerFactory;
+import static woe.twin.WorldMap.entityIdOf;
 
 import java.time.Duration;
 import java.util.concurrent.CompletionStage;
 
-import static woe.twin.WorldMap.entityIdOf;
+import akka.actor.typed.ActorSystem;
+import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import akka.cluster.sharding.typed.javadsl.EntityRef;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.ServerBinding;
+import akka.http.javadsl.model.StatusCodes;
+import woe.twin.grpc.TelemetryRequestGrpc;
+import woe.twin.grpc.TelemetryResponseGrpc;
+import woe.twin.grpc.TwinDeviceService;
+import woe.twin.grpc.TwinDeviceServiceHandlerFactory;
 
 public class GrpcServer {
   private final ActorSystem<?> actorSystem;
@@ -36,13 +34,9 @@ public class GrpcServer {
 
   CompletionStage<ServerBinding> start(String host, int port) {
     final TelemetryServiceImpl telemetryServiceImpl = new TelemetryServiceImpl(clusterSharding);
-//    Http.get(actorSystem).newServerAt(host, port).bind(TwinDeviceServiceHandlerFactory.create(telemetryServiceImpl, actorSystem));
-
-    return Http.get(actorSystem.classicSystem()).bindAndHandleAsync(
-        TwinDeviceServiceHandlerFactory.create(telemetryServiceImpl, actorSystem),
-        ConnectHttp.toHost(host, port),
-        Materializer.matFromSystem(actorSystem)
-    );
+    return Http.get(actorSystem)
+      .newServerAt(host, port)
+      .bind(TwinDeviceServiceHandlerFactory.create(telemetryServiceImpl, actorSystem));
   }
 
   private static Telemetry.TelemetryRequest toTelemetryRequest(TelemetryRequestGrpc telemetryRequest) {

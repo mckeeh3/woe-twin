@@ -1,5 +1,12 @@
 package woe.twin;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Optional;
+
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.DispatcherSelector;
@@ -12,16 +19,6 @@ import akka.cluster.sharding.typed.javadsl.ShardedDaemonProcess;
 import akka.management.cluster.bootstrap.ClusterBootstrap;
 import akka.management.javadsl.AkkaManagement;
 import akka.projection.ProjectionBehavior;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
 
 public class Main {
   static Behavior<Void> create() {
@@ -46,9 +43,9 @@ public class Main {
   // Copies the truststore file to the local container file system.
   // Cassandra code does not read from classpath resource.
   private static void awsCassandraTruststoreHack(ActorSystem<?> actorSystem) {
-    final String filename = "cassandra-truststore.jks";
-    final InputStream inputStream = actorSystem.getClass().getClassLoader().getResourceAsStream(filename);
-    final Path target = Paths.get(filename);
+    final var filename = "cassandra-truststore.jks";
+    final var inputStream = actorSystem.getClass().getClassLoader().getResourceAsStream(filename);
+    final var target = Paths.get(filename);
     if (inputStream != null) {
       try {
         Files.copy(inputStream, target);
@@ -65,8 +62,8 @@ public class Main {
 
   static void startHttpServer(ActorSystem<?> actorSystem) {
     try {
-      final String host = InetAddress.getLocalHost().getHostName();
-      final int port = actorSystem.settings().config().getInt("woe.twin.http.server.port");
+      final var host = InetAddress.getLocalHost().getHostName();
+      final var port = actorSystem.settings().config().getInt("woe.twin.http.server.port");
       HttpServer.start(host, port, actorSystem);
     } catch (UnknownHostException e) {
       actorSystem.log().error("Http server start failure.", e);
@@ -75,8 +72,8 @@ public class Main {
 
   static void startGrpcServer(ActorSystem<?> actorSystem) {
     try {
-      final String host = InetAddress.getLocalHost().getHostName();
-      final int port = actorSystem.settings().config().getInt("woe.twin.grpc.server.port");
+      final var host = InetAddress.getLocalHost().getHostName();
+      final var port = actorSystem.settings().config().getInt("woe.twin.grpc.server.port");
       GrpcServer.start(host, port, actorSystem);
     } catch (UnknownHostException e) {
       actorSystem.log().error("gRPC server start failure.", e);
@@ -97,8 +94,8 @@ public class Main {
   }
 
   static void startProjectionShardingAllZooms(ActorSystem<?> actorSystem) {
-    final DeviceProjectorAllZooms.DbSessionFactory dbSessionFactory = new DeviceProjectorAllZooms.DbSessionFactory(actorSystem);
-    final List<String> tags = Device.tagsAll(actorSystem);
+    final var dbSessionFactory = new DeviceProjectorAllZooms.DbSessionFactory(actorSystem);
+    final var tags = Device.tagsAll(actorSystem);
 
     ShardedDaemonProcess.get(actorSystem).init(
         ProjectionBehavior.Command.class,
@@ -113,16 +110,16 @@ public class Main {
   // For every tag there are 16 projection event handlers
   // One event handler per zoom from zoom 3 to 18
   static void startProjectionShardingSingleZoom(ActorSystem<?> actorSystem) {
-    final DeviceProjectorSingleZoom.DbSessionFactory dbSessionFactory = new DeviceProjectorSingleZoom.DbSessionFactory(actorSystem);
-    final List<String> tags = Device.tagsAll(actorSystem);
+    final var dbSessionFactory = new DeviceProjectorSingleZoom.DbSessionFactory(actorSystem);
+    final var tags = Device.tagsAll(actorSystem);
 
     ShardedDaemonProcess.get(actorSystem).init(
         ProjectionBehavior.Command.class,
         "region-summary",
         tags.size() * 16,
         id -> {
-          final String tag = tags.get(id / 16);
-          final int zoom = 3 + id % 16;
+          final var tag = tags.get(id / 16);
+          final var zoom = 3 + id % 16;
           return ProjectionBehavior.create(DeviceProjectorSingleZoom.start(actorSystem, dbSessionFactory, tag, zoom));
         },
         ShardedDaemonProcessSettings.create(actorSystem),

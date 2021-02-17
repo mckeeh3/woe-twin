@@ -1,20 +1,15 @@
 package woe.twin;
 
-import akka.actor.typed.ActorSystem;
-import akka.actor.typed.DispatcherSelector;
-import akka.cluster.sharding.typed.javadsl.ClusterSharding;
-import akka.cluster.sharding.typed.javadsl.EntityRef;
-import akka.http.javadsl.Http;
-import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.model.ContentTypes;
-import akka.http.javadsl.model.MediaTypes;
-import akka.http.javadsl.model.StatusCodes;
-import akka.http.javadsl.server.Route;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.slf4j.Logger;
+import static akka.http.javadsl.server.Directives.complete;
+import static akka.http.javadsl.server.Directives.completeOKWithFuture;
+import static akka.http.javadsl.server.Directives.concat;
+import static akka.http.javadsl.server.Directives.entity;
+import static akka.http.javadsl.server.Directives.getFromResource;
+import static akka.http.javadsl.server.Directives.onSuccess;
+import static akka.http.javadsl.server.Directives.path;
+import static akka.http.javadsl.server.Directives.post;
+import static woe.twin.WorldMap.entityIdOf;
 
-import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -27,8 +22,22 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
 
-import static akka.http.javadsl.server.Directives.*;
-import static woe.twin.WorldMap.entityIdOf;
+import javax.sql.DataSource;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import org.slf4j.Logger;
+
+import akka.actor.typed.ActorSystem;
+import akka.actor.typed.DispatcherSelector;
+import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.marshallers.jackson.Jackson;
+import akka.http.javadsl.model.ContentTypes;
+import akka.http.javadsl.model.MediaTypes;
+import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.server.Route;
 
 public class HttpServer {
   private final ActorSystem<?> actorSystem;
@@ -88,8 +97,8 @@ public class HttpServer {
   }
 
   private CompletionStage<Telemetry.TelemetryResponse> submitTelemetryToDevice(Telemetry.TelemetryRequest telemetryRequest) {
-    String entityId = entityIdOf(telemetryRequest.region);
-    EntityRef<Device.Command> entityRef = clusterSharding.entityRefFor(Device.entityTypeKey, entityId);
+    final var entityId = entityIdOf(telemetryRequest.region);
+    final var entityRef = clusterSharding.entityRefFor(Device.entityTypeKey, entityId);
     return entityRef.ask(telemetryRequest::asTelemetryCommand, Duration.ofSeconds(30))
         .handle((reply, e) -> {
           if (reply != null) {
@@ -101,7 +110,7 @@ public class HttpServer {
   }
 
   private Route handleSelectionRequest() {
-    final HttpClient httpClient = new HttpClient(actorSystem);
+    final var httpClient = new HttpClient(actorSystem);
     return post(
         () -> entity(
             Jackson.unmarshaller(HttpClient.SelectionActionRequest.class),
@@ -139,10 +148,11 @@ public class HttpServer {
   }
 
   private static DataSource dataSource(ActorSystem<?> actorSystem) {
-    final String dbUrl = actorSystem.settings().config().getString("woe.twin.sql.url");
-    final String username = actorSystem.settings().config().getString("woe.twin.sql.username");
-    final String password = actorSystem.settings().config().getString("woe.twin.sql.password");
-    final int maxPoolSize = actorSystem.settings().config().getInt("woe.twin.sql.max-pool-size");
+    final var akkaConfig = actorSystem.settings().config();
+    final var dbUrl = akkaConfig.getString("woe.twin.sql.url");
+    final var username = akkaConfig.getString("woe.twin.sql.username");
+    final var password = akkaConfig.getString("woe.twin.sql.password");
+    final var maxPoolSize = akkaConfig.getInt("woe.twin.sql.max-pool-size");
 
     final HikariConfig config = new HikariConfig();
     config.setJdbcUrl(dbUrl);
@@ -155,7 +165,7 @@ public class HttpServer {
   }
 
   private QueryResponse query(WorldMap.Region region) throws SQLException {
-    final QueryResponse queryResponse = queryDeviceTotals();
+    final var queryResponse = queryDeviceTotals();
     try (final Connection connection = dataSource.getConnection()) {
       queryResponse.regionSummaries = query(connection, region);
       return queryResponse;
@@ -163,10 +173,10 @@ public class HttpServer {
   }
 
   private QueryResponse queryDeviceTotals() throws SQLException {
-    final String sql = "select sum(device_count), sum(happy_count), sum(sad_count) from region where zoom = 3";
+    final var sql = "select sum(device_count), sum(happy_count), sum(sad_count) from region where zoom = 3";
     try (final Connection connection = dataSource.getConnection();
           final Statement statement = connection.createStatement()) {
-      final ResultSet resultSet = statement.executeQuery(sql);
+      final var resultSet = statement.executeQuery(sql);
       if (resultSet.next()) {
         return new QueryResponse(resultSet.getInt(1), resultSet.getInt(2), resultSet.getInt(3));
       } else {
@@ -177,7 +187,7 @@ public class HttpServer {
 
   private List<DeviceProjectorSingleZoom.RegionSummary> query(Connection connection, WorldMap.Region regionQuery) throws SQLException {
     //final long start = System.nanoTime();
-    final List<DeviceProjectorSingleZoom.RegionSummary> regionSummaries = new ArrayList<>();
+    final var regionSummaries = new ArrayList<DeviceProjectorSingleZoom.RegionSummary>();
     try (final Statement statement = connection.createStatement()) {
       final ResultSet resultSet = statement.executeQuery(sqlInRange(regionQuery));
       while (resultSet.next()) {
@@ -206,10 +216,10 @@ public class HttpServer {
   // This was an experiment suggested by Yugabyte as an attempt to do selects when using HASH on the primary key
   // The query response times were too high
   static String sqlInRegions(WorldMap.Region regionQuery) {
-    final StringBuilder sql = new StringBuilder();
-    final List<WorldMap.Region> regions = WorldMap.regionsIn(regionQuery);
-    final String nl = String.format("%n");
-    String delimiter = "";
+    final var sql = new StringBuilder();
+    final var regions = WorldMap.regionsIn(regionQuery);
+    final var nl = String.format("%n");
+    var delimiter = "";
 
     sql.append("select * from region").append(nl);
     sql.append(" where (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)").append(nl);
