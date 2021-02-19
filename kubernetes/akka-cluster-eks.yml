@@ -66,7 +66,7 @@ spec:
             - name: cassandra_host_port
               value: "cassandra.us-east-1.amazonaws.com:9142"
             - name: postgresql_url
-              value: "jdbc:postgresql://woe-twin-instance-1.ch9gohzg86t2.us-east-1.rds.amazonaws.com:5432/woe_twin"
+              value: "jdbc:postgresql://woe-twin-2-instance-1.ch9gohzg86t2.us-east-1.rds.amazonaws.com:5432/woe_twin"
             - name: postgresql_username
               value: "postgres"
             - name: postgresql_password
