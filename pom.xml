@@ -22,7 +22,7 @@
     <project.encoding>UTF-8</project.encoding>
     <yugabyte.version>42.2.7-yb-3</yugabyte.version>
     <postgresql.version>42.2.18</postgresql.version>
-    <jackson.version>2.10.3</jackson.version>
+    <jackson.version>2.10.5</jackson.version>
     <logback.version>1.2.3</logback.version>
     <junit.jupiter.version>5.5.2</junit.jupiter.version>
     <junit.platform.version>1.5.2</junit.platform.version>
