@@ -81,7 +81,7 @@ public class Main {
   }
 
   static void startClusterSharding(ActorSystem<?> actorSystem) {
-    ClusterSharding clusterSharding = ClusterSharding.get(actorSystem);
+    final var clusterSharding = ClusterSharding.get(actorSystem);
     clusterSharding.init(
         Entity.of(
             Device.entityTypeKey,
