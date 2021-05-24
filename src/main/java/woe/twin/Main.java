@@ -5,20 +5,16 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.DispatcherSelector;
 import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.Behaviors;
-import akka.cluster.sharding.typed.ShardedDaemonProcessSettings;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
-import akka.cluster.sharding.typed.javadsl.ShardedDaemonProcess;
 import akka.management.cluster.bootstrap.ClusterBootstrap;
 import akka.management.javadsl.AkkaManagement;
-import akka.projection.ProjectionBehavior;
 
 public class Main {
   static Behavior<Void> create() {
@@ -36,8 +32,7 @@ public class Main {
     startHttpServer(actorSystem);
     startGrpcServer(actorSystem);
     startClusterSharding(actorSystem);
-    //startProjectionSharding(actorSystem);
-    startProjectionShardingSingleZoom(actorSystem);
+    startProjection(actorSystem);
   }
 
   // Copies the truststore file to the local container file system.
@@ -93,37 +88,9 @@ public class Main {
     );
   }
 
-  static void startProjectionShardingAllZooms(ActorSystem<?> actorSystem) {
-    final var dbSessionFactory = new DeviceProjectorAllZooms.DbSessionFactory(actorSystem);
-    final var tags = Device.tagsAll(actorSystem);
-
-    ShardedDaemonProcess.get(actorSystem).init(
-        ProjectionBehavior.Command.class,
-        "region-summary",
-        tags.size(),
-        id -> ProjectionBehavior.create(DeviceProjectorAllZooms.start(actorSystem, dbSessionFactory, tags.get(id))),
-        ShardedDaemonProcessSettings.create(actorSystem),
-        Optional.of(ProjectionBehavior.stopMessage())
-    );
-  }
-
-  // For every tag there are 16 projection event handlers
-  // One event handler per zoom from zoom 3 to 18
-  static void startProjectionShardingSingleZoom(ActorSystem<?> actorSystem) {
-    final var dbSessionFactory = new DeviceProjectorSingleZoom.DbSessionFactory(actorSystem);
-    final var tags = Device.tagsAll(actorSystem);
-
-    ShardedDaemonProcess.get(actorSystem).init(
-        ProjectionBehavior.Command.class,
-        "region-summary",
-        tags.size() * 16,
-        id -> {
-          final var tag = tags.get(id / 16);
-          final var zoom = 3 + id % 16;
-          return ProjectionBehavior.create(DeviceProjectorSingleZoom.start(actorSystem, dbSessionFactory, tag, zoom));
-        },
-        ShardedDaemonProcessSettings.create(actorSystem),
-        Optional.of(ProjectionBehavior.stopMessage())
-    );
+  static void startProjection(ActorSystem<?> actorSystem) {
+    //DeviceProjectorAllZooms.start(actorSystem);
+    //DeviceProjectorSingleZoom.start(actorSystem);
+    DeviceProjectionFiltered.start(actorSystem);
   }
 }

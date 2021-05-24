@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.sql.DataSource;
 
@@ -18,9 +19,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.typed.ActorSystem;
+import akka.cluster.sharding.typed.ShardedDaemonProcessSettings;
+import akka.cluster.sharding.typed.javadsl.ShardedDaemonProcess;
 import akka.japi.function.Function;
 import akka.persistence.jdbc.query.javadsl.JdbcReadJournal;
 import akka.persistence.query.Offset;
+import akka.projection.ProjectionBehavior;
 import akka.projection.ProjectionId;
 import akka.projection.eventsourced.EventEnvelope;
 import akka.projection.eventsourced.javadsl.EventSourcedProvider;
@@ -162,7 +166,28 @@ class DeviceProjectorSingleZoom {
     }
   }
 
-  static GroupedProjection<Offset, EventEnvelope<Device.Event>> start(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, String tag, int zoom) {
+  // For every tag there are 16 projection event handlers
+  // One event handler per zoom from zoom 3 to 18
+  static void start(ActorSystem<?> actorSystem) {
+    final var dbSessionFactory = new DeviceProjectorSingleZoom.DbSessionFactory(actorSystem);
+    final var tags = Device.tagsAll(actorSystem);
+
+    ShardedDaemonProcess.get(actorSystem).init(
+        ProjectionBehavior.Command.class,
+        "region-summary",
+        tags.size() * 16,
+        id -> {
+          final var tag = tags.get(id / 16);
+          final var zoom = 3 + id % 16;
+          return ProjectionBehavior.create(DeviceProjectorSingleZoom.start(actorSystem, dbSessionFactory, tag, zoom));
+        },
+        ShardedDaemonProcessSettings.create(actorSystem),
+        Optional.of(ProjectionBehavior.stopMessage())
+    );
+  }
+
+  private static GroupedProjection<Offset, EventEnvelope<Device.Event>>
+      start(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, String tag, int zoom) {
     final int groupAfterEnvelopes = actorSystem.settings().config().getInt("woe.twin.projection.group-after-envelopes");
     final Duration groupAfterDuration = actorSystem.settings().config().getDuration("woe.twin.projection.group-after-duration");
     final SourceProvider<Offset, EventEnvelope<Device.Event>> sourceProvider =

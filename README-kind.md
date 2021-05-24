@@ -1,14 +1,14 @@
 
 # `kind` (`minikube` alternative) Installation and Setup
 
-Follow these instructions for installing and running the woe-sim microservice using Minikube.
+Follow these instructions for installing and running the woe-twin microservice using Minikube.
 
 ## Prerequisites
 
 Clone the weo-sim Github project.
 
 ~~~bash
-git clone https://github.com/mckeeh3/woe-sim.git
+git clone https://github.com/mckeeh3/woe-twin.git
 ~~~
 
 ## Install Kubernetes CLI
@@ -121,8 +121,8 @@ local-path-storage   replicaset.apps/local-path-provisioner-78776bfc44   1      
 ## Deploy either Cassandra or PostgreSQL database
 
 See the instructions for deploying to Kubernetes either
-[Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-helm-cassandra.md) or
-[PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-helm-postgresql.md).
+[Cassandra](https://github.com/mckeeh3/woe-twin/blob/master/README-helm-cassandra.md) or
+[PostgreSQL](https://github.com/mckeeh3/woe-twin/blob/master/README-helm-postgresql.md).
 
 ### Adjust application.conf
 
@@ -159,7 +159,7 @@ When using Docker hub, add your Docker user to the image name in the pom.
 
 ### Build the Docker image
 
-From the woe-sim project directory.
+From the woe-twin project directory.
 
 Build the project, which will create a new Docker image.
 
@@ -183,17 +183,17 @@ mvn clean package docker:push
 The namespace only needs to be created once.
 
 ~~~bash
-kubectl create namespace woe-sim
+kubectl create namespace woe-twin
 ~~~
 
 ~~~text
-namespace/woe-sim created
+namespace/woe-twin created
 ~~~
 
 Set this namespace as the default for subsequent `kubectl` commands.
 
 ~~~bash
-kubectl config set-context --current --namespace=woe-sim
+kubectl config set-context --current --namespace=woe-twin
 ~~~
 
 ~~~text
@@ -204,14 +204,14 @@ Context "kind-kind" modified.
 
 Select the deployment file for the database environment that you are using.
 
-For Cassandra, use file `kubernetes/woe-sim-helm-cassandra.yml`. For PostgreSQL, use file `kubernetes/woe-sim-helm-postgresql.yml`.
+For Cassandra, use file `kubernetes/woe-twin-helm-cassandra.yml`. For PostgreSQL, use file `kubernetes/woe-twin-helm-postgresql.yml`.
 
 ~~~bash
-kubectl apply -f kubernetes/woe-sim-helm-postgresql.yml
+kubectl apply -f kubernetes/woe-twin-helm-postgresql.yml
 ~~~
 
 ~~~text
-deployment.apps/woe-sim created
+deployment.apps/woe-twin created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
@@ -221,22 +221,22 @@ rolebinding.rbac.authorization.k8s.io/read-pods created
 Create a load balancer to enable access to the WOE Sim microservice HTTP endpoint.
 
 ~~~bash
-kubectl expose deployment woe-sim --type=LoadBalancer --name=woe-sim-service
+kubectl expose deployment woe-twin --type=LoadBalancer --name=woe-twin-service
 ~~~
 
 ~~~text
-service/woe-sim-service exposed
+service/woe-twin-service exposed
 ~~~
 
 Next, view to external port assignments.
 
 ~~~bash
-kubectl get services woe-sim-service
+kubectl get services woe-twin-service
 ~~~
 
 ~~~text
 NAME              TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-woe-sim-service   LoadBalancer   10.107.51.103   <pending>     2552:32361/TCP,8558:31809/TCP,8080:30968/TCP   108s
+woe-twin-service   LoadBalancer   10.107.51.103   <pending>     2552:32361/TCP,8558:31809/TCP,8080:30968/TCP   108s
 ~~~
 
 Note that the `EXTERNAL-IP` is in a `<pending>` state.
@@ -333,15 +333,15 @@ Apply this modified file.
 kc apply -f /tmp/metallb.yaml
 ~~~
 
-Next, verify that the `woe-sim-service` LoadBalancer has an assigned external IP.
+Next, verify that the `woe-twin-service` LoadBalancer has an assigned external IP.
 
 ~~~bash
-kubectl get services woe-sim-service
+kubectl get services woe-twin-service
 ~~~
 
 ~~~text
 NAME              TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)                                        AGE
-woe-sim-service   LoadBalancer   10.96.130.159   172.18.255.200   8080:30924/TCP,8558:30721/TCP,2552:31361/TCP   15h
+woe-twin-service   LoadBalancer   10.96.130.159   172.18.255.200   8080:30924/TCP,8558:30721/TCP,2552:31361/TCP   15h
 ~~~
 
 Verify that the load balancer is working. Run a `curl` command using the load balancer IP and port 8558, that Akka Management port.
@@ -371,10 +371,10 @@ curl -v http://172.18.255.200:8558/cluster/members | python -m json.tool
 100   568  100   568    0     0   277k      0 --:--:-- --:--:-- --:--:--  277k
 * Connection #0 to host 172.18.255.200 left intact
 {
-    "leader": "akka://woe-sim@10.244.0.26:25520",
+    "leader": "akka://woe-twin@10.244.0.26:25520",
     "members": [
         {
-            "node": "akka://woe-sim@10.244.0.26:25520",
+            "node": "akka://woe-twin@10.244.0.26:25520",
             "nodeUid": "925406639243941266",
             "roles": [
                 "dc-default"
@@ -382,7 +382,7 @@ curl -v http://172.18.255.200:8558/cluster/members | python -m json.tool
             "status": "Up"
         },
         {
-            "node": "akka://woe-sim@10.244.0.27:25520",
+            "node": "akka://woe-twin@10.244.0.27:25520",
             "nodeUid": "1608401123146447922",
             "roles": [
                 "dc-default"
@@ -390,7 +390,7 @@ curl -v http://172.18.255.200:8558/cluster/members | python -m json.tool
             "status": "Up"
         },
         {
-            "node": "akka://woe-sim@10.244.0.28:25520",
+            "node": "akka://woe-twin@10.244.0.28:25520",
             "nodeUid": "4831089820306204355",
             "roles": [
                 "dc-default"
@@ -398,11 +398,11 @@ curl -v http://172.18.255.200:8558/cluster/members | python -m json.tool
             "status": "Up"
         }
     ],
-    "oldest": "akka://woe-sim@10.244.0.26:25520",
+    "oldest": "akka://woe-twin@10.244.0.26:25520",
     "oldestPerRole": {
-        "dc-default": "akka://woe-sim@10.244.0.26:25520"
+        "dc-default": "akka://woe-twin@10.244.0.26:25520"
     },
-    "selfNode": "akka://woe-sim@10.244.0.28:25520",
+    "selfNode": "akka://woe-twin@10.244.0.28:25520",
     "unreachable": []
 }
 ~~~
