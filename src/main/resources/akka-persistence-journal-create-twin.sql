@@ -1,12 +1,33 @@
 
-CREATE TABLE IF NOT EXISTS woe_twin_journal (
+CREATE TABLE IF NOT EXISTS public.woe_twin_event_journal(
   ordering BIGSERIAL,
   persistence_id VARCHAR(255) NOT NULL,
   sequence_number BIGINT NOT NULL,
   deleted BOOLEAN DEFAULT FALSE NOT NULL,
-  tags VARCHAR(255) DEFAULT NULL,
-  message BYTEA NOT NULL,
+
+  writer VARCHAR(255) NOT NULL,
+  write_timestamp BIGINT,
+  adapter_manifest VARCHAR(255),
+
+  event_ser_id INTEGER NOT NULL,
+  event_ser_manifest VARCHAR(255) NOT NULL,
+  event_payload BYTEA NOT NULL,
+
+  meta_ser_id INTEGER,
+  meta_ser_manifest VARCHAR(255),
+  meta_payload BYTEA,
+
   PRIMARY KEY(persistence_id, sequence_number)
 );
 
-CREATE UNIQUE INDEX woe_twin_journal_ordering_idx ON journal(ordering);
+CREATE UNIQUE INDEX woe_twin_event_journal_ordering_idx ON public.woe_twin_event_journal(ordering);
+
+CREATE TABLE IF NOT EXISTS public.woe_twin_event_tag(
+    event_id BIGINT,
+    tag VARCHAR(256),
+    PRIMARY KEY(event_id, tag),
+    CONSTRAINT fk_event_journal
+      FOREIGN KEY(event_id)
+      REFERENCES woe_twin_event_journal(ordering)
+      ON DELETE CASCADE
+);

@@ -410,22 +410,22 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     }
   }
 
-  static final String projectionShards = "woe.twin.projection-shards";
+  static final String entityTagsSetting = "woe.twin.entity-tags";
 
   private Set<String> tagsForEntity() {
-    int numberOfShards = actorContext.getSystem().settings().config().getInt(projectionShards);
-    return tagsFor(region, numberOfShards);
+    final var entityTagsCount = actorContext.getSystem().settings().config().getInt(entityTagsSetting);
+    return tagsFor(region, entityTagsCount);
   }
 
   static Set<String> tagsFor(WorldMap.Region region, int numberOfShards) {
-    final String entityId = entityIdOf(region);
+    final var entityId = entityIdOf(region);
     return Collections.singleton("" + Math.abs(entityId.hashCode()) % numberOfShards);
   }
 
   static List<String> tagsAll(ActorSystem<?> actorSystem) {
-    final List<String> tags = new ArrayList<>();
-    final int numberOfShards = actorSystem.settings().config().getInt(projectionShards);
-    IntStream.range(0, numberOfShards).forEach(tagId -> tags.add(String.format("%d", tagId)));
+    final var tags = new ArrayList<String>();
+    final var entityTagsCount = actorSystem.settings().config().getInt(entityTagsSetting);
+    IntStream.range(0, entityTagsCount).forEach(tagId -> tags.add(String.format("%d", tagId)));
     return tags;
   }
 

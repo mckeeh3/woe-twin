@@ -87,6 +87,8 @@ spec:
               value: "8081"
             - name: device_projection_jdbc_pool_size
               value: "50"
+            - name: entity_tags
+              value: "1"
             - name: projection_shards
               value: "1"
             - name: projection_group_after_envelopes

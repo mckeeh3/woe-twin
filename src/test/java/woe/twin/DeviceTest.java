@@ -74,7 +74,7 @@ public class DeviceTest {
 
   @Test
   public void tagsAllBasedOnConfigSettings() {
-    final int numberOfShards = testKit.system().settings().config().getInt(Device.projectionShards);
+    final int numberOfShards = testKit.system().settings().config().getInt(Device.entityTagsSetting);
     final List<String> tags = Device.tagsAll(testKit.system());
 
     assertEquals(numberOfShards, tags.size());
