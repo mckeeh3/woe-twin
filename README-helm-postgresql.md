@@ -128,8 +128,11 @@ kubectl cp src/main/resources/akka-persistence-journal-create-twin.sql postgresq
 
 From the terminal running the `psql` run the following command.
 
-~~~text
+~~~bash
 postgres=# \i /tmp/akka-persistence-journal-create-twin.sql
+~~~
+
+~~~text
 CREATE TABLE
 CREATE INDEX
 CREATE TABLE
