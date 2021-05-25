@@ -96,7 +96,7 @@ kubectl create secret -n woe-twin generic postgresql-env \
 --from-literal=postgresql_url=jdbc:postgresql://postgresql.postgresql.svc.cluster.local:5432/postgres
 ~~~
 
-## Create the Akka Persistence PostgreSQL tables
+## Create the Akka Persistence, the Akka Projection, and the Projection custom PostgreSQL tables
 
 Run a PostgreSQL pod that can be used to create the Akka Persistence tables.
 
@@ -124,12 +124,14 @@ postgresql-postgresql-0   1/1     Running   0          11m
 
 ~~~bash
 kubectl cp src/main/resources/akka-persistence-journal-create-twin.sql postgresql/postgresql-client:/tmp
+kubectl cp src/main/resources/akka-projection-offset-store.sql postgresql/postgresql-client:/tmp
+kubectl cp src/main/resources/region-projection.sql postgresql/postgresql-client:/tmp
 ~~~
 
 From the terminal running the `psql` run the following command.
 
 ~~~bash
-postgres=# \i /tmp/akka-persistence-journal-create-twin.sql
+\i /tmp/akka-persistence-journal-create-twin.sql
 ~~~
 
 ~~~text
@@ -137,6 +139,22 @@ CREATE TABLE
 CREATE INDEX
 CREATE TABLE
 postgres=#
+~~~
+
+~~~bash
+\i /tmp/akka-projection-offset-store.sql
+~~~
+
+~~~text
+
+~~~
+
+~~~bash
+\i /tmp/region-projection.sql
+~~~
+
+~~~text
+
 ~~~
 
 Verify that the tables have been created.

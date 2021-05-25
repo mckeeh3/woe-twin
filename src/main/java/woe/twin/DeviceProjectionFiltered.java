@@ -88,7 +88,7 @@ class DeviceProjectionFiltered {
       final StringBuilder sql = new StringBuilder();
       String delimiter = "";
 
-      sql.append("insert into region");
+      sql.append("insert into woe_twin_region");
       sql.append(" (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng, device_count, happy_count, sad_count)");
       sql.append(" values");
 

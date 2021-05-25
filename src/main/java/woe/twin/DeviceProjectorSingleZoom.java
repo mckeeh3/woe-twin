@@ -186,7 +186,7 @@ class DeviceProjectorSingleZoom {
     );
   }
 
-  private static GroupedProjection<Offset, EventEnvelope<Device.Event>>
+  static GroupedProjection<Offset, EventEnvelope<Device.Event>>
       start(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, String tag, int zoom) {
     final int groupAfterEnvelopes = actorSystem.settings().config().getInt("woe.twin.projection.group-after-envelopes");
     final Duration groupAfterDuration = actorSystem.settings().config().getDuration("woe.twin.projection.group-after-duration");

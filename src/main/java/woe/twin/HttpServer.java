@@ -173,7 +173,7 @@ public class HttpServer {
   }
 
   private QueryResponse queryDeviceTotals() throws SQLException {
-    final var sql = "select sum(device_count), sum(happy_count), sum(sad_count) from region where zoom = 3";
+    final var sql = "select sum(device_count), sum(happy_count), sum(sad_count) from woe_twin_region where zoom = 3";
     try (final Connection connection = dataSource.getConnection();
           final Statement statement = connection.createStatement()) {
       final var resultSet = statement.executeQuery(sql);
@@ -203,7 +203,7 @@ public class HttpServer {
   }
 
   private static String sqlInRange(WorldMap.Region regionQuery) {
-    return String.format("select * from region"
+    return String.format("select * from woe_twin_region"
             + " where zoom = %d"
             + " and top_left_lat <= %1.9f"
             + " and top_left_lng >= %1.9f"
@@ -221,7 +221,7 @@ public class HttpServer {
     final var nl = String.format("%n");
     var delimiter = "";
 
-    sql.append("select * from region").append(nl);
+    sql.append("select * from woe_twin_region").append(nl);
     sql.append(" where (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)").append(nl);
     sql.append(" in (values ");
 
