@@ -410,10 +410,10 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     }
   }
 
-  static final String entityTagsSetting = "woe.twin.entity-tags";
+  static final String tagCountSetting = "woe.twin.tag-count";
 
   private Set<String> tagsForEntity() {
-    final var entityTagsCount = actorContext.getSystem().settings().config().getInt(entityTagsSetting);
+    final var entityTagsCount = actorContext.getSystem().settings().config().getInt(tagCountSetting);
     return tagsFor(region, entityTagsCount);
   }
 
@@ -424,7 +424,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
 
   static List<String> tagsAll(ActorSystem<?> actorSystem) {
     final var tags = new ArrayList<String>();
-    final var entityTagsCount = actorSystem.settings().config().getInt(entityTagsSetting);
+    final var entityTagsCount = actorSystem.settings().config().getInt(tagCountSetting);
     IntStream.range(0, entityTagsCount).forEach(tagId -> tags.add(String.format("%d", tagId)));
     return tags;
   }

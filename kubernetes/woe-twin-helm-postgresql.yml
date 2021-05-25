@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: woe-twin
+  name: woe-twin
+  namespace: woe-twin-1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: woe-twin
+  template:
+    metadata:
+      labels:
+        app: woe-twin
+        actorSystemName: woe-twin
+    spec:
+      containers:
+        - name: woe-twin
+          image: mckeeh3/woe-twin:latest
+          imagePullPolicy: Always
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: management
+            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              path: "/alive"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 5
+            initialDelaySeconds: 20
+          ports:
+            # akka-management and bootstrap
+            - name: management
+              containerPort: 8558
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: grpc
+              containerPort: 8081
+              protocol: TCP
+            # akka remoting
+            - name: remoting
+              containerPort: 2552
+              protocol: TCP
+          resources:
+            limits:
+              memory: 8Gi
+            requests:
+              memory: 1Gi
+              cpu: 1
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xlog:gc -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: "2"
+            - name: postgresql_url
+              valueFrom: { secretKeyRef: { name: postgresql-env, key: postgresql_url } }
+            - name: postgresql_username
+              valueFrom: { secretKeyRef: { name: postgresql-env, key: postgresql_username } }
+            - name: postgresql_password
+              valueFrom: { secretKeyRef: { name: postgresql-env, key: postgresql_password } }
+            - name: woe_simulator_http_server_host
+              value: "woe-sim-service.woe-sim-1.svc.cluster.local"
+            - name: woe_simulator_http_server_port
+              value: "8080"
+            - name: woe_twin_http_server_host
+              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+            - name: woe_twin_http_server_port
+              value: "8080"
+            - name: woe_twin_grpc_server_host
+              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+            - name: woe_twin_grpc_server_port
+              value: "8081"
+            - name: device_projection_jdbc_pool_size
+              value: "50"
+            - name: tag_count
+              value: "1"
+            - name: projection_shards
+              value: "1"
+            - name: projection_group_after_envelopes
+              value: "100"
+            - name: projection_group_after_duration
+              value: "1s"
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reader
+  namespace: woe-twin-1
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["pods"]
+    verbs: ["get", "watch", "list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-pods
+  namespace: woe-twin-1
+subjects:
+  # Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
+  # For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
+  - kind: User
+    name: system:serviceaccount:woe-twin-1:default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
