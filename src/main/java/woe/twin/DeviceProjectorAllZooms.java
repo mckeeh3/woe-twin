@@ -105,7 +105,7 @@ class DeviceProjectorAllZooms {
         delimiter = ",";
       }
 
-      sql.append(" on conflict on constraint region_pkey");
+      sql.append(" on conflict on constraint woe_twin_region_pkey");
       sql.append(" do update set");
       sql.append(" device_count = region.device_count + excluded.device_count,");
       sql.append(" happy_count = region.happy_count + excluded.happy_count,");

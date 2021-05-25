@@ -410,7 +410,7 @@ class Device extends EventSourcedBehavior<Device.Command, Device.Event, Device.S
     }
   }
 
-  static final String tagCountSetting = "woe.twin.tag-count";
+  static final String tagCountSetting = "woe.twin.projection.tag-count";
 
   private Set<String> tagsForEntity() {
     final var entityTagsCount = actorContext.getSystem().settings().config().getInt(tagCountSetting);

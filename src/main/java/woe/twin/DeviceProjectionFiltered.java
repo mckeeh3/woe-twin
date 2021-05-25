@@ -2,7 +2,6 @@ package woe.twin;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +76,7 @@ class DeviceProjectionFiltered {
     }
 
     private List<RegionSummary> summarize(List<DeviceEvent> eventEnvelopes, int zoom) {
-      final RegionSummaries regionSummaries = new RegionSummaries(zoom);
+      final var regionSummaries = new RegionSummaries(zoom);
 
       eventEnvelopes.forEach(event-> regionSummaries.add(event));
 
@@ -85,7 +84,7 @@ class DeviceProjectionFiltered {
     }
 
     static String sql(List<RegionSummary> regionSummaries) {
-      final StringBuilder sql = new StringBuilder();
+      final var sql = new StringBuilder();
       String delimiter = "";
 
       sql.append("insert into woe_twin_region");
@@ -93,7 +92,7 @@ class DeviceProjectionFiltered {
       sql.append(" values");
 
       for (RegionSummary regionSummary : regionSummaries) {
-        final WorldMap.Region region = regionSummary.region;
+        final var region = regionSummary.region;
         sql.append(delimiter);
         sql.append(String.format("%n (%d, %1.9f, %1.9f, %1.9f, %1.9f, %d, %d, %d)",
             region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng,
@@ -101,11 +100,11 @@ class DeviceProjectionFiltered {
         delimiter = ",";
       }
 
-      sql.append(" on conflict on constraint region_pkey");
+      sql.append(" on conflict on constraint woe_twin_region_pkey");
       sql.append(" do update set");
-      sql.append(" device_count = region.device_count + excluded.device_count,");
-      sql.append(" happy_count = region.happy_count + excluded.happy_count,");
-      sql.append(" sad_count = region.sad_count + excluded.sad_count");
+      sql.append(" device_count = woe_twin_region.device_count + excluded.device_count,");
+      sql.append(" happy_count = woe_twin_region.happy_count + excluded.happy_count,");
+      sql.append(" sad_count = woe_twin_region.sad_count + excluded.sad_count");
 
       return sql.toString();
     }
@@ -163,10 +162,10 @@ class DeviceProjectionFiltered {
     private final DataSource dataSource;
 
     DbSessionFactory(ActorSystem<?> actorSystem) {
-      final String dbUrl = actorSystem.settings().config().getString("woe.twin.sql.url");
-      final String username = actorSystem.settings().config().getString("woe.twin.sql.username");
-      final String password = actorSystem.settings().config().getString("woe.twin.sql.password");
-      final int maxPoolSize = actorSystem.settings().config().getInt("woe.twin.sql.max-pool-size");
+      final var dbUrl = actorSystem.settings().config().getString("woe.twin.sql.url");
+      final var username = actorSystem.settings().config().getString("woe.twin.sql.username");
+      final var password = actorSystem.settings().config().getString("woe.twin.sql.password");
+      final var maxPoolSize = actorSystem.settings().config().getInt("woe.twin.sql.max-pool-size");
 
       final HikariConfig config = new HikariConfig();
       config.setJdbcUrl(dbUrl);
@@ -184,18 +183,18 @@ class DeviceProjectionFiltered {
     }
   }
 
-  static void start(ActorSystem<?> actorSystem) {
+  static void init(ActorSystem<?> actorSystem) {
     final var shards = actorSystem.settings().config().getInt("woe.twin.projection.shards");
     final var dbSessionFactory = new DbSessionFactory(actorSystem);
     final var tags = Device.tagsAll(actorSystem);
 
-    IntStream.rangeClosed(3, 18).forEach(zoom -> start(actorSystem, dbSessionFactory, zoom, shards, tags.get(0)));
+    IntStream.rangeClosed(3, 18).forEach(zoom -> init(actorSystem, dbSessionFactory, zoom, shards, tags.get(0)));
   }
 
-  private static void start(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, int zoom, int shards, String tag) {
+  private static void init(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, int zoom, int shards, String tag) {
     ShardedDaemonProcess.get(actorSystem).init(
       ProjectionBehavior.Command.class,
-      "region-summary",
+      "region-summary-projection-" + zoom,
       shards,
       shardId -> ProjectionBehavior.create(create(actorSystem, dbSessionFactory, zoom, shards, shardId, tag)),
       ShardedDaemonProcessSettings.create(actorSystem),
@@ -205,8 +204,9 @@ class DeviceProjectionFiltered {
 
   private static GroupedProjection<Offset, EventEnvelope<Device.Event>>
       create(ActorSystem<?> actorSystem, DbSessionFactory dbSessionFactory, int zoom, int shards, int shardId, String tag) {
-    final int groupAfterEnvelopes = actorSystem.settings().config().getInt("woe.twin.projection.group-after-envelopes");
-    final Duration groupAfterDuration = actorSystem.settings().config().getDuration("woe.twin.projection.group-after-duration");
+    final var groupAfterEnvelopes = actorSystem.settings().config().getInt("woe.twin.projection.group-after-envelopes");
+    final var groupAfterDuration = actorSystem.settings().config().getDuration("woe.twin.projection.group-after-duration");
+
     final SourceProvider<Offset, EventEnvelope<Device.Event>> sourceProvider =
       EventSourcedProvider.eventsByTag(actorSystem, JdbcReadJournal.Identifier(), tag);
 

@@ -10,4 +10,3 @@ create table if not exists woe_twin_region (
     sad_count       integer,
     constraint woe_twin_region_pkey primary key (zoom, top_left_lat, top_left_lng, bot_right_lat, bot_right_lng)
 );
-

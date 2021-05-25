@@ -91,6 +91,6 @@ public class Main {
   static void startProjection(ActorSystem<?> actorSystem) {
     //DeviceProjectorAllZooms.start(actorSystem);
     //DeviceProjectorSingleZoom.start(actorSystem);
-    DeviceProjectionFiltered.start(actorSystem);
+    DeviceProjectionFiltered.init(actorSystem);
   }
 }
