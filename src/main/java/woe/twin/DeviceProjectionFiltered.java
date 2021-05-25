@@ -185,7 +185,7 @@ class DeviceProjectionFiltered {
   }
 
   static void start(ActorSystem<?> actorSystem) {
-    final var shards = actorSystem.settings().config().getInt("woe-twin.projection.shards");
+    final var shards = actorSystem.settings().config().getInt("woe.twin.projection.shards");
     final var dbSessionFactory = new DbSessionFactory(actorSystem);
     final var tags = Device.tagsAll(actorSystem);
 

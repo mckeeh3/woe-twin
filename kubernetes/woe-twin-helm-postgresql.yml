@@ -71,7 +71,7 @@ spec:
             - name: postgresql_password
               valueFrom: { secretKeyRef: { name: postgresql-env, key: postgresql_password } }
             - name: woe_simulator_http_server_host
-              value: "woe-sim-service.woe-sim-1.svc.cluster.local"
+              value: "woe-sim-service.woe-sim.svc.cluster.local"
             - name: woe_simulator_http_server_port
               value: "8080"
             - name: woe_twin_http_server_host

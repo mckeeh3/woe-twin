@@ -268,18 +268,28 @@ kubectl get services woe-twin-service
 ~~~
 
 ~~~text
-NAME              TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-woe-twin-service   LoadBalancer   10.107.51.103   <pending>     2552:32361/TCP,8558:31809/TCP,8080:30968/TCP   108s
+NAME               TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)                                                       AGE
+woe-twin-service   LoadBalancer   10.96.58.235   172.18.255.201   8558:30355/TCP,8080:30055/TCP,8081:31657/TCP,2552:31388/TCP   13s
 ~~~
 
-Note that the `EXTERNAL-IP` is in a `<pending>` state.
+Note if the `EXTERNAL-IP` is in a `<pending>` state or has an external IP.
+
+If the load balancer has an external IP, access the map UI n a browser using the IP and port 8080.
+
+~~~text
+http://172.18.255.201:8080/
+~~~
+
+## Setup a Kind LoadBalancer
+
+This step only needs to be done once for a Kind cluster. Perform the following steps if the load balancer created above is in a `<pending>` state.
 
 The [Kind Load Balancer](https://kind.sigs.k8s.io/docs/user/loadbalancer/) documentation describes how to
 get service of type LoadBalancer working in a kind cluster using Metallb.
 
 The following are the steps provided in the Kind LoadBalancer documentation.
 
-#### Installing metallb using default manifests
+### Installing metallb using default manifests
 
 Create the metallb namespace
 
@@ -287,13 +297,13 @@ Create the metallb namespace
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/master/manifests/namespace.yaml
 ~~~
 
-#### Create the memberlist secrets
+### Create the memberlist secrets
 
 ~~~bash
 kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" 
 ~~~
 
-#### Apply metallb manifest
+### Apply metallb manifest
 
 ~~~bash
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/master/manifests/metallb.yaml
@@ -305,7 +315,7 @@ Wait for metallb pods to have a status of Running
 kubectl get pods -n metallb-system --watch
 ~~~
 
-#### Setup address pool used by loadbalancers
+### Setup address pool used by loadbalancers
 
 To complete layer2 configuration, we need to provide metallb a range of IP addresses it controls. We want this range to be on the docker kind network.
 
