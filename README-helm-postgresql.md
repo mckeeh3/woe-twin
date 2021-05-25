@@ -146,7 +146,10 @@ postgres=#
 ~~~
 
 ~~~text
-
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+postgres=#
 ~~~
 
 ~~~bash
@@ -154,23 +157,30 @@ postgres=#
 ~~~
 
 ~~~text
-
+CREATE TABLE
+postgres=#
 ~~~
 
 Verify that the tables have been created.
 
 ~~~bash
-postgres=# \d
+\d
 ~~~
 
 ~~~text
-                         List of relations
- Schema |                Name                 |   Type   |  Owner
---------+-------------------------------------+----------+----------
- public | woe_twin_event_journal              | table    | postgres
- public | woe_twin_event_journal_ordering_seq | sequence | postgres
- public | woe_twin_event_tag                  | table    | postgres
-(3 rows)
+                          List of relations
+ Schema |                 Name                  |   Type   |  Owner
+--------+---------------------------------------+----------+----------
+ public | woe_sim_event_journal                 | table    | postgres
+ public | woe_sim_event_journal_ordering_seq    | sequence | postgres
+ public | woe_sim_event_tag                     | table    | postgres
+ public | woe_twin_akka_projection_management   | table    | postgres
+ public | woe_twin_akka_projection_offset_store | table    | postgres
+ public | woe_twin_event_journal                | table    | postgres
+ public | woe_twin_event_journal_ordering_seq   | sequence | postgres
+ public | woe_twin_event_tag                    | table    | postgres
+ public | woe_twin_region                       | table    | postgres
+(9 rows)
 
 postgres=#
 ~~~
