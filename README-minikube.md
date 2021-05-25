@@ -220,7 +220,7 @@ role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
 
-### Check if the pods are running
+### Verify that the pods are running
 
 This may take a few moments.
 
@@ -229,10 +229,22 @@ kubectl get pods
 ~~~
 
 ~~~text
-NAME                      READY   STATUS    RESTARTS   AGE
-woe-twin-77dfcc864b-6cvrg   1/1     Running   0          3h10m
-woe-twin-77dfcc864b-trmz7   1/1     Running   0          3h10m
-woe-twin-77dfcc864b-vf78s   1/1     Running   0          3h10m
+NAME                        READY   STATUS    RESTARTS   AGE
+woe-twin-7594dcc7b7-bmf4t   1/1     Running   0          3m21s
+woe-twin-7594dcc7b7-gnfld   1/1     Running   0          3m21s
+woe-twin-7594dcc7b7-j9hv9   1/1     Running   0          3m21s
+~~~
+
+If there is a problem check the logs.
+
+~~~bash
+kubectl logs woe-twin-7594dcc7b7-bmf4t
+~~~
+
+You can examine one of the pods in more detail, e.g. examine the environment variable settings.
+
+~~~bash
+kubectl describe pod woe-twin-7594dcc7b7-bmf4t
 ~~~
 
 If there are configuration issues or if you want to check something in a container, start a `bash` shell in one of the pods using the following command. For example, start a `bash` shell on the 3rd pod listed above.

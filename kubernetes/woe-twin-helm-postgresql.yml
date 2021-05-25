@@ -4,7 +4,7 @@ metadata:
   labels:
     app: woe-twin
   name: woe-twin
-  namespace: woe-twin-1
+  namespace: woe-twin
 spec:
   replicas: 3
   selector:
@@ -75,11 +75,11 @@ spec:
             - name: woe_simulator_http_server_port
               value: "8080"
             - name: woe_twin_http_server_host
-              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+              value: "woe-twin-service.woe-twin.svc.cluster.local"
             - name: woe_twin_http_server_port
               value: "8080"
             - name: woe_twin_grpc_server_host
-              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+              value: "woe-twin-service.woe-twin.svc.cluster.local"
             - name: woe_twin_grpc_server_port
               value: "8081"
             - name: device_projection_jdbc_pool_size
@@ -98,7 +98,7 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: pod-reader
-  namespace: woe-twin-1
+  namespace: woe-twin
 rules:
   - apiGroups: [""] # "" indicates the core API group
     resources: ["pods"]
@@ -108,12 +108,12 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
-  namespace: woe-twin-1
+  namespace: woe-twin
 subjects:
   # Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
   # For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
   - kind: User
-    name: system:serviceaccount:woe-twin-1:default
+    name: system:serviceaccount:woe-twin:default
 roleRef:
   kind: Role
   name: pod-reader

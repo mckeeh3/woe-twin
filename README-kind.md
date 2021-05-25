@@ -5,7 +5,7 @@ Follow these instructions for installing and running the woe-twin microservice u
 
 ## Prerequisites
 
-Clone the weo-sim Github project.
+Clone the weo-twin Github project.
 
 ~~~bash
 git clone https://github.com/mckeeh3/woe-twin.git
@@ -222,9 +222,36 @@ role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
 
+### Verify that the pods are running
+
+This may take a few moments.
+
+~~~bash
+kubectl get pods
+~~~
+
+~~~text
+NAME                        READY   STATUS    RESTARTS   AGE
+woe-twin-7594dcc7b7-bmf4t   1/1     Running   0          3m21s
+woe-twin-7594dcc7b7-gnfld   1/1     Running   0          3m21s
+woe-twin-7594dcc7b7-j9hv9   1/1     Running   0          3m21s
+~~~
+
+If there is a problem check the logs.
+
+~~~bash
+kubectl logs woe-twin-7594dcc7b7-bmf4t
+~~~
+
+You can examine one of the pods in more detail, e.g. examine the environment variable settings.
+
+~~~bash
+kubectl describe pod woe-twin-7594dcc7b7-bmf4t
+~~~
+
 ### Create a Load Balancer to enable external access
 
-Create a load balancer to enable access to the WOE Sim microservice HTTP endpoint.
+Create a load balancer to enable access to the woe-twin microservice HTTP endpoint.
 
 ~~~bash
 kubectl expose deployment woe-twin --type=LoadBalancer --name=woe-twin-service
