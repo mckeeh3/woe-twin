@@ -3,6 +3,15 @@
 
 This microservice simulates geographically distributed IoT devices. The microservice handles incoming IoT device telemetry messages. These messages create, delete, and change the state of individual IoT devices. A map UI is used to visualize devices' location and submit commands to manipulate IoT devices.
 
+- [Where On Earth Twin (woe-twin) Microservice](#where-on-earth-twin-woe-twin-microservice)
+  - [Installation](#installation)
+    - [Kubernetes Environments](#kubernetes-environments)
+    - [Database Environments](#database-environments)
+  - [Design notes](#design-notes)
+  - [Map Regions](#map-regions)
+    - [Map Region Selections](#map-region-selections)
+  - [WoE Map UI](#woe-map-ui)
+
 ## Installation
 
 How you install this Akka microservice depends on your target environment. There are environment specific README documents for each of the tested Kubernetes environments. With each deployment you also have to select which database you want to use. There are also README documents for the tested databases.
@@ -26,7 +35,7 @@ How you install this Akka microservice depends on your target environment. There
 
 TODO
 
-### Map Regions
+## Map Regions
 
 Map regions are a rectangular area on a global map. Regions are bounded
 by a top left corner, and a bottom right corner. Corners are defined by latitude
@@ -62,3 +71,8 @@ Once overlaping map selections have been recorded the map will then pass
 the map selection on to map sub regions. Typically, each map region
 contains 4 sub regions. This recursion starts at zoom level 0 and continues
 to zoom level 18.
+
+## WoE Map UI
+
+The WoE Map UI is based on Open Street Map. This is a zoom-able map similar to other web
+maps, such as Google Maps.
