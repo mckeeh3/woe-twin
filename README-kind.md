@@ -1,11 +1,11 @@
 
 # `kind` (`minikube` alternative) Installation and Setup
 
-Follow these instructions for installing and running the woe-twin microservice using Minikube.
+Follow these instructions for installing and running the woe-twin microservice using `kind` (a `minikube` alternative).
 
 ## Prerequisites
 
-Clone the weo-twin Github project.
+Clone the woe-twin Github project.
 
 ~~~bash
 git clone https://github.com/mckeeh3/woe-twin.git
@@ -285,7 +285,7 @@ http://172.18.255.201:8080/
 This step only needs to be done once for a Kind cluster. Perform the following steps if the load balancer created above is in a `<pending>` state.
 
 The [Kind Load Balancer](https://kind.sigs.k8s.io/docs/user/loadbalancer/) documentation describes how to
-get service of type LoadBalancer working in a kind cluster using Metallb.
+get a service of type LoadBalancer working in a kind cluster using Metallb.
 
 The following are the steps provided in the Kind LoadBalancer documentation.
 
@@ -387,7 +387,7 @@ NAME              TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)       
 woe-twin-service   LoadBalancer   10.96.130.159   172.18.255.200   8080:30924/TCP,8558:30721/TCP,2552:31361/TCP   15h
 ~~~
 
-Verify that the load balancer is working. Run a `curl` command using the load balancer IP and port 8558, that Akka Management port.
+Verify that the load balancer is working. Run a `curl` command using the load balancer IP and port 8558, the Akka Management port.
 
 ~~~bash
 curl -v http://172.18.255.200:8558/cluster/members | python -m json.tool
