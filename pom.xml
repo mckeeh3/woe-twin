@@ -27,7 +27,7 @@
     <yugabyte.version>42.2.7-yb-3</yugabyte.version>
     <postgresql.version>42.2.20.jre7</postgresql.version>
     <hikaricp.version>4.0.3</hikaricp.version>
-    <hsqldb.version>2.6.0</hsqldb.version>
+    <hsqldb.version>2.7.1</hsqldb.version>
     <logback.version>1.2.3</logback.version>
     <junit.jupiter.version>5.7.2</junit.jupiter.version>
     <junit.platform.version>1.7.2</junit.platform.version>
